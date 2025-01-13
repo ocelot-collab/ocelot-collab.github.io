@@ -1,37 +1,29 @@
-name: Deploy Docusaurus Site to GitHub Pages
-
 on:
   push:
     branches:
-      - main  # Trigger the action on pushes to the main branch
+      - main # Change this to your default branch if it's different
 
 jobs:
-  build-and-deploy:
+  deploy:
     runs-on: ubuntu-latest
 
     steps:
-      # Step 1: Checkout the repository
       - name: Checkout code
-        uses: actions/checkout@v3
+        uses: actions/checkout@v2
 
-      # Step 2: Set up Node.js
       - name: Setup Node.js
-        uses: actions/setup-node@v3
+        uses: actions/setup-node@v2
         with:
-          node-version: 16
+          node-version: 18 # Use Node.js 18 here
 
-      # Step 3: Install dependencies
       - name: Install dependencies
         run: npm install
 
-      # Step 4: Build the Docusaurus site
-      - name: Build Docusaurus site
+      - name: Build site
         run: npm run build
 
-      # Step 5: Deploy to GitHub Pages
       - name: Deploy to GitHub Pages
         uses: peaceiris/actions-gh-pages@v3
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
-          publish_dir: ./build
-          # By default, this action deploys to the `gh-pages` branch
+          publish_dir: ./build # Change this if your build output directory is different
