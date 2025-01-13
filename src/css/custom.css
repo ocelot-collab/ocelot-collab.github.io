@@ -1,0 +1,41 @@
+/**
+ * Any CSS included here will be global. The classic template
+ * bundles Infima by default. Infima is a CSS framework designed to
+ * work well for content-centric websites.
+ */
+
+/* You can override the default Infima variables here. */
+:root {
+--ifm-color-primary: #156F81;
+--ifm-color-primary-dark: #125F6F; /* Slightly darker */
+--ifm-color-primary-darker: #0F4F5E; /* Even darker */
+--ifm-color-primary-darkest: #0B3F4C; /* Darkest shade */
+--ifm-color-primary-light: #1A7F91; /* Slightly lighter */
+--ifm-color-primary-lighter: #208FA1; /* Even lighter */
+--ifm-color-primary-lightest: #29A3B3; /* Lightest shade */
+  --ifm-code-font-size: 95%;
+  --docusaurus-highlighted-code-line-bg: rgba(0, 0, 0, 0.1);
+}
+
+/* For readability concerns, you should choose a lighter palette in dark mode. */
+[data-theme='dark'] {
+  --ifm-color-primary: #25c2a0;
+  --ifm-color-primary-dark: #21af90;
+  --ifm-color-primary-darker: #1fa588;
+  --ifm-color-primary-darkest: #1a8870;
+  --ifm-color-primary-light: #29d5b0;
+  --ifm-color-primary-lighter: #32d8b4;
+  --ifm-color-primary-lightest: #4fddbf;
+  --docusaurus-highlighted-code-line-bg: rgba(0, 0, 0, 0.3);
+}
+
+.sidebar-metadata {
+  font-size: 0.9em;
+  color: gray;
+  margin-top: 20px;
+  position: fixed; /* Fixes it to the sidebar area */
+  bottom: 10px;      /* Adjust the top position */
+  right: 20px;      /* Adjust this based on your sidebar width */
+  max-width: 200px; /* Prevents content from overflowing */
+  line-height: 1; /* Better readability */
+}
