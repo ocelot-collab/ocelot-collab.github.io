@@ -107,7 +107,7 @@ const config = {
           src: 'img/logo.png',
         },
         items: [
-                    {
+           {
               type: 'docSidebar',
               sidebarId: 'docsSidebar',
               position: 'left',
