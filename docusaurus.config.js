@@ -51,16 +51,7 @@ const config = {
           // Please change this to your repo.
           // Remove this to remove the "edit this page" links.
           editUrl:
-            'https://github.com/ocelot-collab/ocelot',
-        },
-        docs: {
-          sidebarPath: './sidebars.js',
-          remarkPlugins: [remarkMath],
-          rehypePlugins: [rehypeKatex],
-          // Please change this to your repo.
-          // Remove this to remove the "edit this page" links.
-          editUrl:
-            'https://github.com/ocelot-collab/ocelot',
+            'https://github.com/ocelot-collab/ocelot-collab.github.io/tree/main/',
         },
         blog: {
           showReadingTime: true,
@@ -71,7 +62,7 @@ const config = {
           // Please change this to your repo.
           // Remove this to remove the "edit this page" links.
           editUrl:
-            'https://github.com/ocelot-collab/ocelot',
+            'https://github.com/ocelot-collab/ocelot-collab.github.io',
           // Useful options to enforce blogging best practices
           onInlineTags: 'warn',
           onInlineAuthors: 'warn',

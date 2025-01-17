@@ -72,15 +72,6 @@ Ocelot extensively utilizes Python libraries:
 
 ---
 
-## Development and Contributions
-
-Ocelot is an open-source project developed by physicists from:
-- [The European XFEL](http://www.xfel.eu/)
-- [DESY](http://www.desy.de/) (Germany)
-- [NRC Kurchatov Institute](http://www.nrcki.ru/) (Russia)
-
----
-
 ## Examples and Tutorials
 
 While detailed documentation is not yet available, you can find numerous examples in the `/demos/` folder and Jupyter [tutorials](#tutorials) to get started.
