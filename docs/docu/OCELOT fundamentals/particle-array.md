@@ -3,10 +3,10 @@ sidebar_position: 8
 title: ParticleArray
 ---
 
-# ParticleArray Class 
+# [ParticleArray](https://github.com/ocelot-collab/ocelot/blob/master/ocelot/cpbd/beam.py#L726) Class 
 
 ## Description:
-The `ParticleArray` class represents an array of particles with optimized performance for large numbers of particles. It handles the particles' positions and momenta, along with additional functionalities like applying physics processes, sorting particles, and managing lost particles.
+The [`ParticleArray`](https://github.com/ocelot-collab/ocelot/blob/master/ocelot/cpbd/beam.py#L726) class represents an array of particles with optimized performance for large numbers of particles. It handles the particles' positions and momenta, along with additional functionalities like applying physics processes, sorting particles, and managing lost particles.
 
 ### Attributes:
 - **rparticles**: 2D array of shape `(6, n)` representing the particle properties in 6D phase space: 

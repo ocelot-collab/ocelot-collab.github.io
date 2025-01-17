@@ -2,9 +2,10 @@
 sidebar_position: 9
 title: BeamTransform Class
 ---
-# BeamTransform
 
-This section provides documentation for the `BeamTransform` class, which is used for beam matching using Twiss parameters. 
+# [BeamTransform](https://github.com/ocelot-collab/ocelot/blob/master/ocelot/cpbd/physics_proc.py#L374)
+
+This section provides documentation for the [`BeamTransform`](https://github.com/ocelot-collab/ocelot/blob/master/ocelot/cpbd/physics_proc.py#L374) class, which is used for beam matching using Twiss parameters. 
 The class applies beam matching based on the specified parameters, and removes offsets from the beam if required.
 
 

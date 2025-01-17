@@ -47,7 +47,7 @@ Now you can install OCELOT from the source:
 $ python setup.py install
 ```
 
-#### Anaconda Cloud (recommended)
+#### Anaconda Cloud
 The easiest way to install OCELOT is to use Anaconda cloud. In that case use command:
  ```
  $ conda install -c ocelot-collab ocelot

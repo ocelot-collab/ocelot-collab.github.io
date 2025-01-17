@@ -3,9 +3,9 @@ sidebar_position: 11
 title: Chicane
 ---
 
-# Chicane
+# [Chicane](https://github.com/ocelot-collab/ocelot/blob/master/ocelot/cpbd/physics_proc.py#L607)
 
-This section provides documentation for the `Chicane` class, which simulates the longitudinal dynamics of a particle beam in a chicane.
+This section provides documentation for the [`Chicane`](https://github.com/ocelot-collab/ocelot/blob/master/ocelot/cpbd/physics_proc.py#L607) class, which simulates the longitudinal dynamics of a particle beam in a chicane.
 
 ---
 

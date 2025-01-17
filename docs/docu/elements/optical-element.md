@@ -3,10 +3,10 @@ sidebar_position: 1
 title: OpticElement
 ---
 
-# Documentation: `OpticElement` Class
+# [`OpticElement`](https://github.com/ocelot-collab/ocelot/blob/master/ocelot/cpbd/elements/optic_element.py) Class
 
 ## Overview
-The `OpticElement` class serves as a facade to bridge the old and new interfaces of beamline simulation in the OCELOT framework. It manages the underlying element's attributes, its transformations, and provides methods for accessing and manipulating these transformations. Each concrete optic element must implement its own initialization for specific parameters.
+The [`OpticElement`](https://github.com/ocelot-collab/ocelot/blob/master/ocelot/cpbd/elements/optic_element.py) class serves as a facade to bridge the old and new interfaces of beamline simulation in the OCELOT framework. It manages the underlying element's attributes, its transformations, and provides methods for accessing and manipulating these transformations. Each concrete optic element must implement its own initialization for specific parameters.
 
 ---
 

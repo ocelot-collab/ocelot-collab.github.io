@@ -3,9 +3,9 @@ sidebar_position: 7
 title: Spontaneous Radiation Effect
 ---
 
-# Spontaneous Radiation Effect
+# [Spontaneous Radiation Effect](https://github.com/ocelot-collab/ocelot/blob/master/ocelot/cpbd/physics_proc.py#L478)
 
-This section provides documentation for the `SpontanRadEffects` class, which simulates the effects of spontaneous radiation on particles, including energy loss and quantum diffusion.
+This section provides documentation for the [`SpontanRadEffects`](https://github.com/ocelot-collab/ocelot/blob/master/ocelot/cpbd/physics_proc.py#L478) class, which simulates the effects of spontaneous radiation on particles, including energy loss and quantum diffusion.
 
 ---
 

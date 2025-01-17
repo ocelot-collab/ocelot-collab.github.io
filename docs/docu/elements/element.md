@@ -3,10 +3,13 @@ sidebar_position: 2
 title: Element
 ---
 
-# Documentation: `Element` Class
+# [`Element`](https://github.com/ocelot-collab/ocelot/blob/master/ocelot/cpbd/elements/element.py) Class
 
 ## Overview
-The `Element` class is the fundamental building block for defining beamline components in the OCELOT framework. It serves as a base class for all accelerator optics elements, enabling the definition of various parameters and allowing the addition of custom properties as needed. Subclasses of `Element` represent specific beamline components, such as magnets, cavities, and diagnostic devices.
+The [`Element`](https://github.com/ocelot-collab/ocelot/blob/master/ocelot/cpbd/elements/element.py) class is 
+the fundamental building block for defining beamline components in the OCELOT framework. 
+It serves as a base class for all accelerator optics elements, enabling the definition of various parameters and 
+allowing the addition of custom properties as needed. Subclasses of `Element` represent specific beamline components, such as magnets, cavities, and diagnostic devices.
 
 ---
 

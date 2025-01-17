@@ -3,9 +3,9 @@ sidebar_position: 10
 title: Beam Analysis
 ---
 
-# Beam Analysis
+# [Beam Analysis](https://github.com/ocelot-collab/ocelot/blob/master/ocelot/cpbd/physics_proc.py#L551)
 
-This section provides documentation for the `BeamAnalysis` class, which is used to analyze the properties of a particle beam. The class performs beam diagnostics such as bunching, energy, and transverse beam sizes, and saves the analysis results to a file.
+This section provides documentation for the [`BeamAnalysis`](https://github.com/ocelot-collab/ocelot/blob/master/ocelot/cpbd/physics_proc.py#L551) class, which is used to analyze the properties of a particle beam. The class performs beam diagnostics such as bunching, energy, and transverse beam sizes, and saves the analysis results to a file.
 
 ---
 

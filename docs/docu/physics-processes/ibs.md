@@ -3,7 +3,7 @@ sidebar_position: 4
 title: IBS
 ---
 
-# Intra Beam Scattering
+# [Intra Beam Scattering](https://github.com/ocelot-collab/ocelot/blob/master/ocelot/cpbd/physics_proc.py#L642)
 
 This section provides documentation for the `IBS` (Intrabeam Scattering) class, which models the intrabeam scattering process in particle beams. It supports two methods based on different formulations for estimating the energy spread in the beam.
 

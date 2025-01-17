@@ -3,10 +3,13 @@ sidebar_position: 3
 title: Magnet
 ---
 
-# Documentation: `Magnet` Class
+# [`Magnet`](https://github.com/ocelot-collab/ocelot/blob/master/ocelot/cpbd/elements/magnet.py) Class
 
 ## Overview
-The `Magnet` class extends the base `Element` class and represents magnetic beamline components in OCELOT. It provides functionalities to define magnetic properties, such as bending angles, quadrupole gradients, and sextupole strengths. The class supports computations of first-order and second-order parameters, as well as kick parameters for entrance, main body, and exit of the magnet.
+The [`Magnet`](https://github.com/ocelot-collab/ocelot/blob/master/ocelot/cpbd/elements/magnet.py)  class extends 
+the base [`Element`](element.md) class and represents magnetic beamline components in OCELOT. 
+It provides functionalities to define magnetic properties, such as bending angles, quadrupole gradients, and sextupole strengths. 
+The class supports computations of first-order and second-order parameters, as well as kick parameters for entrance, main body, and exit of the magnet.
 
 ---
 

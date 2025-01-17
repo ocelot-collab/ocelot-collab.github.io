@@ -15,7 +15,7 @@ import rehypeKatex from 'rehype-katex';
 const config = {
   title: 'OCELOT',
   tagline: 'A Python-based Framework for Accelerator Design and Simulations',
-  //favicon: 'img/favicon.ico',
+  favicon: 'img/favicon.ico',
 
   // Set the production url of your site here
   url: 'https://ocelot-collab.com',

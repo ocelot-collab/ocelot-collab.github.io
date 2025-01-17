@@ -3,9 +3,9 @@ sidebar_position: 12
 title: Lattice Energy Profile
 ---
 
-# Lattice Energy Profile
+# [Lattice Energy Profile](https://github.com/ocelot-collab/ocelot/blob/master/ocelot/cpbd/physics_proc.py#L624)
 
-This section provides documentation for the `LatticeEnergyProfile` class, which shifts the canonical momentum of the particle array according to a new reference energy.
+This section provides documentation for the [`LatticeEnergyProfile`](https://github.com/ocelot-collab/ocelot/blob/master/ocelot/cpbd/physics_proc.py#L624) class, which shifts the canonical momentum of the particle array according to a new reference energy.
 
 ---
 

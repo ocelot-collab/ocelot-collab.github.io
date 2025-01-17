@@ -3,18 +3,18 @@ sidebar_position: 6
 title: Navigator
 ---
 
-# Navigator Class 
+# [Navigator](https://github.com/ocelot-collab/ocelot/blob/master/ocelot/cpbd/navi.py#L51) Class 
 
 ## Description
 
-The `Navigator` class defines the step size (dz) for tracking and specifies which physical processes will be applied during each step. It interacts with a `MagneticLattice` and manages the tracking of particles through the lattice, updating the position and applying relevant physics processes as particles travel.
+The [`Navigator`](https://github.com/ocelot-collab/ocelot/blob/master/ocelot/cpbd/navi.py#L51) class defines the step size (dz) for tracking and specifies which physical processes will be applied during each step. It interacts with a `MagneticLattice` and manages the tracking of particles through the lattice, updating the position and applying relevant physics processes as particles travel.
 
 ## Constructor
 
 ### `__init__(self, lattice, unit_step=1)`
 
 #### Arguments:
-- **lattice** (`MagneticLattice`): The magnetic lattice to which the navigator is applied.
+- **lattice** [(`MagneticLattice`)](magnet-lattice.md): The magnetic lattice to which the navigator is applied.
 - **unit_step** (`float`, optional): The unit step size for all physics processes. Default is 1 meter.
 
 ---
@@ -56,7 +56,7 @@ Returns the list of all physics processes that have been added to the navigator.
 Adds a physical process to be applied between two elements in the lattice.
 
 #### Arguments:
-- **physics_proc** (`PhysProc`): The physical process to be applied, e.g., SpaceCharge, CSR, Wake, etc.
+- **physics_proc** [(`PhysProc`)](../physics-processes/phys-proc.md): The physical process to be applied, e.g., SpaceCharge, CSR, Wake, etc.
 - **elem1** (`Element`): The element where the physical process begins.
 - **elem2** (`Element`): The element where the physical process ends.
 

@@ -3,9 +3,9 @@ sidebar_position: 5
 title: Slotted Foil Class
 ---
 
-# Slotted Foil Class
+# [Slotted Foil](https://github.com/ocelot-collab/ocelot/blob/master/ocelot/cpbd/physics_proc.py#L415) Class
 
-This section provides documentation for the `SlottedFoil` class, which simulates the scattering of particles by a slotted foil. The class calculates the scattering angle and applies the effect to the particle array.
+This section provides documentation for the [`SlottedFoil`](https://github.com/ocelot-collab/ocelot/blob/master/ocelot/cpbd/physics_proc.py#L415) class, which simulates the scattering of particles by a slotted foil. The class calculates the scattering angle and applies the effect to the particle array.
 
 ---
 

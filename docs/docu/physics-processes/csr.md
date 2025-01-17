@@ -4,9 +4,9 @@ title: CSR
 ---
 
 
-# CSR Class
+# [CSR](https://github.com/ocelot-collab/ocelot/blob/master/ocelot/cpbd/csr.py#L702) Class
 
-The `CSR` class simulates the Coherent Synchrotron Radiation (CSR) effects in particle beams. It calculates the CSR wakefield and applies the CSR kick to the particle array based on the beam's trajectory and energy. The class uses advanced mathematical methods, including convolutions and kernel evaluations, to calculate the radiative interactions between particles.
+The [`CSR`](https://github.com/ocelot-collab/ocelot/blob/master/ocelot/cpbd/csr.py#L702) class simulates the Coherent Synchrotron Radiation (CSR) effects in particle beams. It calculates the CSR wakefield and applies the CSR kick to the particle array based on the beam's trajectory and energy. The class uses advanced mathematical methods, including convolutions and kernel evaluations, to calculate the radiative interactions between particles.
 
 ### Parameters:
 - **step** (`int`): Step size used for applying the CSR kick to the beam. Default is `1` [in Navigator.unit_step].

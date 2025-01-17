@@ -2,11 +2,12 @@
 sidebar_position: 1
 title: PhysProc Class
 ---
-# PhysProc Class 
+# [PhysProc](https://github.com/ocelot-collab/ocelot/blob/master/ocelot/cpbd/physics_proc.py#L14) Class 
 
 ## Overview
 
-The `PhysProc` class serves as the parent class for all physics processes within a simulation. It provides a standard interface for handling processes that interact with the navigator and lattice during particle tracking.
+The [PhysProc](https://github.com/ocelot-collab/ocelot/blob/master/ocelot/cpbd/physics_proc.py#L14) class serves as 
+the parent class for all physics processes within a simulation. It provides a standard interface for handling processes that interact with the navigator and lattice during particle tracking.
 
 ---
 

@@ -3,9 +3,9 @@ sidebar_position: 6
 title: LaserModulator Class
 ---
 
-# LaserModulator Class 
+# [LaserModulator](https://github.com/ocelot-collab/ocelot/blob/master/ocelot/cpbd/physics_proc.py#L165) Class 
 
-The `LaserModulator` class is a subclass of `PhysProc` that simulates the energy modulation of a particle beam in an undulator. 
+The [`LaserModulator`](https://github.com/ocelot-collab/ocelot/blob/master/ocelot/cpbd/physics_proc.py#L165) class is a subclass of `PhysProc` that simulates the energy modulation of a particle beam in an undulator. 
 It provides methods to calculate laser wavelength, undulator transport matrix element $begin:math:text$ R_{56} $end:math:text$, and apply laser modulation to the beam.
 
 

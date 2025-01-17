@@ -9,7 +9,7 @@ This section documents three classes: `PhaseSpaceAperture`, `RectAperture`, and 
 
 ---
 
-## PhaseSpaceAperture Class
+## [PhaseSpaceAperture](https://github.com/ocelot-collab/ocelot/blob/master/ocelot/cpbd/physics_proc.py#L254) Class
 
 The `PhaseSpaceAperture` class cuts the beam in the longitudinal, horizontal, and vertical directions based on specified parameters.
 
@@ -34,7 +34,7 @@ Applies the aperture cut to the particles in the phase space. It deletes particl
 
 ---
 
-## RectAperture Class
+## [RectAperture](https://github.com/ocelot-collab/ocelot/blob/master/ocelot/cpbd/physics_proc.py#L316) Class
 
 The `RectAperture` class cuts the beam in the horizontal and/or vertical direction based on rectangular apertures.
 
@@ -54,7 +54,7 @@ Applies the rectangular aperture cut to the particles. It deletes particles that
 
 ---
 
-## EllipticalAperture Class
+## [EllipticalAperture](https://github.com/ocelot-collab/ocelot/blob/master/ocelot/cpbd/physics_proc.py#L349) Class
 
 The `EllipticalAperture` class cuts the beam based on an elliptical aperture with semi-axes `xmax` and `ymax`.
 

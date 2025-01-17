@@ -3,11 +3,11 @@ sidebar_position: 5
 title: MagneticLattice
 ---
 
-# MagneticLattice Class Documentation
+# [MagneticLattice](https://github.com/ocelot-collab/ocelot/blob/master/ocelot/cpbd/magnetic_lattice.py#L163) Class 
 
 ## Description
 
-The `MagneticLattice` class represents a magnetic lattice, which is a sequence of elements forming a beamline. The lattice elements can include magnets, quadrupoles, undulators, and drifts, and they are used to model the trajectory and dynamics of a particle beam. This class allows for various operations like updating transfer maps, calculating lattice length, and finding specific elements within the lattice. It also provides functionality for calculating transfer maps and periodic Twiss parameters.
+The [`MagneticLattice`](https://github.com/ocelot-collab/ocelot/blob/master/ocelot/cpbd/magnetic_lattice.py#L163) class represents a magnetic lattice, which is a sequence of elements forming a beamline. The lattice elements can include magnets, quadrupoles, undulators, and drifts, and they are used to model the trajectory and dynamics of a particle beam. This class allows for various operations like updating transfer maps, calculating lattice length, and finding specific elements within the lattice. It also provides functionality for calculating transfer maps and periodic Twiss parameters.
 
 ---
 

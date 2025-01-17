@@ -3,9 +3,9 @@ sidebar_position: 3
 title: Wakefields
 ---
 
-# Wake Class
+# [Wake](https://github.com/ocelot-collab/ocelot/blob/master/ocelot/cpbd/wake3D.py#L1030) Class
 
-The `Wake` class simulates the impact of the wake field on a particle beam as a series of kicks. 
+The [`Wake`](https://github.com/ocelot-collab/ocelot/blob/master/ocelot/cpbd/wake3D.py#L1030) class simulates the impact of the wake field on a particle beam as a series of kicks. 
 In order to take into account the impact of the wake field on the beam the longitudinal wake function
 of point charge through the second order Taylor expansion is used.
 In general case it uses 13 one-dimensional functions to represent the  longitudinal component of the wake
