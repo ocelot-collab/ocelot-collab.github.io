@@ -3,7 +3,7 @@ sidebar_position: 1
 title: Introduction
 ---
 <small>
-*This notebook was created by Sergey Tomin (sergey.tomin@desy.de). April 2020.*
+*Sergey Tomin (sergey.tomin@desy.de). January 2025.*
 </small>
 
 
@@ -68,4 +68,7 @@ Another way is download ocelot from [GitHub](https://github.com/ocelot-collab/oc
     ```
     $ export PYTHONPATH=/your_working_dir/ocelot-master:$PYTHONPATH
     ```
+
+## Disclaimer: 
+The OCELOT code comes with absolutely NO warranty. The authors of the OCELOT do not take any responsibility for any damage to equipments or personnel injury that may result from the use of the code.
 

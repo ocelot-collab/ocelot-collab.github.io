@@ -2,7 +2,7 @@
 sidebar_position: 1
 ---
 <small>
-*This notebook was created by Sergey Tomin (sergey.tomin@desy.de). April 2020.*
+*This notebook was created by Sergey Tomin (sergey.tomin@desy.de). Update January 2025*
 </small>
 
 # Tutorials
@@ -88,3 +88,6 @@ print('ocelot:', ocelot.__version__)
     initializing ocelot...
     ocelot: 24.03.0
 ```
+
+## Disclaimer: 
+The OCELOT code comes with absolutely NO warranty. The authors of the OCELOT do not take any responsibility for any damage to equipments or personnel injury that may result from the use of the code.
