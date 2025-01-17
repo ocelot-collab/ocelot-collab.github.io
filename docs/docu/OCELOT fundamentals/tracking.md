@@ -33,7 +33,7 @@ def track(lattice, p_array, navi=None, print_progress=True, calc_tws=True,
     return tws_track, p_array
 ```
 ### Arguments:
-- **lattice** [`MagneticLattice`](MagnetLattice.md): The magnetic lattice through which the particles will be tracked.
+- **lattice** [`MagneticLattice`](magnet-lattice.md): The magnetic lattice through which the particles will be tracked.
 - **p_array** (`ParticleArray`): The array of particles to be tracked.
 - **navi** (`Navigator`, optional): The navigator for tracking. If `None`, a default navigator is used with no physical processes.
 - **print_progress** (`bool`, optional): If `True`, the progress of the tracking is printed. Default is `True`.
