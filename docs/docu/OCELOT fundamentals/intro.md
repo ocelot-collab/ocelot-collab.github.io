@@ -13,13 +13,13 @@ Ocelot has a modular structure. Below is an overview of its structure and key mo
 
 The CPBD module contains the following main components:
 
-- **[Elements](../elements)**: Definitions of various beamline elements.
+- **[Elements](../elements/intro.md)**: Definitions of various beamline elements.
 - **TransferMaps**: Mathematical transformations for beamline elements.
 - **[MagneticLattice](./magnet-lattice.md)**: Class represents a magnetic lattice, which is a sequence of elements forming a beamline
 - **[Navigator](./navigator.md)**: Class for navigating through beamline lattices during tracking with ```PhysProc``` (Physics Processes)
-- **[Tracking](tracking.md)**: Particle tracking functions.
+- **[Tracking](./tracking.md)**: Particle tracking functions.
 - **Matching**: Matching beam optics to desired parameters.
-- **[Physics Processes](../physics-processes)**: Includes key collective effects:
+- **[Physics Processes](../physics-processes/phys-proc.md)**: Includes key collective effects:
   - **[Space Charge](../physics-processes/sc.md)**: Features a 3D Laplace solver.
   - **[CSR (Coherent Synchrotron Radiation)](../physics-processes/csr.md)**: Implements a 1D model supporting an arbitrary number of dipoles.
   - **[Wakefields](../physics-processes/wake.md)**: Models wakefields using a Taylor expansion up to second order for arbitrary geometries.
@@ -31,7 +31,7 @@ The CPBD module contains the following main components:
 
 ## Adaptors
 
-- Includes various converters for translating lattice formats into Ocelot's format or converting beam distributions into [**`ParticleArray`**](./particlearray.md).
+- Includes various converters for translating lattice formats into Ocelot's format or converting beam distributions into [**`ParticleArray`**](particle-array.md).
 
 ---
 
