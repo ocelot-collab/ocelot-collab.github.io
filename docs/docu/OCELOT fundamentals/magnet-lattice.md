@@ -8,13 +8,27 @@ title: MagneticLattice
 ## Description
 
 The [`MagneticLattice`](https://github.com/ocelot-collab/ocelot/blob/master/ocelot/cpbd/magnetic_lattice.py#L163) class represents a magnetic lattice, which is a sequence of elements forming a beamline. The lattice elements can include magnets, quadrupoles, undulators, and drifts, and they are used to model the trajectory and dynamics of a particle beam. This class allows for various operations like updating transfer maps, calculating lattice length, and finding specific elements within the lattice. It also provides functionality for calculating transfer maps and periodic Twiss parameters.
+### Simplest Example of Use
+
+```python
+# Create elements of beamline
+d = Drift(l=1)
+q = Quadrupole(l=1, k1=1)
+
+# Create your beamline - sequence of elements
+cell = (d, q)
+
+lat = MagneticLattice(cell)
+```
 
 ---
 
 ## Constructor
-
-### `__init__(self, sequence, start: E = None, stop: E = None, method=None)`
-
+```python
+class MagneticLattice:
+    def __init__(self, sequence, start: E = None, stop: E = None, method=None):
+        ...
+```
 #### Arguments:
 - **sequence** (`list`): A list of elements that form the lattice.
 - **start** (`Element`, optional): The first element of the lattice. If `None`, the lattice starts with the first element of the sequence.
@@ -25,7 +39,7 @@ The [`MagneticLattice`](https://github.com/ocelot-collab/ocelot/blob/master/ocel
 
 ## Methods
 
-### `get_sequence_part(self, start: E, stop: E)`
+#### `get_sequence_part(self, start: E, stop: E)`
 
 This method gets a part of the lattice sequence starting from `start` to `stop`.
 
@@ -47,7 +61,7 @@ Updates the transfer maps for each element in the sequence and calculates the to
 
 ---
 
-### `update_endings(self, lat_index, element, body_elements, element_util)`
+#### `update_endings(self, lat_index, element, body_elements, element_util)`
 
 This method updates the endings of the elements based on specific suffixes and element types.
 
@@ -59,7 +73,7 @@ This method updates the endings of the elements based on specific suffixes and e
 
 ---
 
-### `__str__(self)`
+#### `__str__(self)`
 
 Returns a string representation of the lattice, showing the total length and details of each element.
 
@@ -68,7 +82,7 @@ Returns a string representation of the lattice, showing the total length and det
 
 ---
 
-### `find_indices(self, element)`
+#### `find_indices(self, element)`
 
 Finds the indices of elements in the sequence by their class type.
 
@@ -80,7 +94,7 @@ Finds the indices of elements in the sequence by their class type.
 
 ---
 
-### `find_drifts(self)`
+#### `find_drifts(self)`
 
 Finds the drift elements in the sequence and returns them.
 
@@ -89,13 +103,13 @@ Finds the drift elements in the sequence and returns them.
 
 ---
 
-### `rem_drifts(self)`
+#### `rem_drifts(self)`
 
 Removes repeated drift elements from the lattice.
 
 ---
 
-### `save_as_py_file(self, file_name: str, tws0=None, remove_rep_drifts=True, power_supply=False)`
+#### `save_as_py_file(self, file_name: str, tws0=None, remove_rep_drifts=True, power_supply=False)`
 
 Saves the lattice to a Python file.
 
@@ -107,7 +121,7 @@ Saves the lattice to a Python file.
 
 ---
 
-### `transfer_maps(self, energy, output_at_each_step: bool = False, start: E = None, stop: E = None)`
+#### `transfer_maps(self, energy, output_at_each_step: bool = False, start: E = None, stop: E = None)`
 
 Calculates the transfer maps (first and second orders) for the entire lattice.
 
@@ -122,7 +136,7 @@ Calculates the transfer maps (first and second orders) for the entire lattice.
 
 ---
 
-### `survey(self, x0=0, y0=0, z0=0, ang_x=0.0, ang_y=0.0)`
+#### `survey(self, x0=0, y0=0, z0=0, ang_x=0.0, ang_y=0.0)`
 
 Calculates coordinates in rectangular coordinates at the beginning of each element in the lattice.
 
@@ -138,7 +152,7 @@ Calculates coordinates in rectangular coordinates at the beginning of each eleme
 
 ---
 
-### `print_sequence(self, start: E = None, stop: E = None)`
+#### `print_sequence(self, start: E = None, stop: E = None)`
 
 Prints the sequence of elements in the lattice, including their lengths and start/end positions.
 
@@ -151,7 +165,7 @@ Prints the sequence of elements in the lattice, including their lengths and star
 
 ---
 
-### `periodic_twiss(self, tws=None)`
+#### `periodic_twiss(self, tws=None)`
 
 Calculates the periodic Twiss parameters for the lattice using transfer maps.
 

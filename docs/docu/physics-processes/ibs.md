@@ -12,8 +12,8 @@ This section provides documentation for the `IBS` (Intrabeam Scattering) class, 
 ## IBS Class
 
 The `IBS` class simulates the intrabeam scattering (IBS) process, which describes the diffusion of particle energies within a beam due to mutual Coulomb interactions. The class implements two methods for calculating the energy spread:
-1. **Huang Method**: Based on Z. Huang's work in *Intrabeam Scattering in an X-ray FEL Driver* (2002).
-2. **Nagaitsev Method**: Based on S. Nagaitsev's work in *Intrabeam Scattering Formulas for Fast Numerical Evaluation* (2005).
+1. **Huang Method**: Based on Z. Huang's work in [*Intrabeam Scattering in an X-ray FEL Driver* (LCLS-TN-02-8, 2002).](https://www-ssrl.slac.stanford.edu/lcls/technotes/LCLS-TN-02-8.pdf)
+2. **Nagaitsev Method**: Based on S. Nagaitsev's work in [*Intrabeam scattering formulas for fast numerical evaluation* (PRAB 8, 064403, 2005).](https://journals.aps.org/prab/abstract/10.1103/PhysRevSTAB.8.064403)
 
 The method can be selected using the `method` attribute, which accepts "Huang" or "Nagaitsev".
 

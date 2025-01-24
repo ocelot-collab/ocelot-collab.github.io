@@ -15,6 +15,12 @@ Users developing high-level control applications can accelerate development by u
 
 Developing machine learning (ML) applications for accelerators can also benefit from using Ocelot, as many popular ML frameworks are written in Python. Ocelot provides a seamless connection between physics and ML methods, making it easier to integrate physical accelerator simulators with machine learning algorithms.
 
+:::warning
+Documentation was generated automatically with the help of ChatGPT and has **not** yet been thoroughly reviewed or fully completed. 
+The **best** and most **reliable** way to understand **Ocelot** remains reading the source code and docstrings for its functions and classes. 
+Over time, we will continue to improve this documentation.
+:::
+
 
 ## Ocelot installation
 <a id='installation'></a>

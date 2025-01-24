@@ -11,7 +11,7 @@ The [`Navigator`](https://github.com/ocelot-collab/ocelot/blob/master/ocelot/cpb
 
 ## Constructor
 
-### `__init__(self, lattice, unit_step=1)`
+#### `__init__(self, lattice, unit_step=1)`
 
 #### Arguments:
 - **lattice** [(`MagneticLattice`)](magnet-lattice.md): The magnetic lattice to which the navigator is applied.
@@ -21,7 +21,7 @@ The [`Navigator`](https://github.com/ocelot-collab/ocelot/blob/master/ocelot/cpb
 
 ## Methods
 
-### `get_current_element(self)`
+#### `get_current_element(self)`
 
 Returns the current element in the lattice at the position of the navigator.
 
@@ -30,19 +30,19 @@ Returns the current element in the lattice at the position of the navigator.
 
 ---
 
-### `reset_position(self)`
+#### `reset_position(self)`
 
 Resets the position of the navigator, setting the current position (`z0`) to 0, the current index (`n_elem`) to 0, and the sum of lengths to 0.
 
 ---
 
-### `go_to_start(self)`
+#### `go_to_start(self)`
 
 Resets the navigator to the starting position.
 
 ---
 
-### `get_phys_procs(self)`
+#### `get_phys_procs(self)`
 
 Returns the list of all physics processes that have been added to the navigator.
 
@@ -51,7 +51,7 @@ Returns the list of all physics processes that have been added to the navigator.
 
 ---
 
-### `add_physics_proc(self, physics_proc, elem1, elem2)`
+#### `add_physics_proc(self, physics_proc, elem1, elem2)`
 
 Adds a physical process to be applied between two elements in the lattice.
 
@@ -65,7 +65,7 @@ Adds a physical process to be applied between two elements in the lattice.
 
 ---
 
-### `add_physics_processes(self, processes, elem1s, elem2s)`
+#### `add_physics_processes(self, processes, elem1s, elem2s)`
 
 Adds multiple physical processes to be applied between corresponding pairs of elements in the lattice.
 
@@ -79,7 +79,7 @@ Adds multiple physical processes to be applied between corresponding pairs of el
 
 ---
 
-### `activate_apertures(self, start=None, stop=None)`
+#### `activate_apertures(self, start=None, stop=None)`
 
 Activates apertures in the lattice between specified elements.
 
@@ -92,7 +92,7 @@ Activates apertures in the lattice between specified elements.
 
 ---
 
-### `check_overjump(self, dz, processes, phys_steps)`
+#### `check_overjump(self, dz, processes, phys_steps)`
 
 Checks if the current step `dz` causes an overjump of the physical processes and adjusts the step accordingly.
 
@@ -106,7 +106,7 @@ Checks if the current step `dz` causes an overjump of the physical processes and
 
 ---
 
-### `get_proc_list(self)`
+#### `get_proc_list(self)`
 
 Returns the list of all physical processes that are relevant to the current position of the navigator.
 
@@ -115,7 +115,7 @@ Returns the list of all physical processes that are relevant to the current posi
 
 ---
 
-### `hard_edge_step(self, dz)`
+#### `hard_edge_step(self, dz)`
 
 Checks if the current step `dz` exceeds the length of the current element and adjusts it accordingly.
 
@@ -127,7 +127,7 @@ Checks if the current step `dz` exceeds the length of the current element and ad
 
 ---
 
-### `check_proc_bounds(self, dz, proc_list, phys_steps, active_process)`
+#### `check_proc_bounds(self, dz, proc_list, phys_steps, active_process)`
 
 Checks if the step size `dz` exceeds the bounds of the physical processes and adjusts the list of active processes.
 
@@ -142,7 +142,7 @@ Checks if the step size `dz` exceeds the bounds of the physical processes and ad
 
 ---
 
-### `remove_used_processes(self, processes)`
+#### `remove_used_processes(self, processes)`
 
 Removes processes that have been applied from the list of active processes and moves them to the inactive processes list.
 
@@ -154,7 +154,7 @@ Removes processes that have been applied from the list of active processes and m
 
 ---
 
-### `jump_to(self, z: float)`
+#### `jump_to(self, z: float)`
 
 Sets the current position of the navigator to a new position `z`.
 
@@ -166,7 +166,7 @@ Sets the current position of the navigator to a new position `z`.
 
 ---
 
-### `get_next_step(self)`
+#### `get_next_step(self)`
 
 Yields the next step of the tracking, applying the relevant physical processes as needed.
 
@@ -175,7 +175,7 @@ Yields the next step of the tracking, applying the relevant physical processes a
 
 ---
 
-### `get_next(self)`
+#### `get_next(self)`
 
 Gets the next step of the tracking, checking for physical processes to apply and adjusting the step size accordingly.
 
@@ -184,7 +184,7 @@ Gets the next step of the tracking, checking for physical processes to apply and
 
 ---
 
-### `__str__(self)`
+#### `__str__(self)`
 
 Returns a string representation of the navigator, including details of all the added physical processes.
 
@@ -193,7 +193,7 @@ Returns a string representation of the navigator, including details of all the a
 
 ---
 
-### `get_map(self, dz)`
+#### `get_map(self, dz)`
 
 Gets the transfer map for a given step size `dz` based on the lattice sequence.
 
@@ -205,7 +205,7 @@ Gets the transfer map for a given step size `dz` based on the lattice sequence.
 
 ---
 
-### `_update_references(self)`
+#### `_update_references(self)`
 
 Updates the references of the process table and the processes to ensure consistency across all elements in the lattice.
 

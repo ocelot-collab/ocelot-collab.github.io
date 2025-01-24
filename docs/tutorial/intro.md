@@ -8,6 +8,8 @@ sidebar_position: 1
 # Tutorials
 <a id='tutorials'></a>
 
+Current tutorials can be found in [`ocelot/demos/ipython_tutorial`](https://github.com/ocelot-collab/ocelot/tree/master/demos/ipython_tutorials) folder. 
+
 #### Beam dynamics
 
 * [Tutorial N1. Linear optics. Double Bend Achromat](./tutorial-beam-dynamics/1_dba.md)

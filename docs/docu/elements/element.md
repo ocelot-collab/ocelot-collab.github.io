@@ -27,7 +27,7 @@ allowing the addition of custom properties as needed. Subclasses of `Element` re
 
 ## Methods
 
-### `__init__(eid=None, has_edge=False)`
+#### `__init__(eid=None, has_edge=False)`
 Initializes the `Element` instance.
 
 **Parameters:**
@@ -36,7 +36,7 @@ Initializes the `Element` instance.
 
 ---
 
-### `__hash__()`
+#### `__hash__()`
 Computes a hash value for the element instance.
 
 **Returns:**
@@ -44,7 +44,7 @@ Computes a hash value for the element instance.
 
 ---
 
-### `__eq__(other)`
+#### `__eq__(other)`
 Checks equality between two `Element` instances based on their memory addresses.
 
 **Parameters:**
@@ -55,7 +55,7 @@ Checks equality between two `Element` instances based on their memory addresses.
 
 ---
 
-### `_default_B(R)`
+#### `_default_B(R)`
 Computes a default displacement vector for the element.
 
 **Parameters:**
@@ -66,7 +66,7 @@ Computes a default displacement vector for the element.
 
 ---
 
-### `create_first_order_main_params(energy, delta_length=None)`
+#### `create_first_order_main_params(energy, delta_length=None)`
 Generates first-order parameters for the element based on its geometry and beam energy.
 
 **Parameters:**
@@ -78,7 +78,7 @@ Generates first-order parameters for the element based on its geometry and beam 
 
 ---
 
-### `create_second_order_main_params(energy, delta_length=0.0)`
+#### `create_second_order_main_params(energy, delta_length=0.0)`
 Generates second-order parameters for the element.
 
 **Parameters:**
@@ -90,7 +90,7 @@ Generates second-order parameters for the element.
 
 ---
 
-### `create_delta_e(total_length, delta_length=0.0)`
+#### `create_delta_e(total_length, delta_length=0.0)`
 Calculates the energy variation across the element.
 
 **Parameters:**
@@ -102,7 +102,7 @@ Calculates the energy variation across the element.
 
 ---
 
-### `__repr__()`
+#### `__repr__()`
 Generates a string representation of the element.
 
 **Returns:**

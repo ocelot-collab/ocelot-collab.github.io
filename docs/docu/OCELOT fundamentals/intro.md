@@ -14,11 +14,11 @@ Ocelot has a modular structure. Below is an overview of its structure and key mo
 The CPBD module contains the following main components:
 
 - **[Elements](../elements/intro.md)**: Definitions of various beamline elements.
-- **TransferMaps**: Mathematical transformations for beamline elements.
+- **[TransferMaps](../trasfer-maps/transormation.md)**: Mathematical transformations for beamline elements.
 - **[MagneticLattice](./magnet-lattice.md)**: Class represents a magnetic lattice, which is a sequence of elements forming a beamline
 - **[Navigator](./navigator.md)**: Class for navigating through beamline lattices during tracking with ```PhysProc``` (Physics Processes)
 - **[Tracking](./tracking.md)**: Particle tracking functions.
-- **Matching**: Matching beam optics to desired parameters.
+- **[Matching](matching.md)**: Matching beam optics to desired parameters.
 - **[Physics Processes](../physics-processes/phys-proc.md)**: Includes key collective effects:
   - **[SpaceCharge](../physics-processes/sc.md)**: Features a 3D Laplace solver.
   - **[CSR (Coherent Synchrotron Radiation)](../physics-processes/csr.md)**: Implements a 1D model supporting an arbitrary number of dipoles.
@@ -66,12 +66,13 @@ The CPBD module contains the following main components:
 ## Technical Foundations
 
 Ocelot extensively utilizes Python libraries:
-- **[NumPy](http://numpy.org)**: For efficient in-core numerical computations.
-- **[SciPy](http://scipy.org)**: For advanced scientific computations, including optimization techniques and algorithms.
-- **[Matplotlib](http://matplotlib.org/index.html)**: For producing high-quality figures and visualizations.
+- **[NumPy](https://numpy.org)**: For efficient in-core numerical computations.
+- **[SciPy](https://scipy.org)**: For advanced scientific computations, including optimization techniques and algorithms.
+- **[Matplotlib](https://matplotlib.org)**: For producing high-quality figures and visualizations.
 
 ---
 
 ## Examples and Tutorials
 
-While detailed documentation is not yet available, you can find numerous examples in the `/demos/` folder and Jupyter [tutorials](#tutorials) to get started.
+While detailed documentation is not yet available, you can find numerous examples in the [`/demos/` folder](https://github.com/ocelot-collab/ocelot/tree/master/demos) 
+and Jupyter [tutorials](../../tutorial/intro.md) to get started.

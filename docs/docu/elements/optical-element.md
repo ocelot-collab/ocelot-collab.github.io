@@ -8,12 +8,23 @@ title: OpticElement
 ## Overview
 The [`OpticElement`](https://github.com/ocelot-collab/ocelot/blob/master/ocelot/cpbd/elements/optic_element.py) class serves as a facade to bridge the old and new interfaces of beamline simulation in the OCELOT framework. It manages the underlying element's attributes, its transformations, and provides methods for accessing and manipulating these transformations. Each concrete optic element must implement its own initialization for specific parameters.
 
+
+```python 
+class OpticElement:
+    """[summary]
+    Facade between old interface and new interface.
+    """
+
+    __is_init = False  # needed to disable __getattr__ and __setattr__ until __init__ is executed
+
+    def __init__(self, element: Element, tm: Type[Transformation], default_tm: Type[Transformation], **params) -> None:
+```
 ---
 
 ## Attributes
 
-- **`element`** (`Element`): The specific beamline element managed by this class.
-- **`default_tm`** (`Type[Transformation]`): The default transformation used if the specified transformation is unsupported.
+- **`element`** [(`Element`)](element.md): The specific beamline element managed by this class.
+- **`default_tm`** [(`Type[Transformation]`)](../trasfer-maps/transormation.md): The default transformation used if the specified transformation is unsupported.
 - **`_first_order_tms`** (`List[Transformation]`): List of first-order transformations used for calculations like Twiss Parameters.
 - **`_kwargs`** (`dict`): Transformation-specific parameters.
 - **`_tms`** (`List[Transformation]`): List of transformations currently set for the element.

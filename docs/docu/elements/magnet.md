@@ -23,7 +23,7 @@ The class supports computations of first-order and second-order parameters, as w
 
 ## Methods
 
-### `__init__(eid=None, has_edge=False)`
+#### `__init__(eid=None, has_edge=False)`
 Initializes a `Magnet` instance.
 
 **Parameters:**
@@ -32,7 +32,7 @@ Initializes a `Magnet` instance.
 
 ---
 
-### `create_first_order_main_params(energy, delta_length=None)`
+#### `create_first_order_main_params(energy, delta_length=None)`
 Computes the first-order parameters for the magnet based on its properties and beam energy.
 
 **Parameters:**
@@ -44,7 +44,7 @@ Computes the first-order parameters for the magnet based on its properties and b
 
 ---
 
-### `create_second_order_main_params(energy, delta_length=0.0)`
+#### `create_second_order_main_params(energy, delta_length=0.0)`
 Computes the second-order parameters for the magnet, incorporating effects of non-linear fields.
 
 **Parameters:**
@@ -56,7 +56,7 @@ Computes the second-order parameters for the magnet, incorporating effects of no
 
 ---
 
-### `create_kick_entrance_params()`
+#### `create_kick_entrance_params()`
 Generates kick parameters for the entrance of the magnet.
 
 **Returns:**
@@ -64,7 +64,7 @@ Generates kick parameters for the entrance of the magnet.
 
 ---
 
-### `create_kick_main_params()`
+#### `create_kick_main_params()`
 Generates kick parameters for the main body of the magnet.
 
 **Returns:**
@@ -72,7 +72,7 @@ Generates kick parameters for the main body of the magnet.
 
 ---
 
-### `create_kick_exit_params()`
+#### `create_kick_exit_params()`
 Generates kick parameters for the exit of the magnet.
 
 **Returns:**
