@@ -1,6 +1,6 @@
 ---
 sidebar_position: 1
-title: PhysProc Class
+title: PhysProc Parent Class
 ---
 # [PhysProc](https://github.com/ocelot-collab/ocelot/blob/master/ocelot/cpbd/physics_proc.py#L14) Class 
 

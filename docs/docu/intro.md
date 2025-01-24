@@ -47,7 +47,7 @@ Clone OCELOT from GitHub:
 ```
 $ git clone https://github.com/ocelot-collab/ocelot.git
 ```
-or download last release [zip file](https://github.com/ocelot-collab/ocelot/archive/v24.03.0.zip).
+or download last release [zip file](https://github.com/ocelot-collab/ocelot/archive/refs/heads/master.zip).
 Now you can install OCELOT from the source:
 ```
 $ python setup.py install

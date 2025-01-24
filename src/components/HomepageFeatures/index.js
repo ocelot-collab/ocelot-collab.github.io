@@ -15,7 +15,7 @@ const FeatureList = [
   },
   {
     title: 'Focus on Physics',
-    Svg: require('@site/static/img/ocelot_python_logo.svg').default,
+    Svg: require('@site/static/img/python_libs.svg').default,
     description: (
       <>
         Written in Python, Ocelot is easy to read and modify, enabling you to develop custom modules
@@ -24,12 +24,11 @@ const FeatureList = [
     ),
   },
   {
-    title: 'Integration with Modern Tools',
-    Svg: require('@site/static/img/python_libs.svg').default,
+    title: 'Integration with Control Room',
+    Svg: require('@site/static/img/ocelot_in_BKR.svg').default,
     description: (
       <>
-        Ocelot's Python implementation allows scripting beam physics simulations, building GUIs,
-        and integrating ML methods for advanced research.
+        Ocelot enables scripting for beam physics simulations, creating intuitive GUIs to enhance operations in the control room.
       </>
     ),
   },

@@ -1,6 +1,6 @@
 ---
 sidebar_position: 1
-title: Transformation
+title: Transformation Parent Class
 ---
 
 # [Transformation](https://github.com/ocelot-collab/ocelot/blob/master/ocelot/cpbd/transformations/transformation.py#L22) Class
