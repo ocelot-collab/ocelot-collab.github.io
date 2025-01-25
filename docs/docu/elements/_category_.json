@@ -2,6 +2,8 @@
   "label": "Elements",
   "position": 3,
   "link": {
-    "type": "generated-index"
+    "type": "generated-index",
+    "description": "Ocelot beamlines elements"
+
   }
 }

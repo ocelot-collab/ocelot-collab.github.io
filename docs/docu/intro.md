@@ -27,19 +27,19 @@ Over time, we will continue to improve this documentation.
 
 ### Requirements
 -  Python 3.9+
-- `numpy` version 1.8 or higher: http://www.numpy.org/
-- `scipy` version 0.15 or higher: http://www.scipy.org/
-- `matplotlib` version 1.5 or higher: http://matplotlib.org/
-- `h5py` version 3.10 or higher, https://www.h5py.org
+- [`numpy`](https://numpy.org/) version 1.8 or higher
+- [`scipy`](https://scipy.org/) version 0.15 or higher
+- [`matplotlib`](https://matplotlib.org/) version 1.5 or higher
+- [`h5py`](https://www.h5py.org/) version 3.10 or higher
 
 **Optional**, but highly recommended for speeding up calculations
 
-- numexpr (version 2.6.1 or higher)
-- pyfftw (version 0.10 or higher)
-- numba
+- [`numexpr`](https://numexpr.readthedocs.io/en/latest/user_guide.html) (version 2.6.1 or higher)
+- [`pyfftw`](https://pyfftw.readthedocs.io/en/latest/) (version 0.10 or higher)
+- [`numba`](https://numba.pydata.org/)
 
 **Orbit Correction module is required**
-- `pandas`
+- [`pandas`](https://pandas.pydata.org/)
 
 ### Installation
 #### GitHub (for advanced python users)

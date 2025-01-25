@@ -1,5 +1,6 @@
 ---
 sidebar_position: 1
+title: Introduction to Tutorials
 ---
 <small>
 *This notebook was created by Sergey Tomin (sergey.tomin@desy.de). Update January 2025*
