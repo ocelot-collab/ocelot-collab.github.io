@@ -7,7 +7,10 @@ title: Navigator
 
 ## Description
 
-The [`Navigator`](https://github.com/ocelot-collab/ocelot/blob/master/ocelot/cpbd/navi.py#L51) class defines the step size (dz) for tracking and specifies which physical processes will be applied during each step. It interacts with a `MagneticLattice` and manages the tracking of particles through the lattice, updating the position and applying relevant physics processes as particles travel.
+The [`Navigator`](https://github.com/ocelot-collab/ocelot/blob/master/ocelot/cpbd/navi.py#L51) class defines the step size 
+(dz) for tracking and specifies which physical processes will be applied during each step. 
+It interacts with a [`MagneticLattice`](magnet-lattice.md) and manages the tracking of particles through the lattice, updating the position 
+and applying relevant physics processes as particles travel.
 
 ## Constructor
 
@@ -16,6 +19,21 @@ The [`Navigator`](https://github.com/ocelot-collab/ocelot/blob/master/ocelot/cpb
 #### Arguments:
 - **lattice** [(`MagneticLattice`)](magnet-lattice.md): The magnetic lattice to which the navigator is applied.
 - **unit_step** (`float`, optional): The unit step size for all physics processes. Default is 1 meter.
+
+:::info
+When tracking a beam with multiple physics processes, each process may require a different step size. 
+In such cases, `self.unit_step` must be set to the smallest step size (the step of the physics process that will 
+be applied most frequently). The steps of other physics processes ([PhysProc](../physics-processes/phys-proc.md)) 
+can then be adjusted using `PhysProc.step`.
+
+Example:
+```python
+navi = Navigator(lat, unit_step=0.01)  # Set the unit step to 0.01 m
+
+sc = SpaceCharge(step=1)  # Space charge will be applied every 0.01 m
+wake = Wake(step=100)     # Wakefields will be applied every 1 m
+```
+:::
 
 ---
 
@@ -57,8 +75,8 @@ Adds a physical process to be applied between two elements in the lattice.
 
 #### Arguments:
 - **physics_proc** [(`PhysProc`)](../physics-processes/phys-proc.md): The physical process to be applied, e.g., SpaceCharge, CSR, Wake, etc.
-- **elem1** (`Element`): The element where the physical process begins.
-- **elem2** (`Element`): The element where the physical process ends.
+- **elem1** ([`Element`](../elements/element.md)): The element where the physical process begins.
+- **elem2** ([`Element`](../elements/element.md)): The element where the physical process ends.
 
 #### Returns:
 - None
@@ -84,8 +102,8 @@ Adds multiple physical processes to be applied between corresponding pairs of el
 Activates apertures in the lattice between specified elements.
 
 #### Arguments:
-- **start** (`Element`, optional): The element to start from.
-- **stop** (`Element`, optional): The element to stop at.
+- **start** ([`Element`](../elements/element.md), optional): The element to start from.
+- **stop** ([`Element`](../elements/element.md), optional): The element to stop at.
 
 #### Returns:
 - None
