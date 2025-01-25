@@ -6,26 +6,62 @@ title: ParticleArray
 # [ParticleArray](https://github.com/ocelot-collab/ocelot/blob/master/ocelot/cpbd/beam.py#L726) Class 
 
 ## Description:
-The [`ParticleArray`](https://github.com/ocelot-collab/ocelot/blob/master/ocelot/cpbd/beam.py#L726) class represents an array of particles with optimized performance for large numbers of particles. It handles the particles' positions and momenta, along with additional functionalities like applying physics processes, sorting particles, and managing lost particles.
+The [`ParticleArray`](https://github.com/ocelot-collab/ocelot/blob/master/ocelot/cpbd/beam.py#L726) class represents 
+an array of particles with optimized performance for large numbers of particles. 
+It handles the particles' positions and momenta, along with additional functionalities like applying physics processes, 
+sorting particles, and managing lost particles.
 
-### Attributes:
-- **rparticles**: 2D array of shape `(6, n)` representing the particle properties in 6D phase space: 
-    - `x`: position in x
-    - `px`: momentum in x
-    - `y`: position in y
-    - `py`: momentum in y
-    - `tau`: longitudinal position
-    - `p`: longitudinal momentum
-- **q_array**: 1D array of charges for each particle.
-- **s**: Longitudinal position of the particle.
-- **E**: Energy of the particle.
+## Coordinates
+The coordinate system in Ocelot follows these conventions:
+
+$$ 
+\left (x, \quad x' = \frac{p_x}{p_0} \right), \qquad \left (y, \quad y' = \frac{p_y}{p_0} \right), \qquad \left (\tau = c\Delta t, \quad p = \frac{\Delta E}{p_0 c} \right)
+$$
+
+### Definitions
+- $\tau = c t - \frac{s}{\beta_0}$: Longitudinal coordinate of the particle.
+- $s$: Independent variable representing the distance along the beam line (equivalent to the path length of the reference particle).
+- $v_0$ and $p_0$: Velocity and momentum of the reference particle, respectively.
+- $t$: Time at which a particle reaches position $s$ along the beam line.
+
+#### For the reference particle:
+- $\tau = 0$ for all $s$.
+
+#### For other particles:
+- $\tau < 0$: The particle arrives earlier than the reference particle.
+- $\tau > 0$: The particle arrives later than the reference particle.
+
+#### Energy relation:
+- $\Delta E = E - E_0$, where $E = \gamma m_0 c^2$ is the total energy of the particle.
+
+---
+
+## Attributes
+- **`rparticles`**: A 2D array of shape `(6, n)` representing the particle distribution in 6D phase space:
+  - `rparticles[0,:]`: Array of horizontal coordinates $x$.
+  - `rparticles[1,:]`: Array of horizontal momenta $x' = \frac{p_x}{p_0}$.
+  - `rparticles[2,:]`: Array of vertical coordinates $y$.
+  - `rparticles[3,:]`: Array of vertical momenta $y' = \frac{p_y}{p_0}$.
+  - `rparticles[4,:]`: Array of longitudinal positions $\tau = c t - \frac{s}{\beta_0}$.
+  - `rparticles[5,:]`: Array of longitudinal momenta $p = \frac{\Delta E}{p_0 c}$.
+
+- **`q_array`**: A 1D array containing the charges of each particle.
+- **`s`**: The distance along the beam line (equivalent to the path length of the reference particle).
+- **`E`**: The energy of the reference particle, $E_0$.
 - **lost_particle_recorder**: Records information about lost particles.
 
 ### Methods:
 
 #### `__init__(self, n=0)`
 - Initializes a `ParticleArray` with `n` particles. Sets up the `rparticles`, `q_array`, and `lost_particle_recorder`.
-
+```python
+def __init__(self, n=0):
+    self.rparticles = np.zeros((6, n))
+    self.q_array = np.zeros(n)  # charge
+    self.s = 0.0
+    self.E = 0.0
+    self.lost_particle_recorder = self.LostParticleRecorder(n)
+```
 #### `random(cls, n, sigma_x=..., sigma_px=..., sigma_y=..., sigma_py=...)`
 - Generates a random beam with `n` particles using given standard deviations for the particle properties. Returns a `ParticleArray` instance.
 
@@ -48,22 +84,46 @@ The [`ParticleArray`](https://github.com/ocelot-collab/ocelot/blob/master/ocelot
 - Returns the number of particles in the array.
 
 #### `x(self)`
-- Returns the x positions of all particles.
+```python
+def x(self):
+    return self.rparticles[0]
+```
+- Returns the x positions of all particles 
 
 #### `px(self)`
-- Returns the x momenta of all particles.
+```python
+def px(self):
+    return self.rparticles[1] 
+```
+- Returns the x momenta of all particles ($x' = \frac{p_x}{p_0}$).
 
 #### `y(self)`
+```python
+def y(self):
+    return self.rparticles[2]
+```
 - Returns the y positions of all particles.
 
 #### `py(self)`
-- Returns the y momenta of all particles.
+```python
+def py(self):
+    return self.rparticles[3]
+```
+- Returns the y momenta of all particles ($y' = \frac{p_y}{p_0}$).
 
 #### `tau(self)`
-- Returns the longitudinal position of all particles.
+```python
+def tau(self):
+    return self.rparticles[4]
+```
+- Returns the longitudinal position of all particles ($\tau = c t - \frac{s}{\beta_0}$).
 
 #### `p(self)`
-- Returns the longitudinal momentum of all particles.
+```python
+def p(self):
+    return self.rparticles[5]
+```
+- Returns the longitudinal momentum of all particles ($p = \frac{\Delta E}{p_0 c}$).
 
 #### `t(self)` / `t.setter(self, value)`
 - Getter and setter for the longitudinal position (`tau`).
