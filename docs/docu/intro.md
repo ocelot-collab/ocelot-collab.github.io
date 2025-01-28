@@ -22,56 +22,63 @@ Over time, we will continue to improve this documentation.
 :::
 
 
-## Ocelot installation
-<a id='installation'></a>
-
-### Requirements
+## Requirements
 -  Python 3.9+
 - [`numpy`](https://numpy.org/) version 1.8 or higher
 - [`scipy`](https://scipy.org/) version 0.15 or higher
 - [`matplotlib`](https://matplotlib.org/) version 1.5 or higher
 - [`h5py`](https://www.h5py.org/) version 3.10 or higher
 
-**Optional**, but highly recommended for speeding up calculations
+**Orbit Correction module is required**
+- [`pandas`](https://pandas.pydata.org/)
 
+**Optional**, but highly recommended for speeding up calculations
 - [`numexpr`](https://numexpr.readthedocs.io/en/latest/user_guide.html) (version 2.6.1 or higher)
 - [`pyfftw`](https://pyfftw.readthedocs.io/en/latest/) (version 0.10 or higher)
 - [`numba`](https://numba.pydata.org/)
 
-**Orbit Correction module is required**
-- [`pandas`](https://pandas.pydata.org/)
 
-### Installation
-#### GitHub (for advanced python users)
-Clone OCELOT from GitHub:
+## Installation
+
+### 1. Install via Anaconda Cloud
+
+The easiest way to install OCELOT is through Anaconda Cloud. Use the following command:
+
+```bash
+$ conda install -c ocelot-collab ocelot
+```
+
+### 2. Install from GitHub (for advanced users)
+If you’re comfortable with Git and Python, you can clone OCELOT from GitHub:
 ```
 $ git clone https://github.com/ocelot-collab/ocelot.git
 ```
-or download last release [zip file](https://github.com/ocelot-collab/ocelot/archive/refs/heads/master.zip).
-Now you can install OCELOT from the source:
+Alternatively, you can download the latest release as a [zip file](https://github.com/ocelot-collab/ocelot/archive/refs/heads/master.zip).
+
+To install OCELOT from source:
 ```
 $ python setup.py install
 ```
 
-#### Anaconda Cloud
-The easiest way to install OCELOT is to use Anaconda cloud. In that case use command:
- ```
- $ conda install -c ocelot-collab ocelot
- ``` 
+### 3. Install by Setting the Python Path
 
-#### PythonPath
-Another way is download ocelot from [GitHub](https://github.com/ocelot-collab/ocelot)
-1. you have to download from GitHub [zip file](https://github.com/ocelot-collab/ocelot/archive/master.zip).
-2. Unzip ocelot-master.zip to your working folder **/your_working_dir/**.
-3. Add **../your_working_dir/ocelot-master** to PYTHONPATH
-    - **Windows 7:** go to Control Panel -> System and Security -> System -> Advance System Settings -> Environment Variables.
-    and in User variables add **/your_working_dir/ocelot-master/** to PYTHONPATH. If variable PYTHONPATH does not exist, create it
+If you'd like to manually install OCELOT, follow these steps:
 
-    Variable name: PYTHONPATH
+1. Download the [ZIP file](https://github.com/ocelot-collab/ocelot/archive/master.zip) from GitHub.
+2. Unzip the file `ocelot-master.zip` to your working directory, e.g., `/your_working_dir/`.
+3. Add the directory `../your_working_dir/ocelot-master` to your `PYTHONPATH`:
 
-    Variable value: ../your_working_dir/ocelot-master/
-    - Linux:
-    ```
+    - **Windows:**
+        1. Go to **Control Panel** → **System and Security** → **System** → **Advanced System Settings** → **Environment Variables**.
+        2. Under **User variables**, add `../your_working_dir/ocelot-master/` to `PYTHONPATH`. If `PYTHONPATH` does not exist, create it.
+
+        **Variable name:** `PYTHONPATH`
+
+        **Variable value:** `../your_working_dir/ocelot-master/`
+
+    - **Linux/macOS:**
+
+    ```bash
     $ export PYTHONPATH=/your_working_dir/ocelot-master:$PYTHONPATH
     ```
 
