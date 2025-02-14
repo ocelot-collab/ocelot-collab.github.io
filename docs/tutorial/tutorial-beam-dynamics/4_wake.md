@@ -14,7 +14,7 @@ This notebook was created by Sergey Tomin (sergey.tomin@desy.de) and [Igor Zagor
 
 ## Chirper.
 Influence of corrugated structure on the electron beam.
-This example based on the work: [I. Zagorodnov, G. Feng, T. Limberg. Corrugated structure insertion for extending the SASE bandwidth up to 3% at the European XFEL](https://arxiv.org/abs/1607.07642). 
+This example based on the work: [I. Zagorodnov, G. Feng, T. Limberg. Corrugated structure insertion for extending the SASE bandwidth up to 3% at the European XFEL](https://www.sciencedirect.com/science/article/abs/pii/S0168900216309159?via%3Dihub). 
 
 Gerometry of the corrugated structure. The blue ellipse represents an electron beam
 propagating along the z axis.
@@ -354,7 +354,11 @@ plt.show()
 
 ## Wakefields of a Beam near a Single Plate in a Flat Dechirper
 
-For some FEL applications, e.g. a two-color scheme, only one flat corrugated structure can be used to get a correlated transverse kick along the electron bunch. In that case, we can use analytical approach from [I. Zagorodnov, G. Feng, T. Limberg. Corrugated structure insertion for extending the SASE bandwidth up to 3% at the European XFEL](https://arxiv.org/abs/1607.07642) and [K. Bane, G. Stupakov, and I. Zagorodnov, Wakefields of a Beam near a Single Plate in a Flat Dechirper](https://www.slac.stanford.edu/cgi-wrap/getdoc/slac-pub-16881.pdf) to calculate described above the wakefield tables. 
+For some FEL applications, e.g. a two-color scheme, only one flat corrugated structure can be used to get a correlated 
+transverse kick along the electron bunch. In that case, we can use analytical approach from 
+[I. Zagorodnov, G. Feng, T. Limberg. Corrugated structure insertion for extending the SASE bandwidth up to 3% at the European XFEL](https://www.sciencedirect.com/science/article/abs/pii/S0168900216309159?via%3Dihub) 
+and [K. Bane, G. Stupakov, and I. Zagorodnov, Wakefields of a Beam near a Single Plate in a Flat Dechirper](https://www.slac.stanford.edu/cgi-wrap/getdoc/slac-pub-16881.pdf) to calculate described above 
+the wakefield tables. 
 
 :::warning
 Due to the use of assumptions in the analytical approach, a transverse kick is infinite if the electron beam distance to the plate wall is zero.

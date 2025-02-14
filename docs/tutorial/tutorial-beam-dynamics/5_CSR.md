@@ -11,7 +11,11 @@ This notebook was created by Sergey Tomin (sergey.tomin@desy.de). January 2018.
 
 As an example, we will use bunch compressor BC2 of the European XFEL Injector. 
 
-The CSR module uses a fast ‘projected’ 1-D method from CSRtrack code and follows the approach presented in [Saldin et al 1998](http://www.sciencedirect.com/science/article/pii/S0168900298006238), [Dohlus 2003](http://citeseerx.ist.psu.edu/viewdoc/download?doi=10.1.1.233.564&rep=rep1&type=pdf), [Dohlus 2004](https://accelconf.web.cern.ch/accelconf/f04/papers/MOCOS05/MOCOS05.PDF). 
+The [CSR module](../../docu/physics-processes/csr.md) uses a fast ‘projected’ 1-D method from CSRtrack code and follows the approach presented in 
+* [Saldin et al, Radiative interaction of electrons in a bunch moving in an undulator, 1998](http://www.sciencedirect.com/science/article/pii/S0168900298006238), 
+* [M. Dohlus, Two Methods for the Calculation of CSR Fields, 2003](https://flash.desy.de/sites2009/site_vuvfel/content/e403/e1642/e740/e741/infoboxContent746/fel2003-05.pdf), 
+* [M. Dohlus, T. Limberg, CSRtrack: FASTER CALCULATION OF 3-D CSR EFFECTS, 2004](https://accelconf.web.cern.ch/f04/papers/MOCOS05/MOCOS05.PDF). 
+
 The particle tracking uses matrices up to the second order. CSR wake is calculated continuously through beam lines of arbitrary flat geometry. 
 The transverse self-forces are neglected completely. The method calculates the longitudinal self-field of a one-dimensional beam that is obtained by a projection of the ‘real’ three-dimensional beam onto a reference trajectory. 
 A smooth one-dimensional charge density is calculated by binning and filtering, which is crucial for the stability and accuracy of the simulation, since the instability is sensitive to high frequency components in the charge density. 
@@ -105,7 +109,7 @@ lat = MagneticLattice(cell, method=method)
 ```python
 csr = CSR(n_bin=300, m_bin=5, sigma_min=.2e-6)
 ```
-
+more details about CSR class can be found in [Documentation](../../docu/physics-processes/csr.md). 
 ### Track particles with and without CSR effect
 
 

@@ -6,7 +6,22 @@ title: CSR
 
 # [CSR](https://github.com/ocelot-collab/ocelot/blob/master/ocelot/cpbd/csr.py#L702) Class
 
-The [`CSR`](https://github.com/ocelot-collab/ocelot/blob/master/ocelot/cpbd/csr.py#L702) class simulates the Coherent Synchrotron Radiation (CSR) effects in particle beams. It calculates the CSR wakefield and applies the CSR kick to the particle array based on the beam's trajectory and energy. The class uses advanced mathematical methods, including convolutions and kernel evaluations, to calculate the radiative interactions between particles.
+The [`CSR`](https://github.com/ocelot-collab/ocelot/blob/master/ocelot/cpbd/csr.py#L702) class simulates the Coherent 
+Synchrotron Radiation (CSR) effects in particle beams. It calculates the CSR wakefield and applies the CSR kick to the 
+particle array based on the beam's trajectory and energy.
+
+### Simplest Example Usage
+```python
+# initialize CSR effect
+csr = CSR(step=1, n_bin=300, m_bin=5, sigma_min=.2e-6)
+# create Navigator class with unit_step 0.05 m
+navi = Navigator(lat, unit_step=0.05) 
+# add csr process to navigator with start and stop elements (belongs to lat object)
+navi.add_physics_proc(csr, start_csr, stop_csr)
+# tracking particles (p_array - ParticleArray) with CSR effect 
+tws_csr, p_array = track(lat, p_array, navi)
+```
+For more details, see the [Coherent Synchrotron Radiation](../../tutorial/tutorial-beam-dynamics/5_CSR.md) tutorial.
 
 ### Parameters:
 - **step** (`int`): Step size used for applying the CSR kick to the beam. Default is `1` [in Navigator.unit_step].
