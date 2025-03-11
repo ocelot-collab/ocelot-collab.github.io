@@ -566,7 +566,7 @@ from ocelot import *
 
 class LaserHeater(PhysProc):
     def __init__(self, step=1):
-        PhysProc.__init__(self, step=1)
+        PhysProc.__init__(self, step=step)
         # amplitude of energy modulation on axis 
         self.dE = 12500e-9 # GeV
         self.Ku = 1.294 # undulator parameter
