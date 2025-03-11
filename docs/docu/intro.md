@@ -82,6 +82,120 @@ If you'd like to manually install OCELOT, follow these steps:
     $ export PYTHONPATH=/your_working_dir/ocelot-master:$PYTHONPATH
     ```
 
+# Getting Started: Simplest Accelerator Structure
+
+## Importing Ocelot Modules
+
+The easiest way to import Ocelot is by using:
+
+```python
+from ocelot import *
+```
+```python
+    initializing ocelot...
+```
+
+## Creating a Simple Lattice
+
+Ocelot’s element syntax is similar to MAD8. Below, we create a simple lattice using quadrupoles, drift spaces, 
+and a bending magnet (Bend). A beamline is simply a sequence of elements arranged in the correct order:
+
+```python
+d = Drift(l=1)
+qf = Quadrupole(l=0.3, k1=1)
+qd = Quadrupole(l=0.3, k1=-1)
+b = Bend(l=0.5, angle=0.1)
+m1 = Marker(eid="start")
+m2 = Marker(eid="stop")
+
+cell = (m1, d, qf, d, qd, d, b,  d, qd, d, qf, d, m2)
+```
+
+The element sequence is then inserted into a MagneticLattice object, which acts as an abstraction layer between 
+the sequence and other Ocelot functions, adding useful functionalities:
+
+
+```python
+lat = MagneticLattice(cell)
+print(f"total length {lat.totalLen}")
+```
+```python
+    total length 7.699999999999999
+```
+
+## Calculating Twiss Parameters
+
+Twiss parameters can be calculated using the twiss() function. If initial Twiss parameters are not provided, 
+the function will attempt to find a periodic solution:
+
+
+```python
+tws = twiss(lat)
+```
+
+The twiss function returns a list of Twiss objects, each containing various beam parameters. 
+To display key parameters of the first Twiss object:
+
+
+```python
+print(tws[0])
+```
+```python
+    emit_x  = 0.0
+    emit_y  = 0.0
+    beta_x  = 9.449063560593697
+    beta_y  = 3.6255987161054097
+    alpha_x = -1.4029614496300944e-16
+    alpha_y = -2.4207554851521635e-16
+    gamma_x = 0.10583059300927898
+    gamma_y = 0.27581651426504045
+    Dx      = 0.4431890150023444
+    Dy      = 0.0
+    Dxp     = 4.152686605616285e-17
+    Dyp     = 0.0
+    mux     = 0.0
+    muy     = 0.0
+    nu_x    = 0.0
+    nu_y    = 0.0
+    E       = 0.0
+    s        = 0.0
+```
+
+
+## Plotting Twiss Parameters
+
+Twiss parameters can be plotted using matplotlib or Ocelot a built-in function. It requires to import the graphical module separately.
+
+*This separation was implemented to decouple graphical libraries from calculations, which was necessary due to limitations in older computing clusters.*
+
+
+```python
+from ocelot.gui import *
+plot_opt_func(lat, tws)
+plt.show()
+```
+
+![png](/img/docu-intro/simplest-ocelot_12_0.png)
+    
+
+## Specifying Initial Twiss Parameters
+
+If known, initial Twiss parameters can be passed as an argument tws0:
+
+
+```python
+tws0 = Twiss(beta_x = 10, beta_y=5, Dx=0.1)
+tws = twiss(lat, tws0=tws0)
+
+plot_opt_func(lat, tws)
+plt.show()
+```
+    
+![png](/img/docu-intro/simplest-ocelot_14_0.png)
+    
+More examples can be found in [Tutorials](../tutorial/intro.md)
+
 ## Disclaimer: 
-The OCELOT code comes with absolutely NO warranty. The authors of the OCELOT do not take any responsibility for any damage to equipments or personnel injury that may result from the use of the code.
+The OCELOT code comes with absolutely NO warranty. The authors of the OCELOT do not take any responsibility 
+for any damage to equipments or personnel injury that may result from the use of the code.
 
