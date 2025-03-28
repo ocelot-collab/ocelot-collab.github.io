@@ -1,6 +1,7 @@
 ---
 sidebar_position: 5
 title: Slotted Foil 
+description: Slotted Foil class 
 ---
 
 # [Slotted Foil](https://github.com/ocelot-collab/ocelot/blob/master/ocelot/cpbd/physics_proc.py#L415) Class

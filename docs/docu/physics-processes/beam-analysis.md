@@ -1,6 +1,7 @@
 ---
 sidebar_position: 10
 title: Beam Analysis
+description: Beam Analysis
 ---
 
 # [Beam Analysis](https://github.com/ocelot-collab/ocelot/blob/master/ocelot/cpbd/physics_proc.py#L551)

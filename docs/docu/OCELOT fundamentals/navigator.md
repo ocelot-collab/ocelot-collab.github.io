@@ -1,6 +1,7 @@
 ---
 sidebar_position: 6
 title: Navigator
+description: Navigator class
 ---
 
 # [Navigator](https://github.com/ocelot-collab/ocelot/blob/master/ocelot/cpbd/navi.py#L51) Class 

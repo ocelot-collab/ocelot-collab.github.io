@@ -1,6 +1,7 @@
 ---
 sidebar_position: 6
 title: LaserModulator 
+description: LaserModulator class
 ---
 
 # [LaserModulator](https://github.com/ocelot-collab/ocelot/blob/master/ocelot/cpbd/physics_proc.py#L165) Class 

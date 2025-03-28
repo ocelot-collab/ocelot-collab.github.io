@@ -1,6 +1,7 @@
 ---
 sidebar_position: 9
 title: Twiss  
+description: Twiss class
 ---
 
 # [Twiss](https://github.com/ocelot-collab/ocelot/blob/master/ocelot/cpbd/beam.py#L46) Class

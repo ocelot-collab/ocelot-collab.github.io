@@ -1,6 +1,7 @@
 ---
 sidebar_position: 8
 title: Aperture Classes 
+description: Documentation about apertures 
 ---
 
 # Aperture Classes 

@@ -1,6 +1,7 @@
 ---
 sidebar_position: 1
 title: Introduction to Elements
+description: Intro
 ---
 
 # Introduction to OCELOT Elements

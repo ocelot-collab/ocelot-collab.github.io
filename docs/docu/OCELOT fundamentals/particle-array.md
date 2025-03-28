@@ -1,6 +1,7 @@
 ---
 sidebar_position: 8
 title: ParticleArray
+description: ParticleArray class
 ---
 
 # [ParticleArray](https://github.com/ocelot-collab/ocelot/blob/master/ocelot/cpbd/beam.py#L726) Class 

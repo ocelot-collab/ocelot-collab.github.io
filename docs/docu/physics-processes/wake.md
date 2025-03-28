@@ -1,6 +1,7 @@
 ---
 sidebar_position: 3
 title: Wakefields
+description: Wakefields class 
 ---
 
 # [Wake](https://github.com/ocelot-collab/ocelot/blob/master/ocelot/cpbd/wake3D.py#L1030) Class

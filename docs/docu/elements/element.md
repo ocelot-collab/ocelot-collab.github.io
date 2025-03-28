@@ -1,6 +1,7 @@
 ---
 sidebar_position: 2
 title: Element
+description: Parent class
 ---
 
 # [`Element`](https://github.com/ocelot-collab/ocelot/blob/master/ocelot/cpbd/elements/element.py) Class

@@ -1,6 +1,7 @@
 ---
 sidebar_position: 1
 title: Intro to OCELOT Structure
+description: Introduction to Ocelot basics
 ---
 
 # Introduction to Ocelot Structure

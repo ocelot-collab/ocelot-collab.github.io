@@ -1,6 +1,7 @@
 ---
 sidebar_position: 7
 title: Spontaneous Radiation Effect
+description: SR class 
 ---
 
 # [Spontaneous Radiation Effect](https://github.com/ocelot-collab/ocelot/blob/master/ocelot/cpbd/physics_proc.py#L478)

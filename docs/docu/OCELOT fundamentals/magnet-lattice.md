@@ -1,6 +1,7 @@
 ---
 sidebar_position: 5
 title: MagneticLattice
+description: MagneticLattice class
 ---
 
 # [MagneticLattice](https://github.com/ocelot-collab/ocelot/blob/master/ocelot/cpbd/magnetic_lattice.py#L163) Class 

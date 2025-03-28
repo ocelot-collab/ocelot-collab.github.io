@@ -1,6 +1,7 @@
 ---
 sidebar_position: 1
 title: OpticElement
+description: OpticElement
 ---
 
 # [`OpticElement`](https://github.com/ocelot-collab/ocelot/blob/master/ocelot/cpbd/elements/optic_element.py) Class

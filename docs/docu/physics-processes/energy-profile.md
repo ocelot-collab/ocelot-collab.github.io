@@ -1,6 +1,7 @@
 ---
 sidebar_position: 12
 title: Lattice Energy Profile
+description: Lattice Energy Profile class
 ---
 
 # [Lattice Energy Profile](https://github.com/ocelot-collab/ocelot/blob/master/ocelot/cpbd/physics_proc.py#L624)

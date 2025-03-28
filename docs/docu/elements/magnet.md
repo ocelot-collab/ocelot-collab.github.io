@@ -1,6 +1,7 @@
 ---
 sidebar_position: 3
 title: Magnet
+description: Magnet class
 ---
 
 # [`Magnet`](https://github.com/ocelot-collab/ocelot/blob/master/ocelot/cpbd/elements/magnet.py) Class

@@ -1,6 +1,7 @@
 ---
 sidebar_position: 11
 title: Chicane
+description: Chicane class
 ---
 
 # [Chicane](https://github.com/ocelot-collab/ocelot/blob/master/ocelot/cpbd/physics_proc.py#L607)

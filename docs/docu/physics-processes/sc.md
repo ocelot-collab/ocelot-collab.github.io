@@ -1,6 +1,7 @@
 ---
 sidebar_position: 2
 title: Space Charge
+description: Space Charge class
 ---
 
 

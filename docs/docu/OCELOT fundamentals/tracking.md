@@ -1,6 +1,7 @@
 ---
 sidebar_position: 7
 title: Tracking
+description: Tracking function
 ---
 
 # [`track`](https://github.com/ocelot-collab/ocelot/blob/master/ocelot/cpbd/track.py#L428) function

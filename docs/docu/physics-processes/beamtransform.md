@@ -1,6 +1,7 @@
 ---
 sidebar_position: 9
 title: BeamTransform 
+description: Beam Transform class
 ---
 
 # [BeamTransform](https://github.com/ocelot-collab/ocelot/blob/master/ocelot/cpbd/physics_proc.py#L374)

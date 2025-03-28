@@ -1,6 +1,7 @@
 ---
 sidebar_position: 4
 title: IBS
+description: IBS class
 ---
 
 # [Intra Beam Scattering](https://github.com/ocelot-collab/ocelot/blob/master/ocelot/cpbd/physics_proc.py#L642)
