@@ -1,6 +1,7 @@
 ---
 sidebar_position: 3
 title: Second Order Map
+description: Second Order Map
 ---
 
 # [SecondTM](https://github.com/ocelot-collab/ocelot/blob/master/ocelot/cpbd/transformations/second_order.py) Class 
