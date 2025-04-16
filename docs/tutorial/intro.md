@@ -35,8 +35,8 @@ Current tutorials can be found in [`ocelot/demos/ipython_tutorial`](https://gith
     - A simple accelerator with the electron beam formation system and an undulator to generate THz radiation. 
 * [Tutorial N10. Corrugated Structure](./tutorial-beam-dynamics/10_CorrugatedStructures.md)
     - In this tutorial, a few examples for tracking with parallel-plate corrugated structures are shown. The wakefields model are based on analytical wakefield formulas for flat corrugated structures.
-* [Tutorial N11. Corrugated Structure](./tutorial-beam-dynamics/11_optics_design.md)
-    - One more example of how to modify optics with Ocelot
+* [Tutorial N11. Optics for High Time Resolution Measurements with TDS](./tutorial-beam-dynamics/11_optics_design.md)
+    - An additional example demonstrating how to modify the beamline optics using Ocelot.
       
 #### Photon field simulation 
 
