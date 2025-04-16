@@ -6,7 +6,7 @@ title: 7. Lattice Design
 This notebook was created by Sergey Tomin (sergey.tomin@desy.de) who was inspired by questions from E.R. June 2017.
 </small>
 
-# 7. Lattice Design
+# [7. Lattice Design](https://github.com/ocelot-collab/ocelot/blob/dev/demos/ipython_tutorials/7_lattice_design.ipynb)
 ## Lattice design. Matching. Twiss back tracking.
 ### Outline
 * FODO lattice (undulator section) with desiring max and min twiss parameters. 

@@ -6,7 +6,7 @@ title: 1. Synchrotron Radiation Module
 *This notebook was created by Sergey Tomin (sergey.tomin@desy.de). June 2019.*
 </small>
 
-# 1. Synchrotron Radiation Module
+# [1. Synchrotron Radiation Module](https://github.com/ocelot-collab/ocelot/blob/dev/demos/ipython_tutorials/pfs_1_synchrotron_radiation.ipynb)
 
 Synchrotron radiation module is also included to the OCELOT multiphysics simulation toolkit .
 

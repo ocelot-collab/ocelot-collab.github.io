@@ -6,7 +6,7 @@ title: 2. Coherent radiation module
 *This notebook was created by Andrei Trebushinin (trebandrej@gmail.com) and Svitozar Serkez. August 2019.*
 </small>
 
-# 2. Coherent radiation module and `RadiationField` object.
+# [2. Coherent radiation module and `RadiationField` object.](https://github.com/ocelot-collab/ocelot/blob/dev/demos/ipython_tutorials/pfs_2_radiation_field.ipynb)
 OCELOT has the RadiationField object which represents a 3D electric field distribution, initially in space-time domain
 
 

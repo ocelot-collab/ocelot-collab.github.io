@@ -6,7 +6,7 @@ title: 12. Undulator Matching
 *This notebook was created by Sergey Tomin (sergey.tomin@desy.de). June 2018.*
 </small>
 
-# 12. Undulator Matching
+# [12. Undulator Matching](https://github.com/ocelot-collab/ocelot/blob/dev/demos/ipython_tutorials/undulator_matching.ipynb)
 
 ### Appendix: FODO in thin lens approximation 
 

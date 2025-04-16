@@ -35,6 +35,8 @@ Current tutorials can be found in [`ocelot/demos/ipython_tutorial`](https://gith
     - A simple accelerator with the electron beam formation system and an undulator to generate THz radiation. 
 * [Tutorial N10. Corrugated Structure](./tutorial-beam-dynamics/10_CorrugatedStructures.md)
     - In this tutorial, a few examples for tracking with parallel-plate corrugated structures are shown. The wakefields model are based on analytical wakefield formulas for flat corrugated structures.
+* [Tutorial N11. Corrugated Structure](./tutorial-beam-dynamics/11_optics_design.md)
+    - One more example of how to modify optics with Ocelot
       
 #### Photon field simulation 
 
@@ -58,6 +60,9 @@ Current tutorials can be found in [`ocelot/demos/ipython_tutorial`](https://gith
     - Get Twiss paremeters from the beam slice
 * [Example of an accelerator section optimization](./tutorial-beam-dynamics/accelerator_optim.md)
     - A simple demo of accelerator section optimization with a standard scipy numerical optimization method. 
+* [Ocelot for Students](./tutorial-beam-dynamics/for_students.md)
+    - This tutorial is aimed at students and beginners in accelerator physics. The idea is to keep it simple and interactive, helping you build intuition about how magnetic elements work.
+
 
 ### Checking your installation
 

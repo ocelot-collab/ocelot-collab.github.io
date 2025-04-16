@@ -6,7 +6,7 @@ title: 3. Space Charge
 This notebook was created by Sergey Tomin (sergey.tomin@desy.de). January 2018.
 </small>
 
-# 3. Space Charge.
+# [3. Space Charge.](https://github.com/ocelot-collab/ocelot/blob/dev/demos/ipython_tutorials/3_space_charge.ipynb)
 *Second order tracking with space charge effect of the 200k particles.*
 
 As an example, we will use lattice file (converted to Ocelot format) of the European XFEL Injector. 

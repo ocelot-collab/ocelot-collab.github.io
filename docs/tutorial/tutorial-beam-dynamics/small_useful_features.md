@@ -6,7 +6,7 @@ title: 14. Useful OCELOT functions
 *This notebook was created by Sergey Tomin (sergey.tomin@desy.de). May 2020.*
 </small>
 
-# 14. Useful OCELOT functions
+# [14. Useful OCELOT functions](https://github.com/ocelot-collab/ocelot/blob/dev/demos/ipython_tutorials/small_useful_features.ipynb)
 
 This notebook was created to show some small functions that may be useful for accelerator physicists.
 ### Contents

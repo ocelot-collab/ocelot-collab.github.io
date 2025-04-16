@@ -6,7 +6,7 @@ title: 13. Optimization Toy
 *This notebook was created by Sergey Tomin (sergey.tomin@desy.de) for IPC seminar. October 2020.*
 </small>
 
-# Optimization Toy
+# [Optimization Toy](https://github.com/ocelot-collab/ocelot/blob/dev/demos/ipython_tutorials/accelerator_optim.ipynb)
 
 Here, we consider a simple example of accelerator parameter optimization with OCELOT. The goal is to demonstrate the benefits of using a Python accelerator library like OCELOT.
 

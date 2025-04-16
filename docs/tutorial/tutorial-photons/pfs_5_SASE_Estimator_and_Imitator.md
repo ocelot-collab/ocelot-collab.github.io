@@ -6,7 +6,7 @@ title: 5. SASE estimation and imitation
 *This notebook was created by Svitozar Serkez. Source and license info is on [GitHub](https://github.com/ocelot-collab/ocelot). August 2019.*
 </small>
 
-# 5. SASE estimation and imitation (unfinished)
+# [5. SASE estimation and imitation (unfinished)](https://github.com/ocelot-collab/ocelot/blob/dev/demos/ipython_tutorials/pfs_5_SASE_Estimator_and_Imitator.ipynb)
 
 
 ```python

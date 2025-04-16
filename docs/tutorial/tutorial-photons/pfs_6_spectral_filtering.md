@@ -6,7 +6,7 @@ title: 6. Spectral Filtering
 *This notebook was created by Svitozar Serkez. Source and license info is on [GitHub](https://github.com/ocelot-collab/ocelot). August 2019.*
 </small>
 
-# 6. Spectral Filtering
+# [6. Spectral Filtering](https://github.com/ocelot-collab/ocelot/blob/dev/demos/ipython_tutorials/pfs_6_spectral_filtering.ipynb)
 
 
 ```python

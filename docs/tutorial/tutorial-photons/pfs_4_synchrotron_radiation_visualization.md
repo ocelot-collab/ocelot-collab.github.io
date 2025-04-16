@@ -6,7 +6,7 @@ title: 4. SR Visualization
 *This notebook was created by Mykola Veremchuk (mykola.veremchuk@xfel.eu), Svitozar Serkez. Source and license info is on [GitHub](https://github.com/ocelot-collab/ocelot). June 2019.*
 </small>
 
-# 4. Converting synchrotron radiation results from `Screen` object to `RadiationField`
+# [4. Converting synchrotron radiation results from `Screen` object to `RadiationField`](https://github.com/ocelot-collab/ocelot/blob/dev/demos/ipython_tutorials/pfs_4_synchrotron_radiation_visualization.ipynb)
 
 `ocelot.optics.wave.RadiationField` objects can be used for analysis as well as propagation of Synchrotron radiation module output
 

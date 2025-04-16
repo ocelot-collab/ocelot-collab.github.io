@@ -6,7 +6,7 @@ title: 3. Reflection from Imperfect Mirror
 *This notebook was created by Mykola Veremchuk (mykola.veremchuk@xfel.eu), Svitozar Serkez. Source and license info is on [GitHub](https://github.com/ocelot-collab/ocelot). July 2019.*
 </small>
 
-# 2. Reflection from imperfect highly polished mirror.
+# [3. Reflection from imperfect highly polished mirror.](https://github.com/ocelot-collab/ocelot/blob/dev/demos/ipython_tutorials/pfs_3_imperfect_mirror.ipynb)
 
 In this tutorial we will illustrate generation of imperfect surface and reflection of the radiation fields from it
 

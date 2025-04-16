@@ -6,7 +6,7 @@ title: 9. Accelerator based THz source
 *This notebook was created by Sergey Tomin (sergey.tomin@desy.de). July 2019.
 </small>
 
-# 9. Accelerator based THz source
+# [9. Accelerator based THz source](https://github.com/ocelot-collab/ocelot/blob/dev/demos/ipython_tutorials/9_thz_source.ipynb)
 
 In this tutorial we will focus on another feature of the SR module (see [PFS tutorial N1. Synchrotron radiation module](../tutorial-photons/pfs_1_synchrotron_radiation.md)), namely the calculation of coherent radiation.
 Details and limitation of the SR module in that mode can be found in [G. Geloni, T. Tanikawa and S. Tomin, Dynamical effects on superradiant THz emission from an undulator. J. Synchrotron Rad. (2019). 26, 737-749](http://scripts.iucr.org/cgi-bin/paper?S1600577519002509)

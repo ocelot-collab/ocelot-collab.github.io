@@ -7,7 +7,7 @@ description: Optics design
 *This notebook was created by Sergey Tomin (sergey.tomin@desy.de). April 2025.*
 </small>
 
-# Optics for High Time Resolution Measurements with TDS
+# [Optics for High Time Resolution Measurements with TDS](https://github.com/ocelot-collab/ocelot/blob/dev/demos/ipython_tutorials/11_design_hires_optics.ipynb)
 
 This tutorial is motivated by a practical task: improving the time resolution of current profile measurements using a Transverse Deflecting Structure (TDS) at the European XFEL (EuXFEL).
 
@@ -148,7 +148,7 @@ import l2, l3 # lattices can be found in https://github.com/ocelot-collab/EuXFEL
 
 
 ```python
-lat_l2 = MagneticLattice(l2.cell + l3.cell, stop=l3.match_l3)
+lat_l2 = MagneticLattice(l2.cell + l3.cell, stop=l3.id_32072837_) # drift in front of first L3 RF module (A6)
 tws = twiss(lat_l2, tws0=l2.tws0)
 plot_opt_func(lat_l2, tws, top_plot=["Dy"], legend=False)
 plt.savefig("L2_design.png") 
@@ -179,12 +179,12 @@ print(l2.ensub_466_b2.tws.beta_y)
 
 ## Define Matching Start and End Points
 
-We preserve Twiss parameters at `match_385_b2` (entry point after L2) and `match_l3` (end of lattice).
+We preserve Twiss parameters at `match_385_b2` (entry point after L2) and `id_32072837_` (end of lattice).
 
 
 ```python
 tws_match_385 = copy.deepcopy(l2.match_385_b2.tws)
-tws_end = copy.deepcopy(l3.match_l3.tws)
+tws_end = copy.deepcopy(l3.id_32072837_.tws)
 ```
 
 ## Shorten Lattice to Relevant Region
@@ -193,7 +193,7 @@ We exclude upstream quadrupoles and start optimization just after L2.
 
 
 ```python
-lat = MagneticLattice(l2.cell+l3.cell, start=l2.match_385_b2, stop=l3.match_l3)
+lat = MagneticLattice(l2.cell+l3.cell, start=l2.match_385_b2, stop=l3.id_32072837_)
 tws_des = twiss(lat, tws0=tws_match_385)
 plot_opt_func(lat, tws_des, top_plot = ["Dy"], legend=False)
 plt.savefig("TDS_area_design.png")
@@ -247,7 +247,7 @@ It can be done in different ways but we will use pandas.
 ```python
 
 # List of elements where we want to see Twiss parameters
-elements_for_comparision = {'TDS 429': l2.marker_tds_b2, "Scr 450": l2.otrb_450_b2,  "Scr 454": l2.otrb_454_b2, 'Scr 457': l2.otrb_457_b2, 'Scr 461': l2.otrb_461_b2, 'end': l3.match_l3}
+elements_for_comparision = {'TDS 429': l2.marker_tds_b2, "Scr 450": l2.otrb_450_b2,  "Scr 454": l2.otrb_454_b2, 'Scr 457': l2.otrb_457_b2, 'Scr 461': l2.otrb_461_b2, 'end': l3.id_32072837_}
 
 # Attributes we want to compare
 attributes = ['beta_x', 'beta_y', 'alpha_x', 'alpha_y', 'mux']
@@ -363,7 +363,7 @@ We now restore the beam optics to match the original design values at the end of
 
 ```python
 constr = {
-    l3.match_l3: {
+    l3.id_32072837_: {
         "beta_x": tws_end.beta_x,
         "beta_y": tws_end.beta_y,
         "alpha_x": tws_end.alpha_x,

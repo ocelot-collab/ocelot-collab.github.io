@@ -6,7 +6,7 @@ title: 10. Corrugated Structure
 *This notebook was created by Weilun Qin (weilun.qin@desy.de). Feb. 2024.*
 </small>
 
-# 10. Corrugated Structure
+# [10. Corrugated Structure](https://github.com/ocelot-collab/ocelot/blob/dev/demos/ipython_tutorials/10_CorrugatedStructures.ipynb)
 
 In this tutorial, we show a few examples for tracking with parallel-plate corrugated structures. The wakefields model we used are based on analytical wakefield formulas for flat corrugated structures. Details of the wake can be found in [Short-range wakefields in an L-shaped corrugated structure](https://journals.aps.org/prab/abstract/10.1103/PhysRevAccelBeams.26.064402). Tracking algorithm of the wakefields in OCELOT with a second order Taylor expansion method can be found in [tutorial N4. Wakefields](http://nbviewer.jupyter.org/github/ocelot-collab/ocelot/blob/master/demos/ipython_tutorials/4_wake.ipynb). Here we also present an extended 3rd order method.
 

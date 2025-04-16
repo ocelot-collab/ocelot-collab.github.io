@@ -6,7 +6,7 @@ title: 6. Coupler Kick
 This notebook was created by Sergey Tomin (sergey.tomin@desy.de). April 2020.
 </small>
 
-# 6. Coupler Kick
+# [6. Coupler Kick](https://github.com/ocelot-collab/ocelot/blob/dev/demos/ipython_tutorials/6_coupler_kick.ipynb)
 *Second order tracking with coupler kick in TESLA type cavity of the 200k particles.*
 
 As an example, we will use linac L1 of the European XFEL Injector. 

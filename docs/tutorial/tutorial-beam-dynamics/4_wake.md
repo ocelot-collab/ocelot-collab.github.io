@@ -6,7 +6,7 @@ title: 4. Wakefields
 This notebook was created by Sergey Tomin (sergey.tomin@desy.de) and [Igor Zagorodnov](http://www.desy.de/~zagor/) for Workshop: [Designing future X-ray FELs](http://www.xrayfels.co.uk/). Updated September 2020.
 </small>
 
-# 4. Wakefields
+# [4. Wakefields](https://github.com/ocelot-collab/ocelot/blob/dev/demos/ipython_tutorials/4_wake.ipynb)
 
 * Wake table format
 * Wakefields of a Beam near a Single Plate in a Flat Dechirper

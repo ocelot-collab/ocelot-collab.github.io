@@ -6,7 +6,7 @@ title: 5. Coherent Synchrotron Radiation
 This notebook was created by Sergey Tomin (sergey.tomin@desy.de). January 2018.    
 </small>
 
-# 5. Coherent Synchrotron Radiation
+# [5. Coherent Synchrotron Radiation](https://github.com/ocelot-collab/ocelot/blob/dev/demos/ipython_tutorials/5_CSR.ipynb)
 *Second order tracking with CSR effect of the 200k particles.*
 
 As an example, we will use bunch compressor BC2 of the European XFEL Injector. 

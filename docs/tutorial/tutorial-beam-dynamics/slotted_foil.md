@@ -6,7 +6,7 @@ title: 11. Slotted Foil
 *This notebook was created by Sergey Tomin (sergey.tomin@desy.de). June 2022*
 </small>
 
-# 11. Slotted Foil
+# [11. Slotted Foil](https://github.com/ocelot-collab/ocelot/blob/dev/demos/ipython_tutorials/slotted_foil.ipynb)
 
 ### Mutible scattering through small angles
 The Review of Particle Physics" https://pdg.lbl.gov
