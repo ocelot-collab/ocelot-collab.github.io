@@ -9,7 +9,10 @@ description: Optics design
 
 # [Optics for High Time Resolution Measurements with TDS](https://github.com/ocelot-collab/ocelot/blob/dev/demos/ipython_tutorials/11_design_hires_optics.ipynb)
 
-This tutorial is motivated by a practical task: improving the time resolution of current profile measurements using a Transverse Deflecting Structure (TDS) at the European XFEL (EuXFEL).
+This tutorial is motivated by a practical task: improving the time resolution of current profile measurements using a Transverse Deflecting Structure (TDS) at the European XFEL (EuXFEL).  
+The tutorial itself is available in Jupyter Notebook format and can be downloaded [here](https://github.com/ocelot-collab/ocelot/blob/dev/demos/ipython_tutorials/11_design_hires_optics.ipynb).
+
+The lattice files used in this tutorial can be found in this [repository](https://github.com/ocelot-collab/EuXFEL-Lattice/tree/main/lattices/longlist_2024_07_04).
 
 ---
 
