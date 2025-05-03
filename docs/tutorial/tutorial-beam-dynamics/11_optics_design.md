@@ -148,7 +148,7 @@ import l2, l3 # lattices can be found in https://github.com/ocelot-collab/EuXFEL
 
 
 ```python
-lat_l2 = MagneticLattice(l2.cell + l3.cell, stop=l3.id_32072837_) # drift in front of first L3 RF module (A6)
+lat_l2 = MagneticLattice(l2.cell + l3.cell, stop=l3.bpmc_488_l3) # id_32072837_ - Drift in front of first A6 RF module
 tws = twiss(lat_l2, tws0=l2.tws0)
 plot_opt_func(lat_l2, tws, top_plot=["Dy"], legend=False)
 plt.savefig("L2_design.png") 
@@ -158,7 +158,7 @@ plt.show()
 
 
     
-![png](/img/11_design_hires_optics_files/11_design_hires_optics_3_0.png)
+![png](/img/11_design_hires_optics_files/output_3_0.png)
     
 
 
@@ -174,7 +174,7 @@ tws = twiss(lat_l2, tws0=l2.tws0, attach2elem=True)
 print(l2.ensub_466_b2.tws.beta_y)
 ```
 
-    4.9841234890954
+    5.058664837892
 
 
 ## Define Matching Start and End Points
@@ -183,8 +183,10 @@ We preserve Twiss parameters at `match_385_b2` (entry point after L2) and `id_32
 
 
 ```python
+END_ELEM = l3.id_32072837_
+
 tws_match_385 = copy.deepcopy(l2.match_385_b2.tws)
-tws_end = copy.deepcopy(l3.id_32072837_.tws)
+tws_end = copy.deepcopy(END_ELEM.tws)
 ```
 
 ## Shorten Lattice to Relevant Region
@@ -193,7 +195,7 @@ We exclude upstream quadrupoles and start optimization just after L2.
 
 
 ```python
-lat = MagneticLattice(l2.cell+l3.cell, start=l2.match_385_b2, stop=l3.id_32072837_)
+lat = MagneticLattice(l2.cell+l3.cell, start=l2.match_385_b2, stop=END_ELEM)
 tws_des = twiss(lat, tws0=tws_match_385)
 plot_opt_func(lat, tws_des, top_plot = ["Dy"], legend=False)
 plt.savefig("TDS_area_design.png")
@@ -202,7 +204,7 @@ plt.show()
 
 
     
-![png](/img/11_design_hires_optics_files/11_design_hires_optics_9_0.png)
+![png](/img/11_design_hires_optics_files/output_9_0.png)
     
 
 
@@ -245,12 +247,11 @@ It can be done in different ways but we will use pandas.
 
 
 ```python
-
 # List of elements where we want to see Twiss parameters
-elements_for_comparision = {'TDS 429': l2.marker_tds_b2, "Scr 450": l2.otrb_450_b2,  "Scr 454": l2.otrb_454_b2, 'Scr 457': l2.otrb_457_b2, 'Scr 461': l2.otrb_461_b2, 'end': l3.id_32072837_}
+elements_for_comparision = {'TDS 429': l2.marker_tds_b2, "Scr 450": l2.otrb_450_b2,  "Scr 454": l2.otrb_454_b2, 'Scr 457': l2.otrb_457_b2, 'Scr 461': l2.otrb_461_b2, 'end': END_ELEM}
 
 # Attributes we want to compare
-attributes = ['beta_x', 'beta_y', 'alpha_x', 'alpha_y', 'mux']
+attributes = ['beta_x', 'beta_y', 'alpha_x', 'alpha_y', 'mux', "muy"]
 
 def table_update(lat, tws0, elements_for_comparision, attributes):
     # calculate Twiss
@@ -261,7 +262,7 @@ def table_update(lat, tws0, elements_for_comparision, attributes):
                      index=attributes)
     # make phase advance in degree
     table.loc['mux'] = (table.loc['mux'] - table.loc['mux', 'TDS 429'])*180/np.pi
-
+    table.loc['muy'] = (table.loc['muy'] - table.loc['muy', 'TDS 429'])*180/np.pi
     # add R12 elements into table 
     R12_values = copy.copy(elements_for_comparision)
     for key in R12_values:
@@ -276,15 +277,15 @@ table
 
 
 
-
-| Parameter  | TDS 429   | Scr 450   | Scr 454   | Scr 457   | Scr 461   | End       |
-|------------|-----------|-----------|-----------|-----------|-----------|-----------|
-| beta_x     | 43.053180 | 18.251948 | 20.968219 | 22.373178 | 23.377576 | 18.128801 |
-| beta_y     | 7.934085  | 5.763031  | 6.196580  | 6.343081  | 6.033306  | 16.635496 |
-| alpha_x    | 0.430495  | 1.974248  | -2.912536 | 2.635599  | -2.959366 | 0.773439  |
-| alpha_y    | 0.823006  | -1.003279 | 0.967638  | -1.012782 | 1.062611  | -0.652910 |
-| mux [deg]  | 0.000000  | 87.585305 | 102.060092| 110.131938| 122.478302| 156.118641|
-| R12 [m]    | 0.000000  | 28.007312 | 29.382633 | 29.139827 | 26.763092 | 11.310323 |
+|            | TDS 429   | Scr 450  | Scr 454  | Scr 457  | Scr 461  | end      |
+|------------|-----------|----------|----------|----------|----------|----------|
+| beta_x     | 50.97858  | 17.07336 | 16.94874 | 17.04623 | 17.18839 | 16.88229 |
+| beta_y     | 7.97626   | 5.96935  | 6.03083  | 5.97761  | 5.98449  | 15.53650 |
+| alpha_x    | 0.22863   | 2.13837  | -2.15339 | 2.13443  | -2.18046 | 0.43030  |
+| alpha_y    | 0.89572   | -0.97954 | 1.00367  | -0.98736 | 0.98641  | -0.60920 |
+| mux        | 0.00000   | 71.68294 | 88.38849 | 98.69572 | 115.29531| 157.32295|
+| muy        | 0.00000   | 166.8764 | 193.9847 | 243.5603 | 270.7594 | 407.94331|
+| R12        | 0.00000   | 28.00731 | 29.38263 | 29.13983 | 26.76309 | 11.31032 |
 
 
 
@@ -302,8 +303,8 @@ To achieve this, we define a set of constraints and a list of quadrupoles we all
 
 ```python
 constr = {
-    l2.marker_tds_b2: {"beta_x": 120},
-    l2.otrb_457_b2: {"beta_x": 23},
+    l2.marker_tds_b2: {"beta_x": 150, "alpha_x": 0},
+    l2.otrb_457_b2: {"beta_x": 17},
     "delta": {
         l2.marker_tds_b2: ["mux", 0],
         l2.otrb_457_b2: ["mux", 0],
@@ -313,7 +314,8 @@ constr = {
 }
 
 vars = [
-    l2.qd_417_b2, l2.qd_418_b2, l2.qd_425_b2, l2.qd_427_b2,
+    l2.qd_417_b2, 
+    l2.qd_418_b2, l2.qd_425_b2, l2.qd_427_b2,
     l2.qd_431_b2, l2.qd_434_b2, l2.qd_437_b2, l2.qd_440_b2,
     l2.qd_444_b2, l2.qd_448_b2, l2.qd_452_b2, l2.qd_456_b2
 ]
@@ -333,7 +335,7 @@ plt.show()
 
 
     
-![png](/img/11_design_hires_optics_files/11_design_hires_optics_15_1.png)
+![png](/img/11_design_hires_optics_files/output_15_1.png)
     
 
 
@@ -345,15 +347,15 @@ table
 
 
 
-
-| Parameter  | TDS 429    | Scr 450   | Scr 454   | Scr 457   | Scr 461   | End       |
-|------------|------------|-----------|-----------|-----------|-----------|-----------|
-| beta_x     | 119.999988 | 9.867583  | 16.727041 | 23.000015 | 32.818136 | 39.505395 |
-| beta_y     | 2.550806   | 2.617958  | 2.719159  | 22.276018 | 27.893547 | 40.401592 |
-| alpha_x    | -1.176541  | 0.826086  | -3.108578 | 1.877474  | -5.039433 | 1.405256  |
-| alpha_y    | 0.413125   | 0.537724  | -0.535634 | -5.491003 | 4.590962  | -3.801453 |
-| mux [deg]  | 0.000000   | 58.266880 | 81.108923 | 89.999993 | 100.252631| 118.718016|
-| R12 [m]    | 0.000000   | 29.266717 | 44.263938 | 52.535717 | 61.752850 | 60.383181 |
+|            | TDS 429   | Scr 450  | Scr 454  | Scr 457  | Scr 461  | end      |
+|------------|-----------|----------|----------|----------|----------|----------|
+| beta_x     | 149.99999 | 10.17169 | 13.46432 | 17.00000 | 20.59933 | 16.91344 |
+| beta_y     | 5.39319   | 3.80610  | 9.25716  | 12.53528 | 10.35206 | 16.98702 |
+| alpha_x    | 0.00001   | 1.20565  | -2.32524 | 1.64110  | -2.78659 | 0.43173  |
+| alpha_y    | 0.07739   | -1.48590 | 0.75004  | -1.76435 | 2.13902  | -0.74985 |
+| mux        | 0.00000   | 53.13755 | 78.53762 | 90.00020 | 104.86418| 144.32068|
+| muy        | 0.00000   | 189.1443 | 215.2306 | 240.5480 | 254.87936| 415.89824|
+| R12        | 0.00000   | 31.25176 | 44.04417 | 50.49753 | 53.72675 | 29.37750 |
 
 
 ### Matching to Final Conditions
@@ -362,21 +364,29 @@ We now restore the beam optics to match the original design values at the end of
 
 
 ```python
-constr = {
-    l3.id_32072837_: {
+constr_end = {
+    END_ELEM: {
         "beta_x": tws_end.beta_x,
         "beta_y": tws_end.beta_y,
         "alpha_x": tws_end.alpha_x,
         "alpha_y": tws_end.alpha_y
-    }
+     },
+    #     "delta": {
+        
+    #     l2.otrb_457_b2: ["mux", 0],
+    #     END_ELEM: ["mux", 0],
+    #     "val": (790-690.22)/180*np.pi,
+    #     "weight": 1_000_007
+    # },
 }
 
-vars = [
-    l2.qd_459_b2, l2.qd_463_b2, l2.qd_464_b2, l2.qd_465_b2,
+vars_end = [
+    l2.qd_459_b2, 
+    l2.qd_463_b2, l2.qd_464_b2, l2.qd_465_b2,
     l3.qd_470_b2, l3.qd_472_b2
 ]
 
-match(lat, constr, vars, tw=tws_match_385, verbose=False, max_iter=2000, method='simplex')
+match(lat, constr_end, vars_end, tw=tws_match_385, verbose=False, max_iter=2000, method='simplex')
 tws_hi_res = twiss(lat, tws0=tws_match_385)
 plot_opt_func(lat, tws_hi_res, top_plot=["Dy"], legend=False)
 plt.show()
@@ -393,20 +403,21 @@ table
 
 
     
-![png](/img/11_design_hires_optics_files/11_design_hires_optics_18_1.png)
+![png](/img/11_design_hires_optics_files/output_18_1.png)
     
 
 
 
 
-| Parameter  | TDS 429    | Scr 450   | Scr 454   | Scr 457   | Scr 461   | End       |
-|------------|------------|-----------|-----------|-----------|-----------|-----------|
-| beta_x     | 119.999988 | 9.867583  | 16.727041 | 23.000015 | 34.854238 | 18.128784 |
-| beta_y     | 2.550806   | 2.617958  | 2.719159  | 22.276018 | 24.964305 | 16.635487 |
-| alpha_x    | -1.176541  | 0.826086  | -3.108578 | 1.877474  | -5.735155 | 0.773446  |
-| alpha_y    | 0.413125   | 0.537724  | -0.535634 | -5.491003 | 5.089604  | -0.652902 |
-| mux [deg]  | 0.000000   | 58.266880 | 81.108923 | 89.999993 | 100.113548| 129.377807|
-| R12 [m]    | 0.000000   | 29.266717 | 44.263938 | 52.535717 | 63.667415 | 36.053119 |
+|            | TDS 429   | Scr 450  | Scr 454  | Scr 457  | Scr 461  | end      |
+|------------|-----------|----------|----------|----------|----------|----------|
+| beta_x     | 149.99999 | 10.17169 | 13.46432 | 17.00000 | 20.71699 | 16.88229 |
+| beta_y     | 5.39319   | 3.80610  | 9.25716  | 12.53528 | 10.24631 | 15.53648 |
+| alpha_x    | 0.00001   | 1.20565  | -2.32524 | 1.64110  | -2.82521 | 0.43030  |
+| alpha_y    | 0.07739   | -1.48590 | 0.75004  | -1.76435 | 2.15514  | -0.60920 |
+| mux        | 0.00000   | 53.13755 | 78.53762 | 90.00020 | 104.84392| 144.39113|
+| muy        | 0.00000   | 189.1443 | 215.2306 | 240.5480 | 254.9183 | 417.5666 |
+| R12        | 0.00000   | 31.25176 | 44.04417 | 50.49753 | 53.88501 | 29.30015 |
 
 
 ## Compare design and new optics
@@ -434,7 +445,7 @@ plt.show()
 
 
     
-![png](/img/11_design_hires_optics_files/11_design_hires_optics_20_0.png)
+![png](/img/11_design_hires_optics_files/output_20_0.png)
     
 
 
@@ -444,18 +455,21 @@ for key in ['beta_x', "beta_y", "alpha_x", "alpha_y"]:
     print(key, " :", getattr(tws_hi_res[-1], key), getattr(tws_des[-1], key))
 ```
 
-    beta_x  : 18.12878351766724 18.128800557003874
-    beta_y  : 16.635486624456355 16.63549612797459
-    alpha_x  : 0.7734461345079249 0.773439275717092
-    alpha_y  : -0.6529023367854705 -0.6529100059044322
+    beta_x  : 16.882291323377554 16.882288192819743
+    beta_y  : 15.536480497394853 15.536499055076685
+    alpha_x  : 0.4302991727930746 0.4303020309015204
+    alpha_y  : -0.6092012060842842 -0.609204409231985
 
 
 ## Write to dataframe new quads kicks. Change name of `new_colimn`
 
 
 ```python
+WRITE_TO_FILE = True
+REWRITE = True
 
-new_column = 'TDS 140m'
+beta_tds_ampl = constr[l2.marker_tds_b2]["beta_x"] 
+new_column = f'TDS {beta_tds_ampl}m'
 
 
 quads_kicks_df = pd.read_csv(df_filename, index_col=0)
@@ -464,13 +478,13 @@ d_new = {}
 for e in lat.sequence:
     if e.__class__ == Quadrupole:
         d_new[e.id] = e.k1
-
-if new_column in quads_kicks_df.columns:
-    print(f"Column '{new_column}' already exists. Skipping step.")
-else:
-    print(f"Column '{new_column}' not found. Proceeding to add it.")
-    quads_kicks_df[new_column] = pd.Series(d_new)
-    df.to_csv(df_filename)
+if WRITE_TO_FILE:
+    if new_column in quads_kicks_df.columns and not REWRITE:
+        print(f"Column '{new_column}' already exists. Skipping step.")
+    else:
+        print(f"Column '{new_column}' not found. Proceeding to add it.")
+        quads_kicks_df[new_column] = pd.Series(d_new)
+        quads_kicks_df.to_csv(df_filename)
 
 quads_kicks_df
 ```
@@ -479,31 +493,31 @@ quads_kicks_df
 
 
 
-| Quadrupole  | design    | TDS 120m  | TDS 90m   | TDS 140m  |
-|-------------|-----------|-----------|-----------|-----------|
-| QD.387.B2   | 0.335173  | 0.335173  | 0.335173  | 0.335173  |
-| QD.388.B2   | 0.355996  | 0.355996  | 0.355996  | 0.355996  |
-| QD.391.B2   | -0.725525 | -0.725525 | -0.725525 | -0.725525 |
-| QD.392.B2   | 0.196996  | 0.196996  | 0.196996  | 0.196996  |
-| QD.415.B2   | 0.180686  | 0.180686  | 0.180686  | 0.180686  |
-| QD.417.B2   | -0.750235 | -0.745629 | -0.647145 | -0.770445 |
-| QD.418.B2   | 0.649193  | 0.369902  | 0.387712  | 0.318736  |
-| QD.425.B2   | -1.300803 | -1.506231 | -1.509827 | -1.495203 |
-| QD.427.B2   | 0.941484  | 1.005995  | 1.026309  | 1.025747  |
-| QD.431.B2   | 0.435183  | 0.462607  | 0.444335  | 0.466619  |
-| QD.434.B2   | -0.527858 | -0.502022 | -0.516114 | -0.527095 |
-| QD.437.B2   | 0.405549  | 0.475574  | 0.458065  | 0.474556  |
-| QD.440.B2   | -0.668525 | -0.684404 | -0.677483 | -0.691296 |
-| QD.444.B2   | -0.458219 | -0.454713 | -0.445546 | -0.414151 |
-| QD.448.B2   | 0.896096  | 0.601137  | 0.666081  | 0.509566  |
-| QD.452.B2   | -1.263284 | -1.374850 | -1.312297 | -1.514683 |
-| QD.456.B2   | 0.896096  | 0.907722  | 0.956777  | 1.123218  |
-| QD.459.B2   | -1.263284 | -1.356933 | -1.397251 | -1.382073 |
-| QD.463.B2   | -0.569607 | -0.493077 | -0.503012 | -0.540129 |
-| QD.464.B2   | 1.298268  | 1.384158  | 1.350744  | 1.292062  |
-| QD.465.B2   | -0.246861 | -0.235185 | -0.236327 | -0.228470 |
-| QD.470.B2   | -1.128907 | -1.425168 | -1.463447 | -1.559943 |
-| QD.472.B2   | 0.661180  | 0.626626  | 0.720128  | 0.859687  |
+| Quad       | design    | TDS 70m   | TDS 90m   | TDS 120m  | TDS 140m  | TDS 150m  |
+|------------|-----------|-----------|-----------|-----------|-----------|-----------|
+| QD.387.B2  | 0.335173  | 0.335173  | 0.335173  | 0.335173  | 0.335173  | 0.335173  |
+| QD.388.B2  | 0.355996  | 0.355996  | 0.355996  | 0.355996  | 0.355996  | 0.355996  |
+| QD.391.B2  | -0.725525 | -0.725525 | -0.725525 | -0.725525 | -0.725525 | -0.725525 |
+| QD.392.B2  | 0.196996  | 0.196996  | 0.196996  | 0.196996  | 0.196996  | 0.196996  |
+| QD.415.B2  | 0.180686  | 0.180686  | 0.180686  | 0.180686  | 0.180686  | 0.180686  |
+| QD.417.B2  | -0.750235 | -0.784398 | -0.844188 | -0.925253 | -0.878182 | -0.971459 |
+| QD.418.B2  | 0.649193  | 0.584715  | 0.529610  | 0.462214  | 0.337036  | 0.409773  |
+| QD.425.B2  | -1.300803 | -1.347249 | -1.304467 | -1.251303 | -1.156159 | -1.308911 |
+| QD.427.B2  | 0.941484  | 0.961247  | 0.959889  | 0.955579  | 0.929976  | 0.990706  |
+| QD.431.B2  | 0.435183  | 0.438339  | 0.448529  | 0.446643  | 0.500821  | 0.443519  |
+| QD.434.B2  | -0.527858 | -0.516594 | -0.534249 | -0.520934 | -0.612066 | -0.505477 |
+| QD.437.B2  | 0.405549  | 0.424919  | 0.435292  | 0.444177  | 0.424977  | 0.443716  |
+| QD.440.B2  | -0.668525 | -0.694907 | -0.699210 | -0.737736 | -0.726803 | -0.745826 |
+| QD.444.B2  | -0.458219 | -0.453644 | -0.463892 | -0.485140 | -0.462831 | -0.499049 |
+| QD.448.B2  | 0.896096  | 0.830044  | 0.788204  | 0.758349  | 0.714462  | 0.711105  |
+| QD.452.B2  | -1.263284 | -1.280195 | -1.307186 | -1.370400 | -1.379105 | -1.412015 |
+| QD.456.B2  | 0.896096  | 0.914291  | 0.919221  | 0.908725  | 0.987346  | 0.937405  |
+| QD.459.B2  | -1.263284 | -1.365812 | -1.289895 | -1.160471 | -1.135981 | -1.168825 |
+| QD.463.B2  | -0.569607 | -0.516755 | -0.521682 | -0.541629 | -0.480187 | -0.536436 |
+| QD.464.B2  | 1.298268  | 1.308125  | 1.316963  | 1.335647  | 1.230522  | 1.338992  |
+| QD.465.B2  | -0.246861 | -0.235193 | -0.244567 | -0.263073 | -0.241534 | -0.264049 |
+| QD.470.B2  | -1.128907 | -1.199967 | -1.210101 | -1.231144 | -1.292447 | -1.261294 |
+| QD.472.B2  | 0.661180  | 0.650804  | 0.647835  | 0.650371  | 0.757629  | 0.660549  |
 
 
 
@@ -543,6 +557,6 @@ plt.show()
 
 
     
-![png](/img/11_design_hires_optics_files/11_design_hires_optics_26_0.png)
+![png](/img/11_design_hires_optics_files/output_26_0.png)
     
 
