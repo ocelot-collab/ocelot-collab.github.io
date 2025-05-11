@@ -52,113 +52,155 @@ The `SpaceCharge` class simulates the space charge forces acting on a particle b
 
 ---
 
-## Example Usage
+## Space Charge Example
 
+This example demonstrates how to simulate the impact of 3D space charge forces on the evolution of a particle beam 
+through a simple FODO-like lattice. We compare tracking with and without space charge effects by plotting the resulting beta functions.
+
+### Step-by-Step
 ```python
-# Create a SpaceCharge instance with specified parameters
-space_charge = SpaceCharge(step=1, nmesh_xyz=[100, 100, 100], random_mesh=True)
+from ocelot import *
+from ocelot.gui import *
 
-# Prepare the simulation
-space_charge.prepare(lat)
+# 1. Generate a test particle array with defined Twiss parameters
+parray_init = generate_parray(
+    nparticles=100000,
+    tws=Twiss(beta_x=10, beta_y=10, E=0.01),  # E = 10 MeV
+    sigma_tau=1e-4
+)
 
-# Apply the space charge forces to the particle array `p_array` over a step size `zstep`
-space_charge.apply(p_array, zstep=0.01)
+# 2. Define a simple FODO-like lattice
+qf = Quadrupole(l=0.2, k1=2)
+qd = Quadrupole(l=0.2, k1=-2)
+d = Drift(l=1)
+m1 = Marker()  # Start of section
+m2 = Marker()  # End of section
+
+lat = MagneticLattice([m1, d, qf, d, qd, d, m2])
+
+# 3. Tracking WITHOUT space charge
+# Create navigator with step size 0.1 m
+navi = Navigator(lat, unit_step=0.1)
+
+# Add a dummy physics process to force tracking every step
+emp = EmptyProc()
+navi.add_physics_proc(emp, m1, m2)
+
+parray = parray_init.copy()
+tws_track_no_sc, _ = track(lat, parray, navi)
+
+# 4. Tracking WITH 3D space charge
+navi = Navigator(lat, unit_step=0.1)
+
+# Create space charge process with default 3D mesh resolution
+sc = SpaceCharge(nmesh_xyz=[63, 63, 63])
+navi.add_physics_proc(sc, m1, m2)
+
+parray = parray_init.copy()
+tws_track_w_sc, _ = track(lat, parray, navi)
+
+# 5. Plot beta functions with and without SC
+fig, (ax_x, ax_y) = plot_API(lat, add_extra_subplot=True)
+
+# Extract beta functions
+s_no  = [tw.s for tw in tws_track_no_sc]
+bx_no = [tw.beta_x for tw in tws_track_no_sc]
+by_no = [tw.beta_y for tw in tws_track_no_sc]
+
+s_sc  = [tw.s for tw in tws_track_w_sc]
+bx_sc = [tw.beta_x for tw in tws_track_w_sc]
+by_sc = [tw.beta_y for tw in tws_track_w_sc]
+
+# Plot horizontal beta functions
+ax_x.plot(s_no, bx_no, label="SC OFF")
+ax_x.plot(s_sc, bx_sc, label="SC ON")
+ax_x.set_ylabel(r"$\beta_x$ [m]")
+ax_x.legend()
+
+# Plot vertical beta functions
+ax_y.plot(s_no, by_no, label="SC OFF")
+ax_y.plot(s_sc, by_sc, label="SC ON")
+ax_y.set_ylabel(r"$\beta_y$ [m]")
+ax_y.set_xlabel("s [m]")
+ax_y.legend()
+
+plt.show()
 ```
+![png](/img/space_charge/sc_exmp.png)
 
-# Class Documentation
 
-This section provides documentation for the `LSC` (Longitudinal Space Charge) class, which models the longitudinal space charge effects in particle beams. The class calculates the wake field impact of the space charge and applies it as a series of kicks to the beam.
+# [Longitudinal Space Charge (LSC)](https://github.com/ocelot-collab/ocelot/blob/master/ocelot/cpbd/sc.py#L258)
+
+The [`LSC`](https://github.com/ocelot-collab/ocelot/blob/master/ocelot/cpbd/sc.py#L258) class simulates **longitudinal space charge effects** in particle beams. 
+These effects arise due to the interaction of charged particles within a bunch, 
+generating self-induced electric fields that distort the longitudinal phase space. 
+This is particularly important for high-brightness or high-charge beams at low to moderate energies.
+
+The space charge impedance is computed either for a smooth Gaussian-like distribution or using a stepped-profile approximation. 
+The resulting wakefield is applied as a longitudinal kick to the beam during tracking.
 
 ---
 
-## LSC Class
+## Purpose
 
-The `LSC` class simulates the longitudinal space charge effects in particle beams. The space charge forces are calculated by solving the Poisson equation in the bunch frame and then applying the resulting electric field in the laboratory frame as a kick. The class uses Fast Fourier Transform (FFT) to efficiently solve the 3D Poisson equation.
+The `LSC` class models the **1D longitudinal space charge impedance** and applies it to the beam using **FFT-based wakefield computations**. 
+It allows users to choose between a smooth or stepped profile for the bunch and includes options for tuning 
+the resolution of the impedance calculation.
 
-### Parameters:
-- **step** (`int`): Step size used in unit steps. Default is `1`.
-- **smooth_param** (`float`): Smoothing parameter for the longitudinal space charge force. Default is `0.1`.
-- **step_profile** (`bool`): If `True`, uses a stepped profile for the beam; otherwise, uses a continuous profile. Default is `False`.
-- **napply** (`int`): Counter for the number of times the `apply` method is called.
-  
-### Methods:
+---
 
-#### `__init__(self, step=1)`
-Constructor to initialize the `LSC` class with the specified parameters, including the smoothing parameter and step profile option.
+## Parameters
 
-#### `imp_lsc(self, gamma, sigma, w, dz)`
-Calculates the longitudinal space charge impedance based on the beam's energy (`gamma`), transverse beam size (`sigma`), frequency (`w`), and step size (`dz`).
+- `step` (*int*, default=`1`):  
+  Number of `Navigator.unit_step` segments between kicks. A `step=1` means the wake is applied at each step.
 
-#### `imp_step_lsc(self, gamma, rb, w, dz)`
-Calculates the longitudinal space charge impedance in the case of a stepped profile bunch. It considers the transverse beam radius (`rb`) and other parameters.
+- `smooth_param` (*float*, default=`0.1`):  
+  Defines the smoothing resolution of the longitudinal profile as  
+  `resolution = std(p_array.tau()) * smooth_param`.
 
-#### `wake2impedance(self, s, w)`
-Performs a Fourier transform with `exp(iwt)` to convert the wake function to impedance. `s` is the position in the bunch, and `w` is the wake function in V/C.
+- `step_profile` (*bool*, default=`False`):  
+  If `True`, uses a stepped profile approximation of the beam.  
+  If `False`, assumes a continuous longitudinal profile.
 
-#### `impedance2wake(self, f, y)`
-Performs a Fourier transform with `exp(-iwt)` to convert the impedance to the wake function. `f` is the frequency in Hz, and `y` is the impedance in Ohms.
+---
 
-#### `wake_lsc(self, s, bunch, gamma, sigma, dz)`
-Calculates the longitudinal space charge wake for the beam, given the bunch distribution, energy (`gamma`), beam size (`sigma`), and step size (`dz`).
+## Methods
 
-#### `apply(self, p_array, dz)`
-Applies the longitudinal space charge wake to the particle array (`p_array`) over a step size (`dz`). It computes the longitudinal space charge forces and updates the particle momenta.
+### `__init__(self, step=1, smooth_param=0.1, step_profile=False)`
+Initializes the `LSC` process with user-defined parameters.
 
-#### `__repr__(self) -> str`
-Returns a string representation of the `LSC` class, including key parameters like step size, smoothing parameter, and step profile option.
+### `apply(self, p_array, dz)`
+Applies the longitudinal space charge kick to a particle array over a longitudinal step `dz`.  
+Modifies particle momenta based on the calculated wakefield.
+
+### `imp_lsc(self, gamma, sigma, w, dz)`
+Computes the longitudinal space charge impedance for a Gaussian-like distribution using beam energy `gamma`, transverse size `sigma`, frequency `w`, and step size `dz`.
+
+### `imp_step_lsc(self, gamma, rb, w, dz)`
+Computes the impedance for a stepped beam profile. `rb` is the effective transverse beam radius.
+
+### `wake2impedance(self, s, w)`
+Converts wakefield data `w` into impedance via a forward Fourier transform (`exp(iwt)`).
+
+### `impedance2wake(self, f, y)`
+Performs an inverse Fourier transform (`exp(-iwt)`) to compute wakefield from impedance data.
+
+### `wake_lsc(self, s, bunch, gamma, sigma, dz)`
+Computes the wakefield in real space for a given bunch distribution and beam parameters.
+
+### `finalize(self, *args, **kwargs)`
+Finalizes the space charge computation at the end of tracking. Reserved for cleanup or optional output.
+
+### `calculate_csr_wakes(self)`
+(Deprecated or internal use) Placeholder for compatibility with CSR-based wake computation.
+
+### `plot_wake(self, p_array, lam_K1, itr_ra, s1, st)`
+Visualizes the longitudinal wake for diagnostic purposes. Intended for internal debugging or analysis.
 
 ---
 
 ## Summary
 
-The `LSC` class models the longitudinal space charge effects in particle beams, including the wake field and impedance. It calculates the space charge forces and applies them as kicks to the beam, updating the particle momenta. This class is useful for simulating beam dynamics where longitudinal space charge effects are significant, such as in high-intensity beams.
-
-
----
-
-# LSC Class
-
-### Description:
-
-The `LSC` class applies the longitudinal space charge (LSC) effects to a particle beam by calculating the longitudinal space charge wake and applying it to the particle array. The method considers both stepped and smooth beam profiles and uses impedance models to calculate the wake for different beam conditions. The class uses Fourier transforms to convert between wakefields and impedances.
-
----
-
-### Attributes:
-- **smooth_param** (`float`): A smoothing parameter used to define the resolution. The resolution is calculated as `np.std(p_array.tau()) * smooth_param`. Default is `0.1`.
-- **step_profile** (`bool`): A flag indicating whether the beam has a stepped profile. Default is `False`.
----
-
-### Methods:
-
-#### `__init__(self, step=1)`
-Constructor that initializes the `LSC` class with the specified step size.
-
-#### `imp_lsc(self, gamma, sigma, w, dz)`
-Calculates the longitudinal space-charge impedance for a given set of parameters, including energy (`gamma`), transverse beam size (`sigma`), angular frequency (`w`), and step size (`dz`).
-
-#### `imp_step_lsc(self, gamma, rb, w, dz)`
-Calculates the longitudinal space-charge impedance in the case of a stepped profile bunch. This method is used when the beam has a transverse radius (`rb`) and frequency spectrum (`w`).
-
-#### `wake2impedance(self, s, w)`
-Converts wakefield data (`w`) into impedance using the Fourier transform with `exp(iwt)`.
-
-#### `impedance2wake(self, f, y)`
-Converts impedance data (`y`) into wakefield using the Fourier transform with `exp(-iwt)`.
-
-#### `wake_lsc(self, s, bunch, gamma, sigma, dz)`
-Calculates the longitudinal space charge wake using the impedance model. This method computes the wakefield for a bunch profile (`bunch`) with energy (`gamma`), transverse beam size (`sigma`), and step size (`dz`).
-
-#### `apply(self, p_array, dz)`
-Applies the longitudinal space charge wake to the particle array (`p_array`) over a step size (`dz`). This method updates the particle's momenta based on the calculated wake.
-
-#### `finalize(self, *args, **kwargs)`
-Called at the end of the tracking process. This method can be used for finalizing or saving results related to the LSC effects.
-
-#### `calcualte_csr_wakes(self)`
-Calculates the CSR wakes for the entire trajectory. This method uses kernels for CSR effects and stores them for later use in the `apply` method.
-
-#### `plot_wake(self, p_array, lam_K1, itr_ra, s1, st)`
-Plots the wake of the longitudinal space charge effect at each step. This method is useful for visualizing the wake and particle motion over time.
-
----
+The `LSC` class is part of the collective effects module in Ocelot. It provides a physics process that can be 
+inserted into a beamline and used with the `Navigator` class to track particle beams under the influence of longitudinal 
+space charge effects. The class offers flexibility in modeling beam profiles and efficiently computes impedance and wakefield using FFT methods.
