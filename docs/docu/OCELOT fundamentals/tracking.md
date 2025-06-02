@@ -45,7 +45,7 @@ def track(
 
 ## Description
 
-The `track` function simulates the passage of a [`ParticleArray` through a given `lattice` ([`MagneticLattice`](magnet-lattice.md)). It utilizes a [`Navigator`](navigator.md) to determine the sequence of optical element transformations (transfer maps) and physics processes to apply.
+The `track` function simulates the passage of a [`ParticleArray`](particle-array.md) through a given [`MagneticLattice`](magnet-lattice.md). It utilizes a [`Navigator`](navigator.md) to determine the sequence of optical element transformations (transfer maps) and physics processes to apply.
 
 -   At each step dictated by the navigator, the corresponding transfer maps are applied to the `p_array`.
 -   Subsequently, any physics processes scheduled for that step are applied.
@@ -68,7 +68,7 @@ The `track` function simulates the passage of a [`ParticleArray` through a given
     If `True`, prints the tracking progress to the console, indicating the current longitudinal position (`z`) and the physics processes being applied.
 
 -   **`calc_tws`** (`bool`, optional, default: `True`)
-    If `True`, Twiss parameters and other beam envelope characteristics are calculated from the `p_array` using [`get_envelope`](get-envelope.md) at the beginning and after each significant step in the lattice. The results are collected and returned. If `False`, this calculation is skipped, and a list of empty `Twiss` objects (or an empty DataFrame) is returned for the Twiss part of the output.
+    If `True`, Twiss parameters and other beam envelope characteristics are calculated from the `p_array` using [`get_envelope`](../functions/get_envelope.md) at the beginning and after each significant step in the lattice. The results are collected and returned. If `False`, this calculation is skipped, and a list of empty `Twiss` objects (or an empty DataFrame) is returned for the Twiss part of the output.
 
 -   **`bounds`** (`list`, optional, default: `None`)
     Passed directly to the [`get_envelope`](../functions/get_envelope.md) function when `calc_tws` is `True`. Defines longitudinal bounds `[left_bound, right_bound]` in units of $\sigma_\tau$ (standard deviation of `p_array.tau()`) for slicing the particle distribution before calculating Twiss parameters. If `None`, the full bunch is used.
@@ -93,7 +93,7 @@ A tuple: `(tws_results, p_array_final)`
 
 1.  **`tws_track`** (`List[Twiss]` or `pd.DataFrame`)
     -   If `calc_tws` is `True`: A list of [`Twiss`](twiss.md) objects, each representing the beam envelope parameters at different points along the lattice (including the start). The `s` coordinate of each [`Twiss`](twiss.md) object indicates its longitudinal position. If `return_df` is `True`, this will be a pandas `DataFrame` derived from these [`Twiss`](twiss.md) objects.
-    -   If `calc_tws` is `False`: A list containing initial and final empty `Twiss` objects, or an empty DataFrame if `return_df` is `True`. *(The actual behavior based on your code seems to be: an initial empty Twiss, and subsequent empty Twiss objects for each step)*. The provided code returns a list containing an initial [`Twiss`](twiss.md) object (either calculated or empty) and appends one more [`Twiss`](twiss.md) object per `navi.get_next_step()` iteration.
+    -   If `calc_tws` is `False`: A list containing initial and final empty [`Twiss`](twiss.md) objects, or an empty DataFrame if `return_df` is `True`. *(The actual behavior based on your code seems to be: an initial empty Twiss, and subsequent empty Twiss objects for each step)*. The provided code returns a list containing an initial [`Twiss`](twiss.md) object (either calculated or empty) and appends one more [`Twiss`](twiss.md) object per `navi.get_next_step()` iteration.
 
    2.  **`p_array_final`** ([`ParticleArray`](particle-array.md))
        The [`ParticleArray`](particle-array.md) after all tracking steps and physics processes have been applied. This is the same `p_array` object passed as input, modified in place.
@@ -134,5 +134,5 @@ While returning `p_array_final` might seem redundant given the in-place modifica
 
 -   The `p_array` is modified **in place** throughout the tracking. If you need to preserve the initial `p_array`, make a copy before calling `track` (e.g., `p_array_copy = p_array.copy()`).
 -   The accuracy and types of physical effects included depend on the [`Navigator`](navigator.md) setup and the [`PhysProc`](../physics-processes/phys-proc.md) objects added to it.
--   Parameters `bounds`, `slice`, and `twiss_disp_correction` directly influence how the intermediate Twiss parameters are calculated by [`get_envelope`](get-envelope.md), allowing for flexible analysis (e.g., sliced analysis, dispersion-corrected betatron functions).
+-   Parameters `bounds`, `slice`, and `twiss_disp_correction` directly influence how the intermediate Twiss parameters are calculated by [`get_envelope`](../functions/get_envelope.md), allowing for flexible analysis (e.g., sliced analysis, dispersion-corrected betatron functions).
 
