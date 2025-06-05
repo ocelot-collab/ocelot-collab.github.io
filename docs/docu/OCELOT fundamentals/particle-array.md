@@ -24,16 +24,9 @@ $$
 - $s$: Independent variable representing the distance along the beam line (equivalent to the path length of the reference particle).
 - $v_0$ and $p_0$: Velocity and momentum of the reference particle, respectively.
 - $t$: Time at which a particle reaches position $s$ along the beam line.
-
-#### For the reference particle:
-- $\tau = 0$ for all $s$.
-
-#### For other particles:
-- $\tau < 0$: The particle arrives earlier than the reference particle.
-- $\tau > 0$: The particle arrives later than the reference particle.
-
-#### Energy relation:
 - $\Delta E = E - E_0$, where $E = \gamma m_0 c^2$ is the total energy of the particle.
+
+See more in [Ocelot Coordinate System](coordinate_system.md)
 
 ---
 

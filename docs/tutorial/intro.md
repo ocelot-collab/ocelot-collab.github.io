@@ -15,7 +15,7 @@ Current tutorials can be found in [`ocelot/demos/ipython_tutorial`](https://gith
 
 * [Tutorial N1. Linear optics. Double Bend Achromat](./tutorial-beam-dynamics/1_dba.md)
     - Linear optics. Double Bend Achromat (DBA). Simple example of usage OCELOT functions to get periodic solution for a storage ring cell. 
-* [Tutorial N2. Tracking.](./tutorial-beam-dynamics/2_tracking.mdx)
+* [Tutorial N2. Tracking.](./tutorial-beam-dynamics/2_tracking.md)
     - Linear optics of the European XFEL Injector. 
     - Tracking. First and second order. 
     - Artificial beam matching - BeamTransform
