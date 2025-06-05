@@ -132,7 +132,7 @@ from ocelot.cpbd.io import load_particle_array
 ```
 
 This function returns a `ParticleArray` — Ocelot’s standard object for representing particle distributions.
-More details can be found in the [ParticleArray documentation]((../../docu/OCELOT%20fundamentals/particle-array.md)).
+More details can be found in the [ParticleArray documentation](../../docu/OCELOT%20fundamentals/particle-array.md).
 
 
 ```python
