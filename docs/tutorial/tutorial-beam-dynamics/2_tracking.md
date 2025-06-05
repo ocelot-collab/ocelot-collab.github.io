@@ -286,12 +286,12 @@ plt.show()
 ## New in version 25.06
 
 In the **dispersion section**, the **transverse beam sizes** (in the plane of dispersion) may be **calculated incorrectly** by default.  
-To correct this, set the argument `twiss_disp_correction=True` when calling the `track` function:
+To correct this, set the argument `twiss_disp_correction=True` when calling the [`track`](../../docu/OCELOT%20fundamentals/tracking.md) function:
 
 ```python
 tws_track, p_array = track(lat_t, p_array, navi, twiss_disp_correction=True)
 ```
-see more in Documentation about [`track`](https://www.ocelot-collab.com/docs/docu/OCELOT%20fundamentals/tracking).
+see more in Documentation about [`track`](../../docu/OCELOT%20fundamentals/tracking.md).
 
 ```python
 tw = Twiss()
