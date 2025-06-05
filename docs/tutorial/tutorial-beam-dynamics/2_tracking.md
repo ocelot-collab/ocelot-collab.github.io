@@ -118,8 +118,8 @@ That is why, we need to start the Ocelot simulation from the same longitudinal p
 
 To load a particle distribution, use the function `load_particle_array(FILENAME)`.  
 Ocelot currently supports the following formats:
-- ASTRA
-- CSRtrack
+- [ASTRA](http://www.desy.de/~mpyflo/)
+- [CSRtrack](https://www.desy.de/xfel-beam/csrtrack/)
 - Ocelot (`.npz`)
 
 If you already used:
@@ -216,8 +216,8 @@ Main arguments:
  - navi: [`Navigator`](../../docu/OCELOT%20fundamentals/navigator.md) instance
 
 Returns:
-	•	tws_list: list of [Twiss](../../docu/OCELOT%20fundamentals/twiss.md) objects (empty if calc_tws=False)
-	•	p_array_out: final [`ParticleArray`](../../docu/OCELOT%20fundamentals/particle-array.md) after tracking
+ - tws_list: list of [Twiss](../../docu/OCELOT%20fundamentals/twiss.md) objects (empty if calc_tws=False)
+ - p_array_out: final [`ParticleArray`](../../docu/OCELOT%20fundamentals/particle-array.md) after tracking
 
 
 ```python
@@ -283,7 +283,42 @@ plt.show()
     
 ![png](/img/2_tracking_files/2_tracking_16_1.png)
     
+## New in version 25.06
 
+In the **dispersion section**, the **transverse beam sizes** (in the plane of dispersion) may be **calculated incorrectly** by default.  
+To correct this, set the argument `twiss_disp_correction=True` when calling the `track` function:
+
+```python
+tws_track, p_array = track(lat_t, p_array, navi, twiss_disp_correction=True)
+```
+see more in Documentation about [`track`](https://www.ocelot-collab.com/docs/docu/OCELOT%20fundamentals/tracking).
+
+```python
+tw = Twiss()
+tw.beta_x = 2.36088
+tw.beta_y = 2.824
+tw.alpha_x = 1.2206
+tw.alpha_y = -1.35329
+
+bt = BeamTransform(tws=tw)
+
+navi = Navigator(lat_t)
+
+navi.unit_step = 1 # ignored in that case, tracking will performs element by element. 
+                   # - there is no PhysicsProc along the lattice, 
+                   # BeamTransform is aplied only once
+
+navi.add_physics_proc(bt, OTRC_55_I1, OTRC_55_I1)
+p_array = deepcopy(p_array_init)
+start = time.time()
+tws_track, p_array = track(lat_t, p_array, navi, twiss_disp_correction=True)
+print("\n time exec:", time.time() - start, "sec")
+plot_opt_func(lat_t, tws_track, top_plot=["E"], fig_name=0, legend=False)
+plt.show()
+
+```
+
+![png](/img/2_tracking_files/2_tracking_18_1.png)
 
 :::note
 The [`track()`](../../docu/OCELOT%20fundamentals/tracking.md) function returns a list of [`Twiss`](../../docu/OCELOT%20fundamentals/twiss.md) objects (`tws_track`) and the final [`ParticleArray`](../../docu/OCELOT%20fundamentals/particle-array.md) (`p_array`).  
