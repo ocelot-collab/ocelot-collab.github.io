@@ -74,8 +74,6 @@ This example shows how to change the reference energy of a [`ParticleArray`](../
 
 
 ```python
-import sys
-sys.path.append("/Users/tomins/Nextcloud/DESY/repository/ocelot/")
 from ocelot.cpbd.beam import ParticleArray, generate_parray
 from ocelot.cpbd.physics_proc import LatticeEnergyProfile
 from ocelot.common.globals import m_e_GeV
@@ -282,6 +280,6 @@ ensuring that magnetic elements behave as per their design specifications irresp
 This is crucial for studying effects like RF jitter, energy ramps, or modeling sections with different design energies.
 
 For a detailed tutorial demonstrating the simulation of RF jitter using `LatticeEnergyProfile`, please see:
-Energy Jitter Simulation Tutorial.
+[Energy Jitter Simulation Tutorial](../../tutorial/tutorial-beam-dynamics/small_useful_features.md).
 
 

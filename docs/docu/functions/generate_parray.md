@@ -66,8 +66,6 @@ This example generates a particle array with default parameters, resulting in a 
 
 
 ```python
-import sys
-sys.path.append("/Users/tomins/Nextcloud/DESY/repository/ocelot")
 from ocelot.cpbd.beam import generate_parray
 parray = generate_parray()
 print(parray)
