@@ -280,9 +280,10 @@ In this example, we illustrate how the Transverse Deflecting Structure (TDS) inc
 
 
 ```python
+SIGMA_P = 1e-4
 # Generate fresh distribution without triangular shape
 parray = generate_parray(tws=tws0, charge=250e-12, sigma_p=1e-4,
-                         chirp=0, sigma_tau=1e-4, nparticles=500_000)
+                         chirp=0, sigma_tau=SIGMA_P, nparticles=500_000)
 
 # Track through lattice
 track(lat, parray)
@@ -296,7 +297,7 @@ Ktds = tds.v * 2 * np.pi * tds.freq / (parray.E * speed_of_light)
 sigma_E_tds = Ktds * np.cos(tds.phi) * np.sqrt(
     tws0.emit_x * (tws0.beta_x - tds.l * tws0.alpha_x + (tds.l**2 / 4) * tws0.gamma_x)
 )
-sigma_total = np.sqrt((1e-4)**2 + sigma_E_tds**2)
+sigma_total = np.sqrt((SIGMA_P)**2 + sigma_E_tds**2)
 
 print(f"Analytical σ_p after TDS: {sigma_total:.3e}")
 
@@ -305,7 +306,7 @@ print(f"Analytical σ_p after TDS: {sigma_total:.3e}")
     [INFO    ] Twiss parameters have priority. sigma_{x, px, y, py} will be redefined
 
 
-    z = 11.599999999999998 / 11.599999999999998. Applied: inside =  39984
+    z = 11.599999999999998 / 11.599999999999998. Applied: 
     Measured σ_p from slice: 1.734e-04
     Analytical σ_p after TDS: 1.735e-04
 ```
