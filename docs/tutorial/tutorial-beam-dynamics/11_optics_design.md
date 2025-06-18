@@ -104,6 +104,20 @@ $$
 S = \frac{\sigma_x^{\text{scr}}}{c \sigma_t} = \frac{e V_0}{p c} \cdot \frac{2\pi}{\lambda} \cdot \sqrt{\beta_x(s_{\text{tds}}) \beta_x(s_{\text{scr}})} \cdot \sin(\Delta\Phi_x)
 $$
 
+Note that this expression can be written more compactly by recognizing that the corresponding element of the transfer matrix is:
+$$
+R_{12} = \sqrt{\beta_x(s_{\text{tds}}) \beta_x(s_{\text{scr}})} \cdot \sin(\Delta\Phi_x)
+$$
+or, if the streaking occurs in the vertical direction:
+
+$$
+R_{34} = \sqrt{\beta_y(s_{\text{tds}}) \beta_y(s_{\text{scr}})} \cdot \sin(\Delta\Phi_y).
+$$
+
+Thus, the streaking factor simplifies to:
+$$
+S = \frac{\sigma_x^{\text{scr}}}{c \sigma_t} = \frac{e V_0}{p c} \cdot \frac{2\pi}{\lambda} \cdot R_{12}
+$$
 ### Time Resolution
 
 The time resolution is defined as:
@@ -558,8 +572,35 @@ ax_extra.legend()
 plt.show()
 ```
 
-
-    
 ![png](/img/11_design_hires_optics_files/output_26_0.png)
-    
+
+### Let’s Put Some Numbers to Understand the TDS Voltage (Streaking/Calibration Factor)
+
+The streaking factor is given by:
+
+$$
+S = \frac{\sigma_x^{\text{scr}}}{c \sigma_t} = \frac{e V_0}{p c} \cdot \frac{2\pi}{\lambda} \cdot \sqrt{\beta_x(s_{\text{tds}}) \beta_x(s_{\text{scr}})} \cdot \sin(\Delta\Phi_x)
+$$
+or, as defined above, it can be rewritten using the transfer matrix element:
+$$
+S = \frac{\sigma_x^{\text{scr}}}{c \sigma_t} = \frac{e V_0}{p c} \cdot \frac{2\pi}{\lambda} \cdot R_{12}
+$$
+
+During experimental study of the proposed optics, we measured a calibration factor of
+$S = 11.1$ mm/ps for our S-band TDS (operating at 3 GHz).
+For optics TDS150m, we have $R_{12} = 50.5$ between the TDS and a screen (Scr 457).
+Let’s calculate the required TDS voltage:
+```python
+f = 3e9 # [Hz] frequency of the S-band TDS
+S = 11.1e-3/1e-12 # [mm/ps] → [m/s]
+R12 = 50.5 
+Lrf = speed_of_light /f
+pc = 2400 # [MeV] 
+
+V = S * Lrf * pc /(R12 * 2 * np.pi* speed_of_light)
+print(f"TDS voltage = {V} MV")
+```
+```python
+    TDS voltage = 27.986057319921404 MV
+```
 
