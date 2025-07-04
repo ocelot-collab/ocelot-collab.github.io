@@ -1,6 +1,6 @@
 ---
 sidebar_position: 2
-title: Space Charge
+title: Space Charge 3D
 description: Space Charge class
 ---
 
@@ -128,79 +128,3 @@ plt.show()
 ```
 ![png](/img/space_charge/sc_exmp.png)
 
-
-# [Longitudinal Space Charge (LSC)](https://github.com/ocelot-collab/ocelot/blob/master/ocelot/cpbd/sc.py#L258)
-
-The [`LSC`](https://github.com/ocelot-collab/ocelot/blob/master/ocelot/cpbd/sc.py#L258) class simulates **longitudinal space charge effects** in particle beams. 
-These effects arise due to the interaction of charged particles within a bunch, 
-generating self-induced electric fields that distort the longitudinal phase space. 
-This is particularly important for high-brightness or high-charge beams at low to moderate energies.
-
-The space charge impedance is computed either for a smooth Gaussian-like distribution or using a stepped-profile approximation. 
-The resulting wakefield is applied as a longitudinal kick to the beam during tracking.
-
----
-
-## Purpose
-
-The `LSC` class models the **1D longitudinal space charge impedance** and applies it to the beam using **FFT-based wakefield computations**. 
-It allows users to choose between a smooth or stepped profile for the bunch and includes options for tuning 
-the resolution of the impedance calculation.
-
----
-
-## Parameters
-
-- `step` (*int*, default=`1`):  
-  Number of `Navigator.unit_step` segments between kicks. A `step=1` means the wake is applied at each step.
-
-- `smooth_param` (*float*, default=`0.1`):  
-  Defines the smoothing resolution of the longitudinal profile as  
-  `resolution = std(p_array.tau()) * smooth_param`.
-
-- `step_profile` (*bool*, default=`False`):  
-  If `True`, uses a stepped profile approximation of the beam.  
-  If `False`, assumes a continuous longitudinal profile.
-
----
-
-## Methods
-
-### `__init__(self, step=1, smooth_param=0.1, step_profile=False)`
-Initializes the `LSC` process with user-defined parameters.
-
-### `apply(self, p_array, dz)`
-Applies the longitudinal space charge kick to a particle array over a longitudinal step `dz`.  
-Modifies particle momenta based on the calculated wakefield.
-
-### `imp_lsc(self, gamma, sigma, w, dz)`
-Computes the longitudinal space charge impedance for a Gaussian-like distribution using beam energy `gamma`, transverse size `sigma`, frequency `w`, and step size `dz`.
-
-### `imp_step_lsc(self, gamma, rb, w, dz)`
-Computes the impedance for a stepped beam profile. `rb` is the effective transverse beam radius.
-
-### `wake2impedance(self, s, w)`
-Converts wakefield data `w` into impedance via a forward Fourier transform (`exp(iwt)`).
-
-### `impedance2wake(self, f, y)`
-Performs an inverse Fourier transform (`exp(-iwt)`) to compute wakefield from impedance data.
-
-### `wake_lsc(self, s, bunch, gamma, sigma, dz)`
-Computes the wakefield in real space for a given bunch distribution and beam parameters.
-
-### `finalize(self, *args, **kwargs)`
-Finalizes the space charge computation at the end of tracking. Reserved for cleanup or optional output.
-
-### `calculate_csr_wakes(self)`
-(Deprecated or internal use) Placeholder for compatibility with CSR-based wake computation.
-
-### `plot_wake(self, p_array, lam_K1, itr_ra, s1, st)`
-Visualizes the longitudinal wake for diagnostic purposes. Intended for internal debugging or analysis.
-
----
-
-## Summary
-
-The `LSC` class is part of the collective effects module in Ocelot. It provides a physics process that can be 
-inserted into a beamline and used with the `Navigator` class to track particle beams under the influence of longitudinal 
-space charge effects. The class offers flexibility in modeling beam profiles and efficiently computes impedance and wakefield using FFT methods.
