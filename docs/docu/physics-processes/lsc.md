@@ -490,4 +490,32 @@ plt.show()
 ![png](/img/phys_proc/longitudinal_space_charge_files/longitudinal_space_charge_11_1.png)
     
 
+## 6. Track with 3D [Space Charge](https://www.ocelot-collab.com/docs/tutorial/tutorial-beam-dynamics/space_charge/) in a Closed Undulator (K = 4)
 
+> Note: In the current implementation, the [3D Space Charge](https://www.ocelot-collab.com/docs/tutorial/tutorial-beam-dynamics/space_charge/)  model treats undulators as free space, meaning the undulator parameter K has no effect on the space charge calculation.
+> Therefore, even if the undulator is closed (K ≠ 0), it will be treated the same as a drift section by the 3D solver.
+
+You can still track the bunch through a lattice with K ≠ 0, but space charge fields are computed as if the undulator were not present.
+
+
+```python
+u.Kx = 4
+# Instantiate the Space Charge physics process with step = 1 in [Navigator.unit_step]
+sc = SpaceCharge(step=1)
+
+# Set up the navigator for tracking with a step size of 0.1 m
+navi = Navigator(lat, unit_step=0.1)
+navi.add_physics_proc(sc, m1, m2)  # Apply LSC between m1 and m2
+parray = parray_init.copy()
+track(lat, p_array=parray, navi=navi)
+
+# Visualize the final bunch
+show_e_beam(p_array=parray, nfig="end (K=0)")
+plt.show()
+```
+
+    z = 8.999999999999984 / 9.0. Applied: SpaceChargeee
+
+
+    
+![png](/img/phys_proc/longitudinal_space_charge_files/longitudinal_space_charge_13_1.png)
