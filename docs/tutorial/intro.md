@@ -11,58 +11,63 @@ title: Introduction to Tutorials
 
 Current tutorials can be found in [`ocelot/demos/ipython_tutorial`](https://github.com/ocelot-collab/ocelot/tree/master/demos/ipython_tutorials) folder. 
 
-#### Beam dynamics
+## Beam dynamics
 
-* [Tutorial N1. Linear optics. Double Bend Achromat](./tutorial-beam-dynamics/1_dba.md)
+Before starting with the tutorials, we recommend looking at [**Ocelot for Students**](https://www.ocelot-collab.com/docs/tutorial/tutorial-beam-dynamics/for_students) — a beginner-friendly example aimed at students and newcomers to accelerator physics. This tutorial keeps things simple and interactive to help build intuition about how magnetic elements work.
+
+---
+* [Tutorial N1. Linear optics. Double Bend Achromat](https://www.ocelot-collab.com/docs/tutorial/tutorial-beam-dynamics/dba)
     - Linear optics. Double Bend Achromat (DBA). Simple example of usage OCELOT functions to get periodic solution for a storage ring cell. 
-* [Tutorial N2. Tracking.](./tutorial-beam-dynamics/2_tracking.md)
+* [Tutorial N2. Tracking.](https://www.ocelot-collab.com/docs/tutorial/tutorial-beam-dynamics/tracking)
     - Linear optics of the European XFEL Injector. 
     - Tracking. First and second order. 
     - Artificial beam matching - BeamTransform
-* [Tutorial N3. Space Charge.](./tutorial-beam-dynamics/3_space_charge.md)
+* [Tutorial N3. Space Charge.](https://www.ocelot-collab.com/docs/tutorial/tutorial-beam-dynamics/space_charge)
     - Tracking through RF cavities with SC effects and RF focusing.
-* [Tutorial N4. Wakefields.](./tutorial-beam-dynamics/4_wake.md)
+* [Tutorial N4. Wakefields.](https://www.ocelot-collab.com/docs/tutorial/tutorial-beam-dynamics/wake)
     - Tracking through corrugated structure (energy chirper) with Wakefields
-* [Tutorial N5. CSR.](./tutorial-beam-dynamics/5_CSR.md)
+* [Tutorial N5. CSR.](https://www.ocelot-collab.com/docs/tutorial/tutorial-beam-dynamics/CSR)
     - Tracking trough bunch compressor with CSR effect.
-* [Tutorial N6. RF Coupler Kick.](./tutorial-beam-dynamics/6_coupler_kick.md)
+* [Tutorial N6. RF Coupler Kick.](https://www.ocelot-collab.com/docs/tutorial/tutorial-beam-dynamics/coupler_kick)
     - Coupler Kick. Example of RF coupler kick influence on trajectory and optics.
-* [Tutorial N7. Lattice design.](./tutorial-beam-dynamics/7_lattice_design.md)
+* [Tutorial N7. Lattice design.](https://www.ocelot-collab.com/docs/tutorial/tutorial-beam-dynamics/lattice_design)
     - Lattice design, twiss matching, twiss backtracking 
-* [Tutorial N8. Physics process addition. Laser heater](./tutorial-beam-dynamics/8_laser_heater.md)
+* [Tutorial N8. Physics process addition. Laser heater](https://www.ocelot-collab.com/docs/tutorial/tutorial-beam-dynamics/laser_heater)
     - Theory of Laser Heater, implementation of new Physics Process, track particles w/o laser heater effect.   
-* [Tutorial N9. Simple accelerator based THz source](./tutorial-beam-dynamics/9_thz_source.md)
+* [Tutorial N9. Simple accelerator based THz source](https://www.ocelot-collab.com/docs/tutorial/tutorial-beam-dynamics/thz_source)
     - A simple accelerator with the electron beam formation system and an undulator to generate THz radiation. 
-* [Tutorial N10. Corrugated Structure](./tutorial-beam-dynamics/10_CorrugatedStructures.md)
+* [Tutorial N10. Corrugated Structure](https://www.ocelot-collab.com/docs/tutorial/tutorial-beam-dynamics/CorrugatedStructures)
     - In this tutorial, a few examples for tracking with parallel-plate corrugated structures are shown. The wakefields model are based on analytical wakefield formulas for flat corrugated structures.
-* [Tutorial N11. Optics for High Time Resolution Measurements with TDS](./tutorial-beam-dynamics/11_optics_design.md)
+* [Tutorial N11. Optics for High Time Resolution Measurements with TDS](https://www.ocelot-collab.com/docs/tutorial/tutorial-beam-dynamics/slotted_foil)
     - An additional example demonstrating how to modify the beamline optics using Ocelot.
       
-#### Photon field simulation 
+## Photon field simulation 
 
-* [PFS tutorial N1. Synchrotron radiation module](./tutorial-photons/pfs_1_synchrotron_radiation.md)
+* [PFS tutorial N1. Synchrotron radiation module](https://www.ocelot-collab.com/docs/tutorial/tutorial-photons/pfs_1_synchrotron_radiation)
     - Simple examples how to calculate synchrotron radiation with OCELOT Synchrotron Radiation Module.
-* [PFS tutorial N2. Coherent radiation module and RadiationField object](./tutorial-photons/pfs_2_radiation_field.md)
-* [PFS tutorial N3. Reflection from imperfect highly polished mirror](./tutorial-photons/pfs_3_imperfect_mirror.md)
+* [PFS tutorial N2. Coherent radiation module and RadiationField object](https://www.ocelot-collab.com/docs/tutorial/tutorial-photons/pfs_2_radiation_field)
+* [PFS tutorial N3. Reflection from imperfect highly polished mirror](https://www.ocelot-collab.com/docs/tutorial/tutorial-photons/pfs_3_imperfect_mirror)
 * [PFS tutorial N4. Converting synchrotron radiation Screen object to RadiationField object for viewing and propagation](./tutorial-photons/pfs_4_synchrotron_radiation_visualization.md)
-* [PFS tutorial N5: SASE estimation and imitation](./tutorial-photons/pfs_5_SASE_Estimator_and_Imitator.md)
-* [PFS tutorial N6: Spectral Filtering](./tutorial-photons/pfs_6_spectral_filtering.md)
-* 
-### Appendixes
-* [Undulator matching](./tutorial-beam-dynamics/undulator_matching.md)
+* [PFS tutorial N5: SASE estimation and imitation](https://www.ocelot-collab.com/docs/tutorial/tutorial-photons/pfs_5_SASE_Estimator_and_Imitator)
+* [PFS tutorial N6: Spectral Filtering](https://www.ocelot-collab.com/docs/tutorial/tutorial-photons/pfs_6_spectral_filtering)
+
+## Appendixes
+* [Undulator matching](https://www.ocelot-collab.com/docs/tutorial/tutorial-beam-dynamics/undulator_matching)
     - brief theory and example in OCELOT
-* [Some useful OCELOT functions](./tutorial-beam-dynamics/small_useful_features.md)
+* [Some useful OCELOT functions](https://www.ocelot-collab.com/docs/tutorial/tutorial-beam-dynamics/small_useful_features)
+  
+    A collection of small but handy features in Ocelot:
     - Aperture
     - Losses along accelerator lattice
     - RK tracking
     - Dump the beam distribution at a specific location of the lattice
     - Energy jitter. Or simulation of the jitter in the RF parameters.
-    - Get Twiss paremeters from the beam slice
-* [Example of an accelerator section optimization](./tutorial-beam-dynamics/accelerator_optim.md)
+    - Get Twiss parameters from the beam slice
+    - Transfer Maps in Ocelot. Global assignment and for specific elements
+* [Example of an accelerator section optimization](https://www.ocelot-collab.com/docs/tutorial/tutorial-beam-dynamics/accelerator_optim)
     - A simple demo of accelerator section optimization with a standard scipy numerical optimization method. 
-* [Ocelot for Students](./tutorial-beam-dynamics/for_students.md)
-    - This tutorial is aimed at students and beginners in accelerator physics. The idea is to keep it simple and interactive, helping you build intuition about how magnetic elements work.
-
+* [Optics Design for High Time Resolution with TDS](https://www.ocelot-collab.com/docs/tutorial/tutorial-beam-dynamics/optics_design)  
+  An example demonstrating how to perform optics matching in Ocelot to improve time resolution when using a Transverse Deflecting Structure (TDS).
 
 ### Checking your installation
 
