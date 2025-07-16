@@ -130,19 +130,23 @@ lat = MagneticLattice(cell, start=start_sim, stop=Q_38_I1, method=method)
 
 ## Initializing SpaceCharge
 
+More information about the Space Charge physics process can be found here:  
+👉 [**Space Charge in Ocelot**](https://www.ocelot-collab.com/docs/docu/physics-processes/sc)
+
 
 ```python
-sc1 = SpaceCharge()
-sc1.nmesh_xyz = [63, 63, 63]
-sc1.step = 1
+# Initialize SpaceCharge processes with different application steps
+sc1 = SpaceCharge(ste=1) # Applied every 1 * Navigator.unit_step 
+sc1.nmesh_xyz = [63, 63, 63] # SC mesh
 
-sc5 = SpaceCharge()
-sc5.nmesh_xyz = [63, 63, 63]
-sc5.step = 5
+# we can increase step with energy grow and this speed up our tracking
+sc5 = SpaceCharge(step=5) # Applied every 5 * Navigator.unit_step 
+sc5.nmesh_xyz = [63, 63, 63] 
 ```
-
+To apply any physics process, it must be registered through a [`Navigator`](https://www.ocelot-collab.com/docs/docu/OCELOT%20fundamentals/navigator), which is then passed to the [`track`](https://www.ocelot-collab.com/docs/docu/OCELOT%20fundamentals/tracking) function.
 
 ```python
+# Create Navigator to manage application of physics processes
 navi = Navigator(lat)
 
 # add physics processes from the first element to the last of the lattice
