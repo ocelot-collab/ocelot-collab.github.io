@@ -34,7 +34,17 @@ Z(k) = \frac{i\ Z_0\  k}{4\pi \gamma_z^2}
 \operatorname{Ei}\left( \left( \frac{k \sigma_{\perp}}{\gamma_z} \right)^2 \right)
 $$
 
-> **Note:** According to [2], this LSC model is applicable for both free space and undulators. The only required adjustment is to the longitudinal Lorentz factor, $\gamma_z$. It is defined as $\gamma_z = \gamma$ in a drift and $\gamma_z = \gamma/\sqrt{1+K^2/2}$ in an undulator.
+> **Note 1:** This formula is applicable in the limit of a **pancake beam**, where:
+>
+> $$
+> \sigma_\perp^2 \gg \frac{\sigma_z \lambda_u}{2\pi}
+> $$
+>
+> with $\sigma_z$ — the bunch length, $\lambda_u$ — the undulator period.
+>
+> For more information, see [1].
+
+> **Note 2:** According to [2], this LSC model is applicable for both free space and undulators. The only required adjustment is to the longitudinal Lorentz factor, $\gamma_z$. It is defined as $\gamma_z = \gamma$ in a drift and $\gamma_z = \gamma/\sqrt{1+K^2/2}$ in an undulator.
 
 <details>
 <summary><b>A Personal Note on Derivation for the Gaussian Beam (Click to expand)</b></summary>
@@ -133,17 +143,35 @@ where $ K_1 $ is the modified Bessel function of the second kind. This model is 
 
 ---
 
-## Wake Calculation & Implementation Notes
+## Wake Potential Calculation & Implementation Notes
 
-The wake function is obtained via the inverse Fourier transform:
-$$
-W(s) = - \frac{1}{2\pi}\int_{-\infty}^{\infty} Z(k) e^{iks} dk
-$$
-In the code, the energy kick is calculated from the convolution of the impedance and the bunch spectrum in the frequency domain.
+The longitudinal wake potential \( V(s) \), representing the energy kick due to longitudinal space charge (LSC), is computed in Ocelot as a convolution of the beam current profile \( I(s) \) with the wake function \( W(s) \):
 
-- The current profile is computed using a **Gaussian kernel smoother**.
-- The wake is computed in a symmetric, double-length window to avoid aliasing artifacts from the Fast Fourier Transform (FFT).
-- The resulting energy kick is interpolated onto the particles and applied to their longitudinal momentum deviation, $p_z$.
+$$
+V(s) = \int_{-\infty}^{\infty} W(s - s')\, I(s')\, ds'
+$$
+
+In practice, Ocelot computes this convolution efficiently using FFT-based methods in the frequency domain:
+
+- **Compute the Fourier transforms**:
+  
+$$
+I(\omega) = \int_{-\infty}^{\infty} I(s)\, c\, e^{i \omega s/c}\, ds,\quad W(\omega) = Z(\omega)
+$$
+
+- **Perform the convolution in frequency domain**:
+
+$$
+V(\omega) = Z(\omega) \cdot I(\omega)
+$$
+
+- **Obtain the wake potential via inverse Fourier transform**:
+
+$$
+V(s) = \frac{1}{2\pi c} \int_{-\infty}^{\infty} V(\omega)\, e^{-i \omega s/c}\, d\omega
+$$
+
+The result \( V(s) \) is interpolated onto the particle positions and applied as a longitudinal momentum kick.
 
 ---
 
