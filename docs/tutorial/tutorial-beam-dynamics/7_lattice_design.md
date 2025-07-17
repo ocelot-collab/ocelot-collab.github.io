@@ -6,41 +6,53 @@ title: 7. Lattice Design
 This notebook was created by Sergey Tomin (sergey.tomin@desy.de) who was inspired by questions from E.R. June 2017.
 </small>
 
-# [7. Lattice Design](https://github.com/ocelot-collab/ocelot/blob/dev/demos/ipython_tutorials/7_lattice_design.ipynb)
-## Lattice design. Matching. Twiss back tracking.
+<!--
+twiss matching, optics design, beamline backtracking, FEL lattice, FODO, matching section, chicane, seeding optics
+-->
+# Tutorial N7: Lattice Design, Matching, and Twiss Backtracking
+
 ### Outline
-* FODO lattice (undulator section) with desiring max and min twiss parameters. 
-* Back tracking through chicanes 
-* Matching of twiss parameters in matching sections
 
-### Introduction 
-In this tutorial we are going to design the simplest FEL lattice for external seeding option. 
-The desire lattice is:
-- matching section - modulator - chicane - modulator - chicane - FODO.
+- Design of a FODO lattice (undulator section) with specified maximum and minimum Twiss parameters  
+- Backtracking through chicanes  
+- Matching Twiss parameters in matching sections
 
-FODO in that case is undulator section:
-- undulator - QF - undulator - QD - undulator - QF - .... 
+---
 
-where QF, QD - focusing and defocusing quadrupoles. 
+### Introduction
 
-**And suppose we know**: 
-1. max and min values for the betas in the undulator section.
-2. chicanes geometry and parameters are defined.  
-3. twiss parameters on the entrance of the matching section. 
+In this tutorial, we design a basic FEL beamline for an external seeding configuration. The layout consists of:
 
-We can solve this task in many ways (and even more simply), *but to cover all topics we will do it in a few steps*:
+- Matching section  
+- Modulator – Chicane – Modulator – Chicane  
+- FODO lattice (undulator section)
 
-1. the matching of twiss parameters in FODO lattice to find desired amplitudes of the beta functions. 
-2. back tracking of the beta through *modulator - chicane - modulator - chicane* 
-3. matching quadrupoles in the matching section
+The FODO section consists of repeating cells:
 
+- `undulator – QF – undulator – QD – undulator – QF – ...`
 
-#### Optics design and matching
+where `QF` and `QD` are focusing and defocusing quadrupoles, respectively.
 
-Optics design is the art (still) and a few people in the world can do really good design (and author of this notebook is not one of them (so far :)). 
+We assume that:
 
-The matching techniques barely help you if your initial geometry or initial conditions are poor. In this example, we are not aiming to make a good design but just show an example of usage some matching functions. 
+1. The **maximum and minimum values** of the beta functions in the undulator section are known  
+2. The **chicane geometry and parameters** are predefined  
+3. The **Twiss parameters** at the entrance of the matching section are given
 
+While this problem can be solved in multiple (and possibly simpler) ways, we take a structured approach to demonstrate the use of Ocelot’s matching and backtracking tools:
+
+1. Match Twiss parameters within the FODO lattice to reach desired beta amplitudes using the [`match` function](https://www.ocelot-collab.com/docs/docu/OCELOT%20fundamentals/matching)  
+2. Perform **Twiss backtracking** through the chicanes and modulators using the [`twiss` function](https://www.ocelot-collab.com/docs/docu/OCELOT%20fundamentals/twiss/#from_seriescls-series-pdseries)  
+3. Use the [`MagneticLattice`](https://www.ocelot-collab.com/docs/docu/OCELOT%20fundamentals/magnet-lattice/) class to construct the full lattice
+
+---
+
+### Optics Design and Matching
+
+Optics design is still something of an art — and only a few people in the world truly excel at it  
+*(and the author of this notebook is certainly not one of them — at least not yet! :) ).*
+ 
+This tutorial is not aimed at producing an optimal design, but rather to illustrate the **use of Ocelot’s matching functions** in a practical setting.
 
 ```python
 # the output of plotting commands is displayed inline within 

@@ -3,13 +3,24 @@ sidebar_position: 8
 title: 8. Laser Heater
 ---
 <small>
-*This notebook was created by Sergey Tomin (sergey.tomin@desy.de) and Martin Dohlus (DESY). May 2018.*
+*This tutorial was created by Sergey Tomin (sergey.tomin@desy.de) and Martin Dohlus (DESY). May 2018.*
 </small>
 
-# [8. Laser Heater](https://github.com/ocelot-collab/ocelot/blob/dev/demos/ipython_tutorials/8_laser_heater.ipynb)
-The OCELOT Charged Particle Beam Dynamics (CPBD) module includes various physics processes like CSR, SpaceCharge, Wake3D, BeamTransform. There are other "physics processes", which do not have anything in common with physics but use the same interface (or parent class "PhysProc") e.g. SaveBeam. Using this interface, one can implement own "physics process". In this tutorial we will show how to do it on the example of the laser heater. 
+# [Tutorial N8: Adding a Physics Process – Laser Heater](https://github.com/ocelot-collab/ocelot/blob/dev/demos/ipython_tutorials/8_laser_heater.ipynb)
 
-We will start with the theory of the laser heater and then will show how to implement the heating process in the code. 
+The Ocelot **Charged Particle Beam Dynamics (CPBD)** module includes several built-in physics processes such as:
+
+- [**CSR**](https://www.ocelot-collab.com/docs/docu/physics-processes/csr)
+- [**SpaceCharge**](https://www.ocelot-collab.com/docs/docu/physics-processes/sc)
+- [**Wake3D**](https://www.ocelot-collab.com/docs/docu/physics-processes/wake)
+- [**and many others**](https://www.ocelot-collab.com/docs/category/physics-processes)
+
+There are also processes that don’t represent physical effects but still follow the same interface — derived from the common parent class [`PhysProc`](https://www.ocelot-collab.com/docs/docu/physics-processes/phys-proc) — such as [`SaveBeam`](https://www.ocelot-collab.com/docs/docu/physics-processes/savebeam).
+
+Using this shared interface, you can implement your own custom physics process.  
+In this tutorial, we demonstrate how to do that using the **laser heater** as an example.
+
+We begin with a brief theoretical overview of laser heater operation, followed by a practical example showing how to implement the corresponding physics process in code.
 
 ##### *Acknowledgment*
 We wish to thank Igor Zagorodnov for fruitful discussion.
@@ -595,8 +606,7 @@ class LaserHeater(PhysProc):
 
 <a id='simulation'></a>
 ## Simulation
-As the first step, we will import injector lattice and calculate linear optics. All steps were explained in the [Tutorial N2 "Tracking"](http://nbviewer.jupyter.org/github/ocelot-collab/ocelot/blob/master/demos/ipython_tutorials/2_tracking.ipynb).
-
+As the first step, we will import injector lattice and calculate linear optics. All steps were explained in the [Tutorial N2 "Tracking"](https://www.ocelot-collab.com/docs/tutorial/tutorial-beam-dynamics/tracking).
 
 ```python
 lat = MagneticLattice(cell, stop=EOD_51_I1)
