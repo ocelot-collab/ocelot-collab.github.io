@@ -111,7 +111,6 @@ Now we can describe whole table how it is saved in a file.
 | $C,\: [1/Us]$    | $10\alpha + \beta$ |
 | $s_1,\: [m]$     | $w_0(s_1),\: [U]$  |
 | ...              | ...                |
-| <img width="150"/> | <img width="150"/> |
 
 
 In the very first line, $N_h$ is number of $h_{\alpha\beta}(s)$ functions in the table. After that, a typical table repeated $N_h$ times describing every $h_{\alpha\beta}(s)$ function. 
@@ -151,8 +150,17 @@ from ocelot.gui.accelerator import *
 from ocelot.adaptors.astra2ocelot import *
 ```
 
-### Layout of the corrugated structure insertion. Create Ocelot lattice <img src="4_layout.png" />
+### Layout of the Corrugated Structure Insertion and Creation of the Ocelot Lattice
 
+![png](/img/4_wake_files/4_layout.png)  
+<p align="center"><em>Layout of the corrugated structure insertion</em></p>
+
+In this section, we define the beamline using the [**MagneticLattice**](https://www.ocelot-collab.com/docs/docu/elements/magnet/) class and compute the Twiss parameters.
+
+Relevant documentation:
+
+- [**Twiss class**](https://www.ocelot-collab.com/docs/docu/OCELOT%20fundamentals/twiss/)  
+- [**twiss() function**](https://www.ocelot-collab.com/docs/docu/OCELOT%20fundamentals/twiss/#from_seriescls-series-pdseries)
 
 ```python
 D00m25 = Drift(l = 0.25)
@@ -232,12 +240,12 @@ plt.show()
     
 
 
-## Initialization of the wakes and the places of their applying 
+## Initialization of Wakefields and Their Placement in the Lattice
 
+More details about the `Wake` class can be found in the documentation:  
+👉 [**Wake Class**](https://www.ocelot-collab.com/docs/docu/physics-processes/wake)
 
 ```python
-from ocelot.cpbd.wake3D import *
-
 # load wake tables of corrugated structures
 wk_vert = WakeTable('wake_vert_1m.txt')
 wk_hor = WakeTable('wake_hor_1m.txt')
@@ -250,10 +258,9 @@ wake_v1.w_sampling = 500
 wake_v1.wake_table = wk_vert
 wake_v1.step = 1 # step in Navigator.unit_step, dz = Navigator.unit_step * wake.step [m]
 
-wake_h1 = Wake()
-wake_h1.w_sampling = 500
-wake_h1.wake_table = wk_hor
-wake_h1.step = 1
+# Alternatively, all parameters can be set directly in the constructor: 
+wake_h1 = Wake(step=1, w_sampling=500, wake_table=wk_hor)
+
 
 wake_v2 = deepcopy(wake_v1) 
 
@@ -264,20 +271,31 @@ wake_v3 = deepcopy(wake_v1)
 wake_h3 = deepcopy(wake_h1)
 ```
 
-## Add the wakes in the lattice
-Navigator defines step (dz) of tracking and which, if it exists, physical process will be applied on each step.
-In order to add collective effects (Space charge, CSR or wake) method add_physics_proc() must be run.
+## Adding Wakefields to the Lattice
+
+The [**Navigator**](https://www.ocelot-collab.com/docs/docu/OCELOT%20fundamentals/navigator) class defines the tracking step size (`dz`) and manages which physics processes are applied at each step.
+
+To include any [**Physics Process**](https://www.ocelot-collab.com/docs/category/physics-processes/) (such as [**Space Charge**](https://www.ocelot-collab.com/docs/docu/physics-processes/sc), [**CSR**](https://www.ocelot-collab.com/docs/docu/physics-processes/csr), [**Wake**](https://www.ocelot-collab.com/docs/docu/physics-processes/wake/) and so on), you must use:
 
 **Method:**
-* Navigator.add_physics_proc(physics_proc, elem1, elem2)
-    - physics_proc - physics process, can be CSR, SpaceCharge or Wake,
-    - elem1 and elem2 - first and last elements between which the physics process will be applied.
 
-Also must be define unit_step in [m] (by default 1 m). unit_step is minimal step of tracking for any collective effect. 
-For each collective effect must be define number of unit_steps so step of applying physics process will be 
+Navigator.add_physics_proc(physics_proc, elem1, elem2)
 
-dz = unit_step*step [m]
+- `physics_proc`: an instance of a physics process (e.g. `Wake`, `SpaceCharge`, `CSR`)  
+- `elem1`, `elem2`: the first and last lattice elements between which the process will be applied
 
+### Step Size Control
+
+You must also define the `unit_step` in meters (default is `1.0` m):
+```python
+navi.unit_step = 0.02  # for example, 2 cm step size
+```
+Each physics process is applied every `step` multiples of `unit_step`:
+```
+dz = unit_step x step
+```
+- The `step` attribute must be an integer.
+- This allows you to control how frequently each effect is applied — for example, less frequently at higher energies to reduce computation time.
 
 ```python
 navi = Navigator(lat)

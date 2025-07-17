@@ -6,7 +6,7 @@ title: 2. Tracking
 This notebook was created by Sergey Tomin (sergey.tomin@desy.de). Source and license info is on [GitHub](https://github.com/ocelot-collab/ocelot). January 2018.
 </small>
 
-# [Tracking](https://github.com/ocelot-collab/ocelot/blob/dev/demos/ipython_tutorials/2_tracking.ipynb)
+# [2. Tracking](https://github.com/ocelot-collab/ocelot/blob/dev/demos/ipython_tutorials/2_tracking.ipynb)
 
 As an example, we will use lattice file (converted to Ocelot format) of the European XFEL Injector. 
 

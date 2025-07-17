@@ -6,29 +6,38 @@ title: 5. Coherent Synchrotron Radiation
 This notebook was created by Sergey Tomin (sergey.tomin@desy.de). January 2018.    
 </small>
 
-# [5. Coherent Synchrotron Radiation](https://github.com/ocelot-collab/ocelot/blob/dev/demos/ipython_tutorials/5_CSR.ipynb)
-*Second order tracking with CSR effect of the 200k particles.*
+# [5. Coherent Synchrotron Radiation (CSR)](https://github.com/ocelot-collab/ocelot/blob/dev/demos/ipython_tutorials/5_CSR.ipynb)
 
-As an example, we will use bunch compressor BC2 of the European XFEL Injector. 
+*Second-order tracking with CSR effects using 200,000 particles.*
 
-The [CSR module](../../docu/physics-processes/csr.md) uses a fast ‘projected’ 1-D method from CSRtrack code and follows the approach presented in 
+As an example, we simulate the **BC2 bunch compressor** of the European XFEL accelerator.
+
+The CSR module in Ocelot uses a fast **projected 1D model** based on the approach from the [CSRtrack code](https://www.desy.de/xfel-beam/csrtrack/), following:
+
 * [Saldin et al, Radiative interaction of electrons in a bunch moving in an undulator, 1998](http://www.sciencedirect.com/science/article/pii/S0168900298006238), 
 * [M. Dohlus, Two Methods for the Calculation of CSR Fields, 2003](https://flash.desy.de/sites2009/site_vuvfel/content/e403/e1642/e740/e741/infoboxContent746/fel2003-05.pdf), 
 * [M. Dohlus, T. Limberg, CSRtrack: FASTER CALCULATION OF 3-D CSR EFFECTS, 2004](https://accelconf.web.cern.ch/f04/papers/MOCOS05/MOCOS05.PDF). 
 
-The particle tracking uses matrices up to the second order. CSR wake is calculated continuously through beam lines of arbitrary flat geometry. 
-The transverse self-forces are neglected completely. The method calculates the longitudinal self-field of a one-dimensional beam that is obtained by a projection of the ‘real’ three-dimensional beam onto a reference trajectory. 
-A smooth one-dimensional charge density is calculated by binning and filtering, which is crucial for the stability and accuracy of the simulation, since the instability is sensitive to high frequency components in the charge density. 
+The particle tracking uses matrices up to the second order. CSR wake is calculated continuously through beam lines of arbitrary flat geometry. The transverse self-forces are neglected completely. The method calculates the longitudinal self-field of a one-dimensional beam that is obtained by a projection of the ‘real’ three-dimensional beam onto a reference trajectory. A smooth one-dimensional charge density is calculated by binning and filtering, which is crucial for the stability and accuracy of the simulation, since the instability is sensitive to high frequency components in the charge density.
 
+---
 
-#### This example will cover the following topics:
-* Initialization of the CSR object and the places of it applying
-* tracking of second order with CSR effect.
+### This example covers:
 
-#### Requirements 
-* in.fmt1    - input file, initial beam distribution in CSRtrack format (was obtained from s2e simulation performed with ASTRA/CSRtrack).
-* out.fmt1 - output file, beam distribution after BC2 bunch compressor (was obtained with CSRtrack)
+- Initialization and placement of the [**`CSR` class**](https://www.ocelot-collab.com/docs/docu/physics-processes/csr)  
+- Second-order matrix-based [**tracking**](https://www.ocelot-collab.com/docs/tutorial/tutorial-beam-dynamics/tracking/) with CSR effects  
+- Use of the [**`Navigator`**](https://www.ocelot-collab.com/docs/docu/OCELOT%20fundamentals/navigator) to assign physics processes  
+- Lattice construction with [**`MagneticLattice`**](https://www.ocelot-collab.com/docs/docu/OCELOT%20fundamentals/magnet-lattice/)
 
+---
+
+### Requirements
+
+- `in.fmt1`: Initial beam distribution in CSRtrack format  
+  (obtained from an s2e simulation performed with ASTRA + CSRtrack)
+
+- `out.fmt1`: Output distribution after BC2 bunch compressor  
+  (reference output from CSRtrack used for comparison)
 
 ```python
 import sys

@@ -7,7 +7,7 @@ description: Optics design
 *This notebook was created by Sergey Tomin (sergey.tomin@desy.de). April 2025.*
 </small>
 
-# [Optics for High Time Resolution Measurements with TDS](https://github.com/ocelot-collab/ocelot/blob/dev/demos/ipython_tutorials/11_design_hires_optics.ipynb)
+# [Optics Design for High Time Resolution Measurements with TDS](https://github.com/ocelot-collab/ocelot/blob/dev/demos/ipython_tutorials/11_design_hires_optics.ipynb)
 
 This tutorial is motivated by a practical task: improving the time resolution of current profile measurements using a Transverse Deflecting Structure (TDS) at the European XFEL (EuXFEL).  
 The tutorial itself is available in Jupyter Notebook format and can be downloaded [here](https://github.com/ocelot-collab/ocelot/blob/dev/demos/ipython_tutorials/11_design_hires_optics.ipynb).

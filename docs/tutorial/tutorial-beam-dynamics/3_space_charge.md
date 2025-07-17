@@ -7,22 +7,30 @@ This notebook was created by Sergey Tomin (sergey.tomin@desy.de). January 2018.
 </small>
 
 # [3. Space Charge.](https://github.com/ocelot-collab/ocelot/blob/dev/demos/ipython_tutorials/3_space_charge.ipynb)
-*Second order tracking with space charge effect of the 200k particles.*
 
-As an example, we will use lattice file (converted to Ocelot format) of the European XFEL Injector. 
+*Second-order tracking with space charge effects using 200,000 particles.*
+
+In this example, we demonstrate how to simulate space charge effects using a converted lattice of the **European XFEL Injector** in Ocelot format.
 
 The space charge forces are calculated by solving the Poisson equation in the bunch frame. 
 Then the Lorentz transformed electromagnetic field is applied as a kick in the laboratory frame.
-For the solution of the Poisson equation we use an integral representation of the electrostatic potential by convolution of the free-space Green's function with the charge distribution. The convolution equation is solved with the help of the Fast Fourier Transform (FFT). The same algorithm for solution of the 3D Poisson equation is used, for example, in [ASTRA](http://www.desy.de/~mpyflo/).
+For the solution of the Poisson equation we use an integral representation of the electrostatic potential by convolution of the free-space Green's function with the charge distribution. The convolution equation is solved with the help of the Fast Fourier Transform (FFT). 
+A similar algorithm is used in external codes like [ASTRA](http://www.desy.de/~mpyflo/).
 
-#### This example will cover the following topics:
-* Initialization of the Space Charge objects and the places of their applying
-* tracking of second order with space charge effect.
+---
 
-#### Requirements 
-* injector_lattice.py - input file, the The European XFEL Injector lattice.
-* beam_6MeV.ast    - input file, initial beam distribution in ASTRA format (was obtained from s2e simulation performed with ASTRA).
+### This tutorial covers:
 
+- Initialization and placement of [`SpaceCharge`](https://www.ocelot-collab.com/docs/docu/physics-processes/sc/) physics processes in the lattice ([`MagneticLattice`](https://www.ocelot-collab.com/docs/docu/OCELOT%20fundamentals/magnet-lattice/))
+- Second-order beam [`tracking`](https://www.ocelot-collab.com/docs/tutorial/tutorial-beam-dynamics/tracking/) with 3D space charge effect
+- Usage of the [`Navigator`](https://www.ocelot-collab.com/docs/docu/OCELOT%20fundamentals/navigator/) class
+
+---
+
+### Requirements
+
+- `injector_lattice.py`: Lattice file of the European XFEL Injector (converted to Ocelot format)
+- `beam_6MeV.ast`: Initial beam distribution in ASTRA format (from an s2e simulation with ASTRA)
 ## Import of modules
 
 
