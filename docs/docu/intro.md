@@ -40,47 +40,49 @@ Over time, we will continue to improve this documentation.
 
 ## Installation
 
-### 1. Install via Anaconda Cloud
+### 1. Install via Anaconda Cloud (Recommended)
 
-The easiest way to install OCELOT is through Anaconda Cloud. Use the following command:
-
+To install OCELOT using [Anaconda Cloud](https://anaconda.org/ocelot-collab/ocelot), run:
 ```bash
-$ conda install -c ocelot-collab ocelot
+ conda install -c ocelot-collab ocelot
+```
+This will install the latest stable version along with all required dependencies.
+
+---
+
+### 2. Install via PyPI (Alternative)
+
+You can also install OCELOT from [PyPI](https://pypi.org/project/ocelot-collab/):
+```bash
+pip install ocelot-collab
 ```
 
-### 2. Install from GitHub (for advanced users)
-If you’re comfortable with Git and Python, you can clone OCELOT from GitHub:
+> ℹ️ The package name on PyPI is `ocelot-collab`, but in Python you import it as:
+```python
+>>> import ocelot
 ```
-$ git clone https://github.com/ocelot-collab/ocelot.git
+```python
+    initializing ocelot...
 ```
-Alternatively, you can download the latest release as a [zip file](https://github.com/ocelot-collab/ocelot/archive/refs/heads/master.zip).
-
-To install OCELOT from source:
+```python
+>>> ocelot.__version__
 ```
-$ python setup.py install
+```python
+    '25.07.0'
 ```
 
-### 3. Install by Setting the Python Path
+---
 
-If you'd like to manually install OCELOT, follow these steps:
+### 3. Install from Source (Advanced)
 
-1. Download the [ZIP file](https://github.com/ocelot-collab/ocelot/archive/master.zip) from GitHub.
-2. Unzip the file `ocelot-master.zip` to your working directory, e.g., `/your_working_dir/`.
-3. Add the directory `../your_working_dir/ocelot-master` to your `PYTHONPATH`:
+To install OCELOT directly from GitHub:
+```bash
+ git clone https://github.com/ocelot-collab/ocelot.git
+ cd ocelot
+ python setup.py install
+```
 
-    - **Windows:**
-        1. Go to **Control Panel** → **System and Security** → **System** → **Advanced System Settings** → **Environment Variables**.
-        2. Under **User variables**, add `../your_working_dir/ocelot-master/` to `PYTHONPATH`. If `PYTHONPATH` does not exist, create it.
-
-        **Variable name:** `PYTHONPATH`
-
-        **Variable value:** `../your_working_dir/ocelot-master/`
-
-    - **Linux/macOS:**
-
-    ```bash
-    $ export PYTHONPATH=/your_working_dir/ocelot-master:$PYTHONPATH
-    ```
+Alternatively, download the [latest release as a ZIP file](https://github.com/ocelot-collab/ocelot/archive/refs/heads/master.zip), unpack it, and install manually.
 
 # Getting Started: Simplest Accelerator Structure
 
