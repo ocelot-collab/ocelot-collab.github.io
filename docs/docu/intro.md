@@ -40,7 +40,7 @@ Over time, we will continue to improve this documentation.
 
 ## Installation
 
-### 1. Install via Anaconda Cloud (Recommended)
+### 1. Install via Anaconda Cloud 
 
 To install OCELOT using [Anaconda Cloud](https://anaconda.org/ocelot-collab/ocelot), run:
 ```bash
@@ -50,7 +50,7 @@ This will install the latest stable version along with all required dependencies
 
 ---
 
-### 2. Install via PyPI (Alternative)
+### 2. Install via PyPI 
 
 You can also install OCELOT from [PyPI](https://pypi.org/project/ocelot-collab/):
 ```bash
