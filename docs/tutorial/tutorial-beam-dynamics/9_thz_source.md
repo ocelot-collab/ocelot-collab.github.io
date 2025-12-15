@@ -144,111 +144,138 @@ print("bunch compressor R56 = ", R56, " m")
 <a id='compression'></a>
 ## Simple compression scenario
 
-We consider a simple compression scheme with an accelerator module and third harmonic linearizer and a magnetic chicane. To have full picture of the compression techniques, I would recommend:
+We consider here a basic compression scheme consisting of an accelerating module, a third-harmonic linearizer, and a magnetic chicane. For a comprehensive overview of bunch-compression physics, the following references are highly recommended:
 * [I. Zagorodnov and M. Dohlus, Semianalytical modeling of multistage bunch compression with collective effects](https://journals.aps.org/prab/pdf/10.1103/PhysRevSTAB.14.014403)
 * and [M. Dohlus, T. Limberg, and P. Emma, ICFA Beam
-Dynamics Newsletter 38, 15 (2005)](http://www-bd.fnal.gov/icfabd/Newsletter38.pdf)
+Dynamics Newsletter 38, 15 (2005)](https://www.desy.de/~zagor/lecturesFEL/2017/Lecture01/additional/icfa_bd_nl_38.pdf)
 
-To compress a bunch longitudinally, the time of flight through some section must be shorter for the tail of the bunch than it is for the head. The usual technique starts out by introducing a correlation between the longitudinal position of the particles in the bunch and their energy using a radio frequency (RF) accelerating system.
-At the end of a linac which induces an energy chirp $\delta' = \frac{1}{E_0}\frac{dE}{ds}$, the mapping of
-longitudinal position and relative energy deviation of an electron is 
+---
+
+### Linear Compression with a Chicane
+
+To compress a bunch longitudinally, the tail must have a shorter time of flight through some beamline section than the head. A standard technique is first to introduce a correlation between a particle’s longitudinal position and its energy using RF acceleration.
+
+At the exit of a linac that induces a linear energy chirp  
+$$
+\delta' = \frac{1}{E_0}\frac{dE}{ds},
+$$
+the mapping of the longitudinal coordinate $s$ and the relative energy deviation $\delta$ is
 
 $$
-\begin{split}
-s_1 &= s_0 \\
-\delta_1 &= \delta' s_0 + \delta_{i}
-\end{split}
+\begin{aligned}
+s_1 &= s_0,\\
+\delta_1 &= \delta' s_0 + \delta_{i},
+\end{aligned}
 $$
+where $\delta_i = \Delta E_i / E_0$ denotes the uncorrelated energy spread.
 
-where $\delta_{i} = \frac{\Delta E_i}{E_0}$ is not correlated energy spread along the bunch length. 
-
-The transformation of the longitudinal coordinate in compressor BC can be approximated by the expression up to first order:
-
-$$
-\begin{split}
-s_2 &= s_1 - R_{56}\delta_1 = (1 - \delta' R_{56}) s_0 + R_{56}\delta_{i}\\
-\delta_2 &= \delta_1
-\end{split}
-$$
-
-Taking an ensemble average over all particles in the bunch and by definition $<s_0 \delta_{i}> = 0$, the second moment of the distribution $\sigma_{s_0} = <s_2^2>^{1/2}$ is:
+Passing this beam through a magnetic chicane with longitudinal dispersion $R_{56}$, the transformation (to first order) becomes
 
 $$
-\sigma_{s_2} = \sqrt{ (1 - \delta' R_{56})^2 \sigma_{s_0} + R_{56}^2\sigma_{\delta_{i}}^2 }
+\begin{aligned}
+s_2 &= s_1 - R_{56}\,\delta_1
+     = (1 - \delta' R_{56})\, s_0 + R_{56}\,\delta_i,\\[2pt]
+\delta_2 &= \delta_1.
+\end{aligned}
 $$
 
-Compression factor is :
-$$
-C = \frac{\sigma_{s_0}}{ \sigma_{s_2}}
-$$
+Assuming $\langle s_0 \delta_i \rangle = 0$, the rms bunch length after the chicane is
 
-
-Suppose, uncorrelated energy spread is small and we chose $\delta' = -10$ and $R_{56} = -0.048$ m as we calculated above, in that case the compression factor after the chicane is 
 $$
-C = \frac{1}{1 - \delta' R_{56}} = 1.9
+\sigma_{s_2}
+  = \sqrt{ (1 - \delta' R_{56})^2\, \sigma_{s_0}^2
+           + R_{56}^2 \sigma_{\delta_i}^2 }.
 $$
 
+The compression factor is
 
-The non-linearities of both the accelerating RF fields and the longitudinal dispersion
-can distort the longitudinal phase space. A higher harmonic RF system can be used to compensate the non-linearities of the fundamental frequency system and the higher order longitudinal dispersion in the magnetic chicanes. 
-To linearize longitudinal phase space, a working point for RF phases and amplitudes must be found for the fundamental frequency and the $n$-th harmonic system (n = 3 for the European XFEL).
+$$
+C = \frac{\sigma_{s_0}}{\sigma_{s_2}}.
+$$
 
-The relation between the normalized RF amplitudes
+Assuming negligible uncorrelated energy spread and choosing  
+$\delta' = -10$ and $R_{56} = -0.048~\mathrm{m}$, the compression factor becomes
+
+$$
+C = \frac{1}{1 - \delta' R_{56}} = 1.9.
+$$
+
+---
+
+### Linearization with a Third-Harmonic RF System
+
+Nonlinearities from the RF fields and from the magnetic chicane introduce curvature in the longitudinal phase space, degrading compression.  
+A higher-harmonic RF module can be used to compensate these nonlinearities and linearize the phase space. For the fundamental RF and its $n$-th harmonic (with $n=3$ at the European XFEL), the normalized RF amplitudes must satisfy
 
 $$
 \begin{bmatrix}
-     1   &       0 & 1 & 0 \\
-     0   &       -k & 0 & -n k  \\
-     -k^2   &       0 & -(n k )^2 & 0) \\
-     0   &       k^3 & 0 &(n k )^3
-\end{bmatrix} 
-\begin{bmatrix}
-    V_1 \cos(\phi_1)\\
-    V_1 \sin(\phi_1)\\
-    V_{13} \cos(\phi_{13}) \\
-    V_{13} \sin(\phi_{13}) \\
-\end{bmatrix} = \frac{1}{e}
-\begin{bmatrix}
-    E_1 - E_0\\
-    E_1\delta_2' - E_0 \delta_0'\\
-     E_1\delta_2'' - E_0 \delta_0''\\
-     E_1\delta_2''' - E_0 \delta_0'''\\
-\end{bmatrix} 
-$$
-
-In our case we assume initial beam energy $E_0 = 5$ MeV and  $\delta_0' = \delta_0'' = \delta_0''' = 0$.
-
-And final energy we chose $E_1 = 130$ MeV and $\delta_2' = -10$ with $\delta_2'' = \delta_2''' = 0$
-So, our vector on the right side will be 
-
-$$ 
-\begin{bmatrix}
-    E_1 - E_0\\
-    E_1\delta_2' - E_0 \delta_0'\\
-     E_1\delta_2'' - E_0 \delta_0''\\
-     E_1\delta_2''' - E_0 \delta_0'''\\
-\end{bmatrix} = 
-\begin{bmatrix}
-    125\\
-    -1300 \\
-     0\\
-     0\\
+ 1      & 0      & 1            & 0 \\
+ 0      & -k     & 0            & -n k  \\
+ -k^2   & 0      & -(nk)^2      & 0 \\
+ 0      & k^3    & 0            & (nk)^3
 \end{bmatrix}
+\begin{bmatrix}
+ V_1 \cos\phi_1 \\
+ V_1 \sin\phi_1 \\
+ V_{13} \cos\phi_{13} \\
+ V_{13} \sin\phi_{13}
+\end{bmatrix}
+=
+\frac{1}{e}
+\begin{bmatrix}
+ E_1 - E_0 \\
+ E_1\delta_2'  - E_0\delta_0' \\
+ E_1\delta_2'' - E_0\delta_0'' \\
+ E_1\delta_2''' - E_0\delta_0'''
+\end{bmatrix}.
 $$
 
-<div class="alert alert-block alert-info">
-<b>Note:</b> We calculated $R_{56}$ only for the chicane and did not take into account undulator. 
-</div>
-In our case undulator has high K parameter
+We assume initial conditions:
+
 $$
-R_{56} = -\frac{L_u}{\gamma}(1 + K^2/2) \approx -0.028 \quad m
+E_0 = 5~\mathrm{MeV}, \qquad
+\delta_0' = \delta_0'' = \delta_0''' = 0.
 $$
 
-So, total compression after undulator will be 
+As a target after the RF system (and before the chicane), we choose:
+
 $$
-C = \frac{1}{1 - \delta R_{56}} = 4.1
+E_1 = 130~\mathrm{MeV}, \qquad
+\delta_2' = -10, \qquad
+\delta_2'' = \delta_2''' = 0.
 $$
 
+Thus, the right-hand side becomes
+
+$$
+\begin{bmatrix}
+125 \\
+-1300 \\
+0 \\
+0
+\end{bmatrix}.
+$$
+
+---
+
+### Additional Contribution from the Undulator
+
+> **Note:**  
+> The earlier estimate of $R_{56}$ included only the chicane.  
+> The undulator also contributes to longitudinal dispersion.
+
+For an undulator with large $K$-value, the longitudinal dispersion is
+
+$$
+R_{56} = -\frac{L_u}{\gamma}\left( 1 + \frac{K^2}{2} \right)
+\approx -0.028~\mathrm{m}.
+$$
+
+Including this contribution, the total compression factor becomes
+
+$$
+C = \frac{1}{1 - \delta R_{56}} = 4.1.
+$$
 
 ```python
 import scipy.optimize

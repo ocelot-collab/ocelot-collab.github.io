@@ -75,7 +75,7 @@ lat = MagneticLattice(cell, start=m1, stop=m2, method={"global": SecondTM})
 
 ## Methods
 
-#### `get_sequence_part(self, start: E, stop: E)`
+### `get_sequence_part(self, start: E, stop: E)`
 
 This method gets a part of the lattice sequence starting from `start` to `stop`.
 
@@ -110,7 +110,7 @@ for i, element in enumerate(self.sequence):
 
 ---
 
-#### `__str__(self)`
+### `__str__(self)`
 
 Returns a string representation of the lattice, showing the total length and details of each element.
 
@@ -119,7 +119,7 @@ Returns a string representation of the lattice, showing the total length and det
 
 ---
 
-#### `find_indices(self, element)`
+### `find_indices(self, element)`
 
 Finds the indices of elements in the sequence by their class type.
 
@@ -131,7 +131,7 @@ Finds the indices of elements in the sequence by their class type.
 
 ---
 
-#### `find_drifts(self)`
+### `find_drifts(self)`
 
 Finds the drift elements in the sequence and returns them.
 
@@ -140,13 +140,13 @@ Finds the drift elements in the sequence and returns them.
 
 ---
 
-#### `rem_drifts(self)`
+### `rem_drifts(self)`
 
 Removes repeated drift elements from the lattice.
 
 ---
 
-#### `save_as_py_file(self, file_name: str, tws0=None, remove_rep_drifts=True, power_supply=False)`
+### `save_as_py_file(self, file_name: str, tws0=None, remove_rep_drifts=True, power_supply=False)`
 
 Saves the lattice to a Python file.
 
@@ -158,7 +158,7 @@ Saves the lattice to a Python file.
 
 ---
 
-#### `transfer_maps(self, energy, output_at_each_step: bool = False, start: E = None, stop: E = None)`
+### `transfer_maps(self, energy, output_at_each_step: bool = False, start: E = None, stop: E = None)`
 
 Calculates the transfer maps (first and second orders) for the entire lattice.
 
@@ -173,23 +173,76 @@ Calculates the transfer maps (first and second orders) for the entire lattice.
 
 ---
 
-#### `survey(self, x0=0, y0=0, z0=0, ang_x=0.0, ang_y=0.0)`
+### `survey(self, X0=0, Y0=0, Z0=0, theta0=0, phi0=0, psi0=0)`
 
-Calculates coordinates in rectangular coordinates at the beginning of each element in the lattice.
+Performs a **3D geometric survey** of the reference trajectory using a recursive
+vector/matrix formalism consistent with **MAD-8 survey conventions**.
 
-#### Arguments:
-- **x0** (`float`, optional): The initial offset in the x direction.
-- **y0** (`float`, optional): The initial offset in the y direction.
-- **z0** (`float`, optional): The initial offset in the z direction.
-- **ang_x** (`float`, optional): The initial angle in the horizontal plane.
-- **ang_y** (`float`, optional): The initial angle in the vertical plane.
+The survey computes the global **positions and orientations** of the beamline
+along the reference trajectory, taking into account element length, bending,
+and tilt.
 
-#### Returns:
-- Lists of coordinates: `x`, `y`, `z`, `a_x`, `a_y`.
+See also [`MachineLayout`](./survey.md) class
 
----
 
-#### `print_sequence(self, start: E = None, stop: E = None)`
+#### Arguments
+
+- **X0** (`float`, optional)  
+  Initial global X coordinate [m].
+
+- **Y0** (`float`, optional)  
+  Initial global Y coordinate [m].
+
+- **Z0** (`float`, optional)  
+  Initial global Z coordinate [m].
+
+- **theta0** (`float`, optional)  
+  Initial azimuth angle [rad].
+
+- **phi0** (`float`, optional)  
+  Initial elevation angle [rad].
+
+- **psi0** (`float`, optional)  
+  Initial roll angle around the local s-axis [rad].
+
+
+
+#### Returns
+
+The function returns **two lists of dictionaries**:
+
+- **`mid_survey_data`**  
+  Survey data evaluated at the geometric center of each element.  
+  Intended mainly for inspection, tables, and diagnostics.
+
+- **`end_survey_data`**  
+  Survey data evaluated at the exit of each element.  
+  Intended for plotting, connectivity, and layout construction.
+
+Each dictionary contains, among others, the following fields:
+
+- **`r_start`** — global position at the element entrance
+- **`r_end`** — global position at the element exit
+- **`W_start`** — rotation matrix at the element entrance
+- **`W`** — rotation matrix at the survey record location
+- **`X, Y, Z`** — scalar global coordinates (convenience)
+- **`XPD, YPD, ZPD`** — direction cosines of the local s-axis
+- **`element`** — reference to the corresponding lattice element
+
+
+#### Notes
+
+- The rotation matrix `W` maps vectors from the local element frame `(x, y, s)`
+  to the global laboratory frame `(X, Y, Z)`: $\mathbf{v}_{\mathrm{global}} = W \, \mathbf{v}_{\mathrm{local}}$
+  The columns of `W` have a direct geometric meaning:
+
+    - `W[:, 0]` — local **x-axis** in global coordinates  
+    - `W[:, 1]` — local **y-axis** in global coordinates  
+    - `W[:, 2]` — local **s-axis**, i.e. the beam direction
+- Element `tilt` represents a rotation around the local s-axis (MAD-8 convention).
+- The survey is purely geometric and does not affect beam dynamics or tracking.
+
+### `print_sequence(self, start: E = None, stop: E = None)`
 
 Prints the sequence of elements in the lattice, including their lengths and start/end positions.
 
@@ -202,7 +255,7 @@ Prints the sequence of elements in the lattice, including their lengths and star
 
 ---
 
-#### `periodic_twiss(self, tws=None)`
+### `periodic_twiss(self, tws=None)`
 
 Calculates the periodic Twiss parameters for the lattice using transfer maps.
 
