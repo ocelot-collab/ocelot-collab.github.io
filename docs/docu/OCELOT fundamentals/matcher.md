@@ -7,7 +7,7 @@ description: Matching functions
 #  [`Matcher`](https://github.com/ocelot-collab/ocelot/blob/dev/ocelot/cpbd/matcher.py): Flexible Optics Matching in Ocelot
 
 :::note
-The new `Matcher` is available from version `26.03` and is currently in the `dev` branch.
+The new `Matcher` will be available from version `26.03` and is currently in the `dev` branch.
 :::
 
 [`ocelot.cpbd.matcher`](https://github.com/ocelot-collab/ocelot/blob/dev/ocelot/cpbd/matcher.py) is a new object-oriented matching API.
@@ -481,22 +481,127 @@ Why it matters:
 
 ### 12) Ultimate Example: Custom Chicane Knob + Tracking Objective + Energy Target
 
-See full script:
+Reference script:
 
-- `demos/ebeam/matcher_ex.py`
+- [`demos/ebeam/matcher_ex.py`](https://github.com/ocelot-collab/ocelot/blob/dev/demos/ebeam/matcher_ex.py)
 
-What this example demonstrates in one workflow:
+This example combines three patterns in one workflow:
 
 - Custom variable (`Vary`) with coupled lattice updates:
-  one knob `CHICANE_theta` updates 4 dipole angles, edge angles (`e1`, `e2`),
+  one knob `CHICANE_theta` updates four dipole angles, edge angles (`e1`, `e2`),
   and chicane shoulder drifts consistently.
 - Custom objective (`Objective`) with particle tracking inside residual
   evaluation:
-  maximize/target peak current from tracked `ParticleArray`.
+  match a target peak current from tracked `ParticleArray`.
 - Standard matcher target:
-  end energy constraint with `problem.target_twiss(end, "E", ...)`.
+  final energy constraint with `problem.target_twiss(end, "E", ...)`.
 
-Run:
+
+```python
+# Build a C-shape chicane section.
+z_distance = 1.0
+d_ref = Drift(l=0.5)
+d12 = Drift(l=shoulders_from_theta(THETA0, z_distance))
+d34 = Drift(l=shoulders_from_theta(THETA0, z_distance))
+
+b1 = SBend(l=0.2, angle=-THETA0, e1=0.0, e2=-THETA0, tilt=0.0, fint=0.0, eid="B1")
+b2 = SBend(l=0.2, angle=+THETA0, e1=THETA0, e2=0.0, tilt=0.0, fint=0.0, eid="B2")
+b3 = SBend(l=0.2, angle=+THETA0, e1=0.0, e2=THETA0, tilt=0.0, fint=0.0, eid="B3")
+b4 = SBend(l=0.2, angle=-THETA0, e1=-THETA0, e2=0.0, tilt=0.0, fint=0.0, eid="B4")
+chicane = (b1, d12, b2, d_ref, b3, d34, b4)
+
+# RF section and end marker.
+c11 = Cavity(l=0.5, v=0.15, phi=0.0, freq=1.3e9, eid="C11")
+c13 = Cavity(l=0.5, v=0.0166, phi=180.0, freq=3.9e9, eid="C13")
+end = Marker(eid="END")
+
+cell = [d_ref, c11, d_ref, c13, d_ref, *chicane, d_ref, end]
+lat = MagneticLattice(cell)
+
+tw0 = Twiss(beta_x=10.0, beta_y=10.0, emit_xn=1e-6, emit_yn=1e-6, E=0.005)
+parray_init = generate_parray(tws=tw0, nparticles=10000, charge=250e-12,  chirp=0.0, sigma_p=SIGMA_P, sigma_tau=SIGMA_TAU_M)
+
+# Track once before matching as a reference.
+_tb, tracked_before = track(lat, copy.deepcopy(parray_init), print_progress=False)
+i_before = peak_current(tracked_before)
+
+# Create matcher problem.
+problem = MatchProblem(lat, tw0)
+
+# Custom composite variable: one theta knob drives the full chicane geometry.
+def get_theta() -> float:
+    return float(b2.angle)
+
+def set_theta(theta: float) -> None:
+    # 1) Update linked dipole angles.
+    b1.angle = -theta
+    b2.angle = +theta
+    b3.angle = +theta
+    b4.angle = -theta
+
+    # 2) Update linked edge angles.
+    b1.e1, b1.e2 = 0.0, -theta
+    b2.e1, b2.e2 = +theta, 0.0
+    b3.e1, b3.e2 = 0.0, +theta
+    b4.e1, b4.e2 = -theta, 0.0
+
+    # 3) Recompute chicane shoulder drifts from geometry.
+    l_shoulder = shoulders_from_theta(theta, z_distance)
+    d12.l = l_shoulder
+    d34.l = l_shoulder
+
+problem.add_variable(
+    Vary(
+        name="CHICANE_theta",
+        getter=get_theta,
+        setter=set_theta,
+        limits=THETA_LIMITS,
+    )
+)
+
+# Standard RF variables.
+problem.vary_element(c11, "v", limits=(0.10, 0.20), name="C11_v")
+problem.vary_element(c11, "phi", limits=(-40.0, 40.0), name="C11_phi")
+problem.vary_element(c13, "v", limits=(0.01, 0.025), name="C13_v")
+problem.vary_element(c13, "phi", limits=(90.0, 270.0), name="C13_phi")
+
+# Custom tracking objective: peak current target.
+class PeakCurrentObjective(Objective):
+    """Tracking-based objective for peak current matching."""
+
+    def __init__(self, parray_template, target_current: float, num_bins: int = 200, **kwargs):
+        super().__init__(**kwargs)
+        self.parray_template = parray_template
+        self.target_current = float(target_current)
+        self.num_bins = int(num_bins)
+
+    def residuals(self, state):
+        # Track a fresh copy each evaluation so residuals always use the same
+        # initial particle distribution.
+        parray = copy.deepcopy(self.parray_template)
+        _tws_track, tracked = track(state.lat, parray, print_progress=False)
+        i_peak = peak_current(tracked, num_bins=self.num_bins)
+        return np.array([(i_peak - self.target_current) / self.target_current], dtype=float)
+
+# Add custom objective to the problem.
+problem.add_objective(
+    PeakCurrentObjective(
+        parray_template=parray_init,
+        target_current=300,  # A
+        name="peak_current_obj",
+        weight=1e1,
+    )
+)
+
+# Standard physics constraint: final energy at end marker (130 MeV).
+problem.target_twiss(end, "E", value=0.13, weight=1e6)
+
+# Solve.
+result = problem.solve(solver="ls_trf", max_iter=MAX_ITER)
+
+```
+
+Run the full demo script:
 
 ```bash
 python demos/ebeam/matcher_ex.py
