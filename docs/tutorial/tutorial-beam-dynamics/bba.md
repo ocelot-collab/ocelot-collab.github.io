@@ -26,10 +26,10 @@ At the time of writing, it resides in the *development branch* and may change wi
 The BPM readings of the electron beam in the undulator section can be written as:
 
 $$
-m_x = R_x,x_{\text{init}} + P_x,d_x - b_x, 
+m_x = R_x x_{\text{init}} + P_x d_x - b_x, 
 $$
 $$
-m_y = R_y,y_{\text{init}} + P_y,d_y - b_y,
+m_y = R_y y_{\text{init}} + P_y d_y - b_y,
 $$
 
 where:
@@ -63,6 +63,85 @@ By recording trajectories at multiple beam energies, we can disentangle these ef
 Both $R_{x,y}$ and $P_{x,y}$ depend on the beam energy through optics scaling, whereas BPM offsets $b_{x,y}$ remain constant.
 
 Ocelot’s bba module automatically computes these energy-dependent matrices from the lattice, enabling a full reconstruction of BPM and quadrupole offsets using simulated data prior to applying the method experimentally.
+
+### Multi-Energy Linear System and Launch Assumptions
+
+For each energy setting $s = 1, \ldots, S$:
+
+$$
+m_x^{(s)} = R_x^{(s)} x_{\text{init}}^{(s)} + P_x^{(s)} d_x - b_x,
+$$
+$$
+m_y^{(s)} = R_y^{(s)} y_{\text{init}}^{(s)} + P_y^{(s)} d_y - b_y.
+$$
+
+This highlights the key assumptions:
+* $d_x, d_y$ (quadrupole offsets) are common for all energies,
+* $b_x, b_y$ (BPM offsets) are common for all energies,
+* $R_{x,y}^{(s)}$ and $P_{x,y}^{(s)}$ are energy dependent,
+* $x_{\text{init}}^{(s)}$, $y_{\text{init}}^{(s)}$ may be either common or energy dependent.
+
+In the **energy-dependent launch** model, the stacked horizontal system is:
+
+$$
+\begin{bmatrix}
+m_x^{(1)} \\
+m_x^{(2)} \\
+\vdots \\
+m_x^{(S)}
+\end{bmatrix}
+=
+\begin{bmatrix}
+R_x^{(1)} & 0 & \cdots & 0 \\
+0 & R_x^{(2)} & \cdots & 0 \\
+\vdots & \vdots & \ddots & \vdots \\
+0 & 0 & \cdots & R_x^{(S)}
+\end{bmatrix}
+\begin{bmatrix}
+x_{\text{init}}^{(1)} \\
+x_{\text{init}}^{(2)} \\
+\vdots \\
+x_{\text{init}}^{(S)}
+\end{bmatrix}
++
+\begin{bmatrix}
+P_x^{(1)} \\
+P_x^{(2)} \\
+\vdots \\
+P_x^{(S)}
+\end{bmatrix} d_x
++
+\begin{bmatrix}
+-I \\
+-I \\
+\vdots \\
+-I
+\end{bmatrix} b_x.
+$$
+
+The same structure applies in the vertical plane with $m_y, R_y, y_{\text{init}}, P_y, d_y, b_y$.
+
+In Ocelot this is controlled by `per_measurement_launch`:
+
+```python
+# Shared launch (default): one x_init and one y_init for all energies
+A = bba.build_full_matrix(R=[Rxs, Rys], P=[Pxs, Pys])
+
+# Energy-dependent launch: independent x_init^(s), y_init^(s)
+A = bba.build_full_matrix(R=[Rxs, Rys], P=[Pxs, Pys], per_measurement_launch=True)
+```
+
+When extracting the solution in this mode, the number of measurements must be provided:
+
+```python
+Xinit_est, Yinit_est, dx_est, dy_est, bx_est, by_est = bba.extract_solution(
+    X_est,
+    Nquad=len(quads),
+    Nbpm=len(bpms),
+    n_measurements=len(energies),
+    per_measurement_launch=True,
+)
+```
 
 ## 2. Lattice Setup and Twiss Parameters
 
@@ -157,102 +236,143 @@ Rxs, Rys, Pxs, Pys = bba.generate_response_matrices_for_energies(lat, quads, bpm
 
 ## 5. Building the Full System
 
-We start from the basic relations that describe the BPM readings in the horizontal and vertical planes:
+For each energy setting $s = 1, \,\ldots,\, S$, the BPM equations are:
 
 $$
 \begin{aligned}
-m_x &= R_x \, x_{\text{init}} + P_x \, d_x - b_x, \\
-m_y &= R_y \, y_{\text{init}} + P_y \, d_y - b_y.
+m_x^{(s)} &= R_x^{(s)} \, x_{\text{init}}^{(s)} + P_x^{(s)} \, d_x - b_x, \\
+m_y^{(s)} &= R_y^{(s)} \, y_{\text{init}}^{(s)} + P_y^{(s)} \, d_y - b_y.
 \end{aligned}
 $$
 
-Here:
-- $ R_{x,y} $ are the **launch response matrices**,  
-- $ P_{x,y} $ are the **quadrupole response matrices**,  
-- $ b_{x,y} $ are the **BPM offsets**,  
-- $ m_{x,y} $ are the measured BPM readings.
-
-All these terms can be combined into a single linear system:
+Stacking all energies gives one global linear system:
 
 $$
 M = A \, X,
 $$
 
-where
+with plane-wise blocks:
 
 $$
-M = 
-\begin{bmatrix}
-m_x \\
-m_y
-\end{bmatrix},
+A_x = [\,L_x\;\;P_{x,\text{all}}\;\;B_x\,],
 \qquad
-A = 
+A_y = [\,L_y\;\;P_{y,\text{all}}\;\;B_y\,],
+$$
+
+$$
+B_x = B_y =
 \begin{bmatrix}
-R_x & P_x & -I_{N_\text{BPM}} & 0 & 0 & 0 \\
-0 & 0 & 0 & R_y & P_y & -I_{N_\text{BPM}}
-\end{bmatrix},
+-I \\
+-I \\
+\vdots \\
+-I
+\end{bmatrix}
+\text{ (}S\text{ blocks)}.
+$$
+
+The difference between the two models is in $L_x, L_y$.
+
+### Case A: Shared Launch for All Energies (default)
+
+Assume:
+
+$$
+x_{\text{init}}^{(1)} = \cdots = x_{\text{init}}^{(S)} = x_{\text{init}},
 \qquad
-X =
+y_{\text{init}}^{(1)} = \cdots = y_{\text{init}}^{(S)} = y_{\text{init}}.
+$$
+
+Then:
+
+$$
+L_x =
 \begin{bmatrix}
-x_{\text{init}} \\[2mm]
-d_x \\[2mm]
-b_x \\[2mm]
-y_{\text{init}} \\[2mm]
-d_y \\[2mm]
-b_y
-\end{bmatrix}.
+R_x^{(1)} \\
+R_x^{(2)} \\
+\vdots \\
+R_x^{(S)}
+\end{bmatrix}
+\in \mathbb{R}^{S N_{\text{BPM}} \times 2},
+\qquad
+L_y =
+\begin{bmatrix}
+R_y^{(1)} \\
+R_y^{(2)} \\
+\vdots \\
+R_y^{(S)}
+\end{bmatrix}
+\in \mathbb{R}^{S N_{\text{BPM}} \times 2}.
 $$
 
-Thus, the **full matrix $ A $** contains contributions from the launch, quadrupole, and BPM offset parts.
-
----
-
-We assume that the **launch orbit** remains the same for all energy settings, meaning we need to determine only the initial beam parameters  
-$ x_0, x_0' $ and $ y_0, y_0' $.  
-
-If this assumption is not valid, the call to: 
-```python
-bba.build_full_matrix(R=[Rxs, Rys], P=[Pxs, Pys])
-```
-
-must be adjusted to include additional degrees of freedom corresponding to different launch conditions.
-
-In our example, we have
-$ N_{\text{BPM}} = 37 $ and $N_{\text{quad}} = 37$.
-We aim to find the BPM offsets and quadrupole offsets in both the horizontal and vertical planes.
-
-Thus, the number of columns in the global matrix is:
+Number of unknown columns:
 
 $$
-N_{\text{col}} = 2 \times (2 + N_{\text{BPM}} + N_{\text{quad}}) = 152,
+N_{\text{col,shared}} = 2\times(2 + N_{\text{BPM}} + N_{\text{quad}}).
 $$
 
-which accounts for:
-* 2 planes $x$ and $y$,
-* 2 launch parameters per plane $(x_0, x_0’)$, $(y_0, y_0’)$,
-* $ N_{\text{BPM}} $ BPM offsets per plane,
-* $ N_{\text{quad}} $ quadrupole offsets per plane.
-
-The number of rows is given by:
-
-$$
-N_{\text{row}} = N_{\text{BPM}} \times 2 \times 3 = 222,
-$$
-
-where:
-* $ N_{\text{BPM}} $ — number of BPMs,
-* factor 2 — for horizontal and vertical readings,
-* factor 3 — for the three energy settings used in the simulation.
-
+Ocelot call:
 
 ```python
 A = bba.build_full_matrix(R=[Rxs, Rys], P=[Pxs, Pys])
+```
+
+### Case B: Energy-Dependent Launch
+
+Assume $x_{\text{init}}^{(s)}$ and $y_{\text{init}}^{(s)}$ are independent for each energy.
+
+Then:
+
+$$
+L_x = \operatorname{blockdiag}(R_x^{(1)},\ldots,R_x^{(S)})
+\in \mathbb{R}^{S N_{\text{BPM}} \times 2S},
+$$
+
+$$
+L_y = \operatorname{blockdiag}(R_y^{(1)},\ldots,R_y^{(S)})
+\in \mathbb{R}^{S N_{\text{BPM}} \times 2S}.
+$$
+
+Number of unknown columns:
+
+$$
+N_{\text{col,per-launch}} = 2\times(2S + N_{\text{BPM}} + N_{\text{quad}}).
+$$
+
+Ocelot calls:
+
+```python
+A = bba.build_full_matrix(R=[Rxs, Rys], P=[Pxs, Pys], per_measurement_launch=True)
+```
+
+```python
+Xinit_est, Yinit_est, dx_est, dy_est, bx_est, by_est = bba.extract_solution(
+    X_est,
+    Nquad=len(quads),
+    Nbpm=len(bpms),
+    n_measurements=len(energies),
+    per_measurement_launch=True,
+)
+```
+
+### Matrix Size in This Example
+
+Here $N_{\text{BPM}}=37$, $N_{\text{quad}}=37$, and $S=3$:
+
+- Shared launch: $N_{\text{col,shared}} = 2\times(2+37+37)=152$
+- Energy-dependent launch: $N_{\text{col,per-launch}} = 2\times(2\times3+37+37)=160$
+- Rows in both cases:
+
+$$
+N_{\text{row}} = 2\times S\times N_{\text{BPM}} = 2\times3\times37 = 222.
+$$
+
+```python
+A = bba.build_full_matrix(R=[Rxs, Rys], P=[Pxs, Pys], per_measurement_launch=True)
 
 print(f"Shape A = [{A.shape}]")
 ```
 ```python
-    Shape A = [(222, 152)]
+    Shape A = [(222, 160)]
 ```
 
 ## 6. Introducing Offsets and Simulating BPM Readings
@@ -359,7 +479,9 @@ X_est = bba.solve_svd(A=A, M=M, rcutoff=1e-4, print_spectrum=False)
 
 Xinit_est, Yinit_est, dx_est, dy_est, bx_est, by_est = bba.extract_solution(X_est, 
                                                                             Nquad=len(quads),
-                                                                            Nbpm=len(bpms))
+                                                                            Nbpm=len(bpms),
+                                                                            n_measurements=len(energies),
+                                                                            per_measurement_launch=True)
 ```
 ```python
     M shape = (222,)
@@ -484,7 +606,9 @@ X_est = bba.solve_svd(A=A, M=M, rcutoff=1e-5, print_spectrum=False)
 
 Xinit_est, Yinit_est, dx_est, dy_est, bx_est, by_est = bba.extract_solution(X_est, 
                                                                             Nquad=len(quads), 
-                                                                            Nbpm=len(bpms))
+                                                                            Nbpm=len(bpms),
+                                                                            n_measurements=len(energies),
+                                                                            per_measurement_launch=True)
 ```
 ```python
     M shape = (222,)
