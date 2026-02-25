@@ -20,7 +20,7 @@ Compared with legacy `match.py`, matcher gives you:
 
 - A clear object model: `MatchProblem` + variables + targets + objectives.
 - Generic variable control:
-  `vary_element(...)` can vary any numeric attribute of any element
+  `vary_element(...)` can vary any numeric quantity (element field) of any element
   (for example `k1`, `angle`, `l`, cavity `v`, cavity `phi`).
 - Per-variable bounds via `limits=(low, high)`.
 - Per-target controls: `weight`, `tol`, `relation`.
@@ -155,8 +155,8 @@ from ocelot.cpbd.beam_params import radiation_integrals
 problem = MatchProblem(lat, tw0, periodic=True)
 
 # Variables
-problem.vary_element(q1, "k1", limits=(-5, 5))
-problem.vary_element(q2, "k1", limits=(-5, 5))
+problem.vary_element(q1, quantity="k1", limits=(-5, 5))
+problem.vary_element(q2, quantity="k1", limits=(-5, 5))
 
 # Twiss targets
 problem.target_twiss(end, "beta_x", 12.0, weight=1e6)
@@ -275,12 +275,12 @@ from ocelot.cpbd.matcher import MatchProblem
 problem = MatchProblem(lat, tw0, periodic=False)
 
 # Fit entrance optics
-problem.vary_twiss("beta_x", limits=(0.1, 300.0), name="bx0")
-problem.vary_twiss("alpha_x", limits=(-20.0, 20.0), name="ax0")
+problem.vary_twiss(quantity="beta_x", limits=(0.1, 300.0), name="bx0")
+problem.vary_twiss(quantity="alpha_x", limits=(-20.0, 20.0), name="ax0")
 
 # Optional: also fit dispersion
-problem.vary_twiss("Dx", limits=(-2.0, 2.0), name="Dx0")
-problem.vary_twiss("Dxp", limits=(-1.0, 1.0), name="Dxp0")
+problem.vary_twiss(quantity="Dx", limits=(-2.0, 2.0), name="Dx0")
+problem.vary_twiss(quantity="Dxp", limits=(-1.0, 1.0), name="Dxp0")
 
 # Match Twiss at end
 problem.target_twiss(end, "beta_x", 12.0, weight=1e6)
@@ -309,10 +309,10 @@ lat = MagneticLattice((start, b, d, end))
 problem = MatchProblem(lat, tw0, periodic=False)
 
 # Vary bend angle with bounds
-problem.vary_element(b, "angle", limits=(0.15, 0.30), name="B1_angle")
+problem.vary_element(b, quantity="angle", limits=(0.15, 0.30), name="B1_angle")
 
 # Vary drift length with bounds
-problem.vary_element(d, "l", limits=(2.0, 5.0), name="D1_l")
+problem.vary_element(d, quantity="l", limits=(2.0, 5.0), name="D1_l")
 
 # Example targets
 problem.target_twiss(end, "Dx", 0.12, weight=1e6)
@@ -324,7 +324,7 @@ print(result.success, result.variables["B1_angle"], result.variables["D1_l"])
 
 ### 7) Vary Cavity Voltage/Phase and Target End Energy
 
-Cavity attributes are standard element attributes:
+Cavity quantities are standard element fields:
 
 - `v` in GV
 - `phi` in degrees
@@ -345,7 +345,7 @@ lat = MagneticLattice((start, cav, end))
 problem = MatchProblem(lat, tw0, periodic=False)
 
 # Example 1: fit voltage to reach final energy
-problem.vary_element(cav, "v", limits=(0.0, 0.05), name="C1_v")
+problem.vary_element(cav, quantity="v", limits=(0.0, 0.05), name="C1_v")
 problem.target_twiss(end, "E", value=1.03, weight=1e6)
 result = problem.solve(solver="ls_trf", max_iter=200)
 print("voltage fit:", result.success, result.variables["C1_v"])
@@ -354,7 +354,7 @@ print("voltage fit:", result.success, result.variables["C1_v"])
 cav.v = 0.03
 cav.phi = 20.0
 problem2 = MatchProblem(lat, tw0, periodic=False)
-problem2.vary_element(cav, "phi", limits=(0.0, 60.0), name="C1_phi")
+problem2.vary_element(cav, quantity="phi", limits=(0.0, 60.0), name="C1_phi")
 problem2.target_twiss(end, "E", value=1.0 + 0.03 * np.cos(np.deg2rad(30.0)), weight=1e6)
 result2 = problem2.solve(solver="ls_trf", max_iter=200)
 print("phase fit:", result2.success, result2.variables["C1_phi"])
@@ -381,7 +381,7 @@ end = Marker(eid="E")
 lat = MagneticLattice((start, d0, m1, dvar, m2, d2, end))
 
 problem = MatchProblem(lat, tw0, periodic=False)
-problem.vary_element(dvar, "l", limits=(0.0, 5.0), name="DVAR_l")
+problem.vary_element(dvar, quantity="l", limits=(0.0, 5.0), name="DVAR_l")
 
 # Match R12 (Python indices i=0, j=1) between M1 and M2
 problem.target_rmatrix(m1, m2, i=0, j=1, value=2.7, weight=1e6)
@@ -405,7 +405,7 @@ problem = MatchProblem(lat, tw0, periodic=False)
 ps = problem.vary_linked_elements(
     elements=[q1, q2],
     scales=[1.0, -1.0],
-    attr="k1",
+    quantity="k1",
     name="PS_Q1Q2",
     limits=(-2.0, 2.0),
 )
@@ -560,10 +560,10 @@ problem.add_variable(
 )
 
 # Standard RF variables.
-problem.vary_element(c11, "v", limits=(0.10, 0.20), name="C11_v")
-problem.vary_element(c11, "phi", limits=(-40.0, 40.0), name="C11_phi")
-problem.vary_element(c13, "v", limits=(0.01, 0.025), name="C13_v")
-problem.vary_element(c13, "phi", limits=(90.0, 270.0), name="C13_phi")
+problem.vary_element(c11, quantity="v", limits=(0.10, 0.20), name="C11_v")
+problem.vary_element(c11, quantity="phi", limits=(-40.0, 40.0), name="C11_phi")
+problem.vary_element(c13, quantity="v", limits=(0.01, 0.025), name="C13_v")
+problem.vary_element(c13, quantity="phi", limits=(90.0, 270.0), name="C13_phi")
 
 # Custom tracking objective: peak current target.
 class PeakCurrentObjective(Objective):
