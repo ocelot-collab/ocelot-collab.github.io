@@ -1,187 +1,123 @@
 ---
-sidebar_position: 1
+sidebar_position: 3
 title: OpticElement
-description: OpticElement
+description: Public wrapper class for CPBD elements
 ---
 
 # [`OpticElement`](https://github.com/ocelot-collab/ocelot/blob/master/ocelot/cpbd/elements/optic_element.py) Class
 
 ## Overview
-The [`OpticElement`](https://github.com/ocelot-collab/ocelot/blob/master/ocelot/cpbd/elements/optic_element.py) class serves as a facade to bridge the old and new interfaces of beamline simulation in the OCELOT framework. It manages the underlying element's attributes, its transformations, and provides methods for accessing and manipulating these transformations. Each concrete optic element must implement its own initialization for specific parameters.
 
+The [`OpticElement`](https://github.com/ocelot-collab/ocelot/blob/master/ocelot/cpbd/elements/optic_element.py) class is the public wrapper used by most CPBD beamline elements. Users usually place `OpticElement` subclasses such as `Quadrupole`, `Drift`, `Cavity`, or `TDCavity` into a lattice. The wrapper is not just syntactic sugar: it owns framework behavior such as transformation caches, tracking-method selection, attribute forwarding, and section slicing.
 
-```python 
-class OpticElement:
-    """[summary]
-    Facade between old interface and new interface.
-    """
+```python
+from ocelot.cpbd.elements import Quadrupole
+from ocelot.cpbd.transformations.second_order import SecondTM
 
-    __is_init = False  # needed to disable __getattr__ and __setattr__ until __init__ is executed
+quad = Quadrupole(l=0.3, k1=1.2, tm=SecondTM)
 
-    def __init__(self, element: Element, tm: Type[Transformation], default_tm: Type[Transformation], **params) -> None:
+print(type(quad.element).__name__)  # QuadrupoleAtom
+print(quad.k1)                      # forwarded to quad.element.k1
 ```
----
 
-## Attributes
+## What `OpticElement` Owns
 
-- **`element`** [(`Element`)](element.md): The specific beamline element managed by this class.
-- **`default_tm`** [(`Type[Transformation]`)](../trasfer-maps/transormation.md): The default transformation used if the specified transformation is unsupported.
-- **`_first_order_tms`** (`List[Transformation]`): List of first-order transformations used for calculations like Twiss Parameters.
-- **`_kwargs`** (`dict`): Transformation-specific parameters.
-- **`_tms`** (`List[Transformation]`): List of transformations currently set for the element.
-- **`_tm_class_type`** (`Type[Transformation]`): The transformation type currently applied to the element.
+- public user-facing API compatible with historical OCELOT scripts
+- wrapped atom stored as `element`
+- active transformation cache `tms`
+- first-order optics cache `first_order_tms`
+- tracking-method selection via `default_tm`, `supported_tms`, and `set_tm()`
+- section construction via `get_section_tms()`
 
----
+## Important Attributes
 
-## Methods
+- **`element`** [(`Element`)](./element.md): internal atom containing physics state and `create_*_params(...)` hooks.
+- **`default_tm`**: family fallback active transformation.
+- **`supported_tms`**: set of active tracking methods that the wrapper explicitly allows.
+- **`first_order_tms`**: always-available first-order [`TransferMap`](../trasfer-maps/first-order.md) path used by linear optics code.
+- **`tms`**: currently active transformation sequence used for beam tracking.
 
-### `__init__(element, tm, default_tm, **params)`
-Initializes the `OpticElement` with a specified element and transformation.
-
-**Parameters:**
-- `element` (`Element`): The beamline element to be managed.
-- `tm` (`Type[Transformation]`): The transformation used by the element.
-- `default_tm` (`Type[Transformation]`): The fallback transformation if `tm` is unsupported.
-- `**params`: Additional parameters for the transformation.
-
----
-
-### `__getattr__(name)`
-Accesses attributes of the underlying element.
-
-**Parameters:**
-- `name` (`str`): Name of the attribute to retrieve.
-
-**Raises:**
-- `AttributeError`: If the attribute does not exist.
-
----
-
-### `__setattr__(name, value)`
-Sets attributes on the underlying element and resets cached transformations.
-
-**Parameters:**
-- `name` (`str`): Name of the attribute to set.
-- `value`: New value for the attribute.
-
----
-
-### `tms`
-**Property:** Retrieves the list of transformations currently set for the element.
-
-**Returns:**
-- `List[Transformation]`: List of transformations.
-
----
+## Two Transformation Paths
 
 ### `first_order_tms`
-**Property:** Retrieves the list of first-order transformations.
 
-**Returns:**
-- `List[Transformation]`: List of first-order transformations.
+`first_order_tms` is the linear optics path. It is built with [`TransferMap`](../trasfer-maps/first-order.md) and remains available even if the active tracking method is different. Twiss calculations rely on this path.
 
----
+### `tms`
 
-### `B(energy)`
-Calculates the `B` matrices for transformations.
+`tms` is the active tracking sequence. Depending on the family, it may use `TransferMap`, `SecondTM`, `KickTM`, `CavityTM`, or another transformation class.
 
-**Parameters:**
-- `energy` (`float`): Energy level for the calculation.
+This distinction is important. For example:
 
-**Returns:**
-- `List[np.ndarray]`: List of `B` matrices.
+- `Quadrupole` can use `TransferMap`, `SecondTM`, or `KickTM` as active tracking methods.
+- `Cavity` keeps a first-order optics path for `R()` and Twiss calculations, but its active tracking method is `CavityTM`.
+- `Multipole` keeps a first-order optics path, while active tracking uses `MultipoleTM`.
 
----
+Current accessor behavior:
 
-### `R(energy)`
-Calculates the `R` matrices for transformations.
+- `R()` and `B()` usually expose the first-order path.
+- If the active method is `SecondTM`, `R()` and `B()` use the active second-order maps.
+- `T()` returns meaningful tensors only for `SecondTM`; otherwise it returns zero tensors.
 
-**Parameters:**
-- `energy` (`float`): Energy level for the calculation.
+## Attribute Forwarding and Cache Invalidation
 
-**Returns:**
-- `List[np.ndarray]`: List of `R` matrices.
+`OpticElement` forwards most public physics attributes to the wrapped atom. That is why code like `quad.k1` or `cavity.v` works even though the data actually lives on `quad.element` or `cavity.element`.
 
----
+When such an attribute is changed, the wrapper invalidates both cached map sequences and rebuilds them lazily on the next access.
 
-### `T(energy)`
-Calculates the `T` matrices for transformations or returns zero matrices if unavailable.
+```python
+quad.k1 = 1.5
+R = quad.R(energy=1.0)  # maps are rebuilt with the new strength
+```
 
-**Parameters:**
-- `energy` (`float`): Energy level for the calculation.
+For generic helper code, use `getattr()` and `setattr()` on the public wrapper instead of writing directly into `__dict__`.
 
-**Returns:**
-- `List[np.ndarray]`: List of `T` matrices or zero matrices.
+## Selecting the Active Transformation
 
----
+Each wrapper family declares a `default_tm` and may declare `supported_tms`.
 
-### `apply(X, energy)`
-Applies all transformations to a particle array.
+- `default_tm`: fallback active transformation for that family.
+- `supported_tms`: active tracking methods that may be selected explicitly.
 
-**Parameters:**
-- `X` (`np.ndarray`): Array of particles.
-- `energy` (`float`): Energy level for the transformation.
+There are three common ways to choose a transformation:
 
----
+```python
+from ocelot.cpbd.elements import Quadrupole
+from ocelot.cpbd.magnetic_lattice import MagneticLattice
+from ocelot.cpbd.transformations.second_order import SecondTM
 
-### `set_tm(tm, **params)`
-Sets a new transformation for the element.
+quad = Quadrupole(l=0.3, k1=1.2, tm=SecondTM)
+quad.set_tm(SecondTM)
 
-**Parameters:**
-- `tm` (`Transformation`): Transformation to set.
-- `**params`: Transformation-specific parameters.
+lat = MagneticLattice(cell, method={"global": SecondTM})
+```
 
----
+Selection rules in the current architecture:
 
-### `get_section_tms(delta_l, start_l=0.0, ignore_edges=False, first_order_only=False)`
-Calculates transformations for a section of the element.
+- explicit family-specific requests must be supported by the wrapper, otherwise an error is raised
+- broad global lattice requests may warn and fall back to the family `default_tm`
+- families that declare only one active TM, such as `Cavity`, keep that method active even when a global lattice request asks for another one
 
-**Parameters:**
-- `delta_l` (`float`): Length of the section.
-- `start_l` (`float`, optional): Start position in the element. Default is `0.0`.
-- `ignore_edges` (`bool`, optional): Whether to ignore entrance and exit transformations. Default is `False`.
-- `first_order_only` (`bool`, optional): Whether to use only first-order transformations. Default is `False`.
+## Edge Elements and Section Maps
 
-**Returns:**
-- `List[Transformation]`: List of transformations for the section.
+The atom attribute `has_edge` controls how map sequences are built.
 
----
+- `has_edge = False`: one `MAIN` map is created
+- `has_edge = True`: the sequence is `ENTRANCE -> MAIN -> EXIT`
 
-### `get_tm(tm_type, first_order_only=False)`
-Retrieves a specific transformation type.
+This applies to both `first_order_tms` and the active `tms`.
 
-**Parameters:**
-- `tm_type` (`TMTypes`): Type of transformation to retrieve.
-- `first_order_only` (`bool`, optional): Whether to retrieve first-order transformations. Default is `False`.
+The method `get_section_tms(delta_l, start_l=0.0, ignore_edges=False, first_order_only=False)` builds maps for a slice of the element:
 
-**Returns:**
-- `Transformation`: The specified transformation.
+- if `start_l == 0`, the entrance map is included
+- if `start_l + delta_l == l`, the exit map is included
+- a middle slice rebuilds only the main map for the requested length
+- `ignore_edges=True` suppresses entrance and exit maps explicitly
 
----
+## Representative Methods
 
-### `_create_tms(element, tm, **params)`
-**Static Method:** Creates a list of transformations for an element.
-
-**Parameters:**
-- `element` (`Element`): The beamline element.
-- `tm` (`Type[Transformation]`): Transformation type.
-- `**params`: Additional parameters.
-
-**Returns:**
-- `List[Transformation]`: List of transformations.
-
----
-
-### `__str__()`
-Generates a string representation of the underlying element.
-
-**Returns:**
-- `str`: String representation.
-
----
-
-### `__repr__()`
-Generates a detailed string representation of the `OpticElement`.
-
-**Returns:**
-- `str`: String representation with class name and memory address.
+- `R(energy)`: return the sequence of rotated `R` matrices
+- `B(energy)`: return the corresponding `B` vectors
+- `T(energy)`: return second-order `T` tensors when available
+- `set_tm(tm, **params)`: change the active transformation family
+- `get_section_tms(...)`: construct maps for a subsection of the element

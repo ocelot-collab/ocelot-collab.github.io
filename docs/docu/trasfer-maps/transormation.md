@@ -1,124 +1,105 @@
 ---
 sidebar_position: 1
 title: Transformation Parent Class
-description: Parent class
+description: Base class for CPBD transformations
 ---
 
 # [Transformation](https://github.com/ocelot-collab/ocelot/blob/master/ocelot/cpbd/transformations/transformation.py#L22) Class
 
-## Description
+## Overview
 
-The `Transformation` class is an abstract base class (ABC) that defines a common interface and base functionality 
-for all transformations in a beamline simulation. Each transformation class calculates how particles 
-(either in a list of `Particle` objects or a [`ParticleArray`](../OCELOT%20fundamentals/particle-array.md)) are transformed 
-when passing through an element, typically by applying a transfer map.
+`Transformation` is the abstract base class for all CPBD transfer-map and tracking transformations. A transformation does not usually derive element physics formulas by itself. Instead, it receives a callback from the element atom, asks that callback for a [`TMParams`](./tm-params.md) object at the current beam energy, and then applies the corresponding map to particles.
 
----
+This is the key runtime contract:
+
+```text
+element atom
+    -> create_*_params(...)
+    -> TMParams
+    -> Transformation.get_params(energy)
+    -> Transformation.map_function(...)
+```
+
+For the broader architectural picture, see [Element Architecture](../elements/architecture.md).
+
+## Main Responsibilities
+
+- keep the callback that builds map parameters
+- keep the callback that computes `delta_e`
+- distinguish `MAIN`, `ENTRANCE`, and `EXIT` map roles
+- cache parameter objects for the current energy
+- apply the map to `Particle`, `ParticleArray`, or a list of `Particle`
 
 ## Constructor
 
-#### `__init__(self, create_tm_param_func, delta_e_func, tm_type: TMTypes, length: float, delta_length: float = None)`
+### `__init__(create_tm_param_func, delta_e_func, tm_type, length, delta_length=None)`
 
-#### Parameters
-- **create_tm_param_func**: A callback function that creates the parameters for the transformation (e.g., transfer matrix parameters).
-- **delta_e_func** (`Callable`, optional): A callback function for calculating the energy change (\(\Delta E\)) of the beam if the transformation changes the energy. By default, this is only used for main transformations (e.g., not for entrances or exits).
-- **tm_type** (`TMTypes`): The type of transformation (e.g., `MAIN`, `ENTRANCE`, `EXIT`), which controls whether length or energy changes apply.
-- **length** (`float`): The total length of the element, in meters, to which the transformation is applied.
-- **delta_length** (`float`, optional): A partial length of the element for calculations if only a portion of the element is used.
+Important arguments:
 
----
+- **`create_tm_param_func`**: callback that returns a [`TMParams`](./tm-params.md) object
+- **`delta_e_func`**: callback used to compute reference-energy change for the main map
+- **`tm_type`**: one of `TMTypes.MAIN`, `TMTypes.ENTRANCE`, or `TMTypes.EXIT`
+- **`length`**: full element length
+- **`delta_length`**: optional slice length for partial maps
 
-## Class Methods
+For entrance and exit maps, the effective transformation length is zero and `delta_e` is not applied.
 
-#### `from_element(cls, element: Element, tm_type: TMTypes = TMTypes.MAIN, delta_l: float = None, **params)`
-**Abstract Class Method**  
-Creates a new transformation from a [`MagneticLattice`](../OCELOT%20fundamentals/magnet-lattice.md) element. Elements must implement specific hooks or callbacks for different transformation types (entrance, main, exit).
+## `TMTypes`
 
-**Parameters:**
-- **element**: The beamline element from which the transformation is derived.
-- **tm_type** (`TMTypes`, optional): The type of transformation to create (`ENTRANCE`, `MAIN`, or `EXIT`).  
-- **delta_l** (`float`, optional): The subset length of the element to which this transformation applies.  
-- **params**: Additional parameters that may be required by specific transformations.
+The base class uses the `TMTypes` enum to identify the position of a map in the element:
 
-**Raises:**
-- **NotImplementedError**: If the element does not implement the required callback functions.
+- **`MAIN`**: body of the element
+- **`ENTRANCE`**: entrance edge or entrance kick
+- **`EXIT`**: exit edge or exit kick
 
----
+The enum also contains `ROT_ENTRANCE` and `ROT_EXIT`, which are internal variants used in some parts of CPBD.
 
-#### `create(cls, main_tm_params_func, delta_e_func, length, delta_length=None, entrance_tm_params_func=None, exit_tm_params_func=None, tm_type: TMTypes = TMTypes.MAIN, **params)`
-**Factory Method**  
-Creates a concrete transformation using the provided parameter-generating functions and the transformation type.
+## Core Methods
 
-**Parameters:**
-- **main_tm_params_func**: A function to calculate the transformation parameters for the main section of an element.
-- **delta_e_func**: A function to calculate the energy change \(\Delta E\) through the element (if applicable).
-- **length** (`float`): The full length of the element.
-- **delta_length** (`float`, optional): A partial length of the element. Defaults to `None`, in which case the full length is used.
-- **entrance_tm_params_func** (`Callable`, optional): A function to calculate transformation parameters for the entrance section of an element.
-- **exit_tm_params_func** (`Callable`, optional): A function to calculate transformation parameters for the exit section of an element.
-- **tm_type** (`TMTypes`, optional): The type of the transformation (`MAIN`, `ENTRANCE`, `EXIT`). Defaults to `MAIN`.
-- **params**: Additional arguments for the transformation.
+### `from_element(cls, element, tm_type=TMTypes.MAIN, delta_l=None, **params)`
 
-**Returns:**
-- An instance of a concrete transformation class (subclass of `Transformation`).
+Abstract class method implemented by each concrete transformation family. It binds the transformation to the appropriate atom hooks.
 
-**Raises:**
-- **NotImplementedError**: If the required entrance or exit function is not set.
+Examples:
 
----
+- `TransferMap.from_element(...)` uses `create_first_order_*_params(...)`
+- `SecondTM.from_element(...)` uses `create_second_order_*_params(...)`
 
-## Instance Methods
+### `create(...)`
 
-#### `get_delta_e(self)`
-Retrieves the energy change \(\Delta E\) for this transformation, using the provided `delta_e_func`, if applicable.
+Shared factory used by concrete transformations. It chooses the correct hook for `MAIN`, `ENTRANCE`, or `EXIT` and creates the transformation instance.
 
-**Returns:**
-- **float**: The energy change \(\Delta E\) in GeV (or 0.0 if `delta_e_func` is not defined or if this is an entrance/exit transformation).
+### `get_params(energy)`
 
----
+Requests the [`TMParams`](./tm-params.md) object for the given beam energy and caches it. If the same energy is requested again, the cached object is reused.
 
-#### `get_params(self, energy: float)`
-Calculates or retrieves cached parameters for the transformation at the given beam energy.
+### `get_delta_e()`
 
-**Parameters:**
-- **energy** (`float`): The beam energy for which the transformation parameters are calculated.
+Returns the reference-energy change for the map. By current contract, only `MAIN` maps contribute `delta_e`.
 
-**Returns:**
-- The parameters (data structure depends on the implementation of `create_tm_param_func`).
+### `apply(prcl_series)`
 
----
+Applies the transformation to:
 
-#### `apply(self, prcl_series)`
-Applies the transformation to a series of particles (list of `Particle`, a `ParticleArray`, or a single `Particle`). Updates each particle’s phase-space coordinates and energy accordingly.
+- a [`ParticleArray`](../OCELOT%20fundamentals/particle-array.md)
+- a single `Particle`
+- a list of `Particle`
 
-**Parameters:**
-- **prcl_series**: The particle data structure to transform. Supported types:
-  - `ParticleArray`
-  - `Particle`
-  - `list` of `Particle`
+It also advances the longitudinal position and updates the reference energy if `delta_e` is nonzero.
 
-**Raises:**
-- **Exception**: If the particle data structure is unknown or unsupported.
+### `map_function(X, energy)`
 
----
+Abstract method that implements the actual tracking algorithm for the specific transformation family.
 
-#### `map_function(self, X: np.ndarray, energy: float) -> np.ndarray`
-**Abstract Method**  
-Calculates the transformation for a given array of particle coordinates `X` at the specified energy. Must be implemented by each concrete transformation subclass.
+## Why `Transformation` Is Separate From the Element
 
-**Parameters:**
-- **X** (`np.ndarray`): A 2D NumPy array representing phase-space coordinates (`6 x n`).
-- **energy** (`float`): The beam energy in GeV.
+- atoms own the physics state and build parameter objects
+- transformations own the runtime tracking algorithm
+- one element family can support more than one transformation
+- the same wrapper can keep a first-order optics path while using another active tracking method
 
-**Returns:**
-- An updated 2D NumPy array representing the transformed coordinates.
+## Read Next
 
----
-
-## Additional Internal Methods
-
-#### `_clean_cashed_values(self)`
-Clears cached values (current energy and parameters) to ensure a fresh calculation when necessary.
-
----
-
+- [TMParams](./tm-params.md): parameter containers exchanged between atoms and transformations
+- [TransferMap](./first-order.md): first-order linear map
+- [SecondTM](./second-order.md): second-order nonlinear map

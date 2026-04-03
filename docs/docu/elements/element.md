@@ -1,115 +1,75 @@
 ---
-sidebar_position: 2
+sidebar_position: 4
 title: Element
-description: Parent class
+description: Atom-layer base class
 ---
 
 # [`Element`](https://github.com/ocelot-collab/ocelot/blob/master/ocelot/cpbd/elements/element.py) Class
 
 ## Overview
-The [`Element`](https://github.com/ocelot-collab/ocelot/blob/master/ocelot/cpbd/elements/element.py) class is 
-the fundamental building block for defining beamline components in the OCELOT framework. 
-It serves as a base class for all accelerator optics elements, enabling the definition of various parameters and 
-allowing the addition of custom properties as needed. Subclasses of `Element` represent specific beamline components, such as magnets, cavities, and diagnostic devices.
 
----
+The [`Element`](https://github.com/ocelot-collab/ocelot/blob/master/ocelot/cpbd/elements/element.py) class is the minimal atom-layer base class in CPBD. It stores basic geometry and offsets and provides generic `create_*_params(...)` hooks that transformations can use.
 
-## Attributes
+In normal user code, `Element` is usually not the object placed directly into a lattice. Instead, it is wrapped by an [`OpticElement`](./optical-element.md) subclass such as `Quadrupole`, `Drift`, or `TDCavity`.
 
-- **`id`** (`str`): A unique identifier for the element. If not provided, it is auto-generated with a random integer.
-- **`has_edge`** (`bool`): Indicates whether the element has edge effects. Default is `False`.
-- **`l`** (`float`): Length of the element (in meters). Default is `0.0`.
-- **`tilt`** (`float`): Rotation of the element around the beamline axis (in radians). Default is `0.0`. A tilt of `π/4` converts a positive quadrupole into a negative skew.
-- **`dx`** (`float`): Horizontal offset (in meters). Default is `0.0`.
-- **`dy`** (`float`): Vertical offset (in meters). Default is `0.0`.
-- **`params`** (`dict`): A dictionary to store additional parameters specific to the element.
+```python
+from ocelot.cpbd.elements import Quadrupole
 
----
+quad = Quadrupole(l=0.2, k1=1.0)
 
-## Methods
+print(type(quad.element).__name__)  # QuadrupoleAtom
+print(quad.k1 == quad.element.k1)   # True
+```
 
-#### `__init__(eid=None, has_edge=False)`
-Initializes the `Element` instance.
+## Role in the Architecture
 
-**Parameters:**
-- **`eid`** (`str`, optional): Element ID. If `None`, a unique ID is auto-generated.
-- **`has_edge`** (`bool`, optional): Specifies if the element includes edge effects. Default is `False`.
+- stores element physics state such as length, offsets, and tilt
+- provides the hook surface used by transformations
+- supplies generic fallbacks for simple element families
+- serves as a base for more specialized atoms such as [`Magnet`](./magnet.md), `CavityAtom`, and `TDCavityAtom`
 
----
+If an atom has `has_edge=True`, it must also provide the corresponding entrance and exit hooks required by the selected transformation family.
 
-#### `__hash__()`
-Computes a hash value for the element instance.
+## Common Attributes
 
-**Returns:**
-- `int`: Hash value based on the object ID.
+- **`id`** (`str`): element identifier
+- **`has_edge`** (`bool`): whether the element uses entrance and exit maps
+- **`l`** (`float`): length in meters
+- **`angle`** (`float`): bending angle in radians
+- **`tilt`** (`float`): roll angle around the beam axis
+- **`dx`**, **`dy`** (`float`): transverse offsets
+- **`width`**, **`height`**, **`color`**: plotting metadata
+- **`params`** (`dict`): extra element-specific parameters
 
----
+## Default Hook Methods
 
-#### `__eq__(other)`
-Checks equality between two `Element` instances based on their memory addresses.
+### `create_first_order_main_params(energy, delta_length=None)`
 
-**Parameters:**
-- **`other`** (`Element`): Another `Element` instance.
+Builds generic first-order parameters for the main body of the element and returns a `FirstOrderParams` object. This is the default linear optics hook used by [`TransferMap`](../trasfer-maps/first-order.md) if a family does not override it.
 
-**Returns:**
-- `bool`: `True` if the two instances refer to the same object; otherwise, `False`.
+### `create_second_order_main_params(energy, delta_length=0.0)`
 
----
+Builds generic second-order parameters and returns a `SecondOrderParams` object. It is a fallback implementation for families without a dedicated nonlinear model.
 
-#### `_default_B(R)`
-Computes a default displacement vector for the element.
+### `create_delta_e(total_length, delta_length=0.0)`
 
-**Parameters:**
-- **`R`** (`np.ndarray`): Transformation matrix.
+Returns the reference-energy change across the element. The default implementation returns `0.0`, so active RF-like families override it when they need energy gain.
 
-**Returns:**
-- `np.ndarray`: Default displacement vector.
+### `get_transfer_geometry()`
 
----
+Returns the reference-trajectory geometry for the element. In the base class this is the straight-element case.
 
-#### `create_first_order_main_params(energy, delta_length=None)`
-Generates first-order parameters for the element based on its geometry and beam energy.
+## Notes on Specialization
 
-**Parameters:**
-- **`energy`** (`float`): Beam energy.
-- **`delta_length`** (`float`, optional): Element length for the calculation. If not provided, the full length (`l`) is used.
+Concrete atoms usually override only the hooks that matter for their physics model. For example:
 
-**Returns:**
-- `FirstOrderParams`: First-order parameter object.
+- `DriftAtom` provides a specialized first-order map
+- [`Magnet`](./magnet.md) adds magnetic strengths and kick hooks
+- `CavityAtom` adds RF-specific hooks and energy gain
+- `BendAtom` adds entrance and exit edge hooks
 
----
-
-#### `create_second_order_main_params(energy, delta_length=0.0)`
-Generates second-order parameters for the element.
-
-**Parameters:**
-- **`energy`** (`float`): Beam energy.
-- **`delta_length`** (`float`, optional): Element length for the calculation. Default is `0.0`.
-
-**Returns:**
-- `SecondOrderParams`: Second-order parameter object.
-
----
-
-#### `create_delta_e(total_length, delta_length=0.0)`
-Calculates the energy variation across the element.
-
-**Parameters:**
-- **`total_length`** (`float`): Total beamline length.
-- **`delta_length`** (`float`, optional): Element length. Default is `0.0`.
-
-**Returns:**
-- `float`: Energy variation.
-
----
-
-#### `__repr__()`
-Generates a string representation of the element.
-
-**Returns:**
-- `str`: String with the element's class name, ID, and memory address.
-
----
+This makes `Element` a small but important base class: transformations do not contain element-specific physics formulas themselves. Instead, they request the needed parameter objects from the atom.
 
 ## Summary
-The `Element` class provides a flexible and extensible foundation for representing accelerator components. Its modular design supports the customization and extension of beamline elements, making it a core part of the OCELOT framework for accelerator simulations.
+
+`Element` is the foundation of the atom layer. It stores the physical state of an element and exposes the hook methods from which transformations build their runtime maps.

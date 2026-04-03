@@ -1,5 +1,5 @@
 ---
-sidebar_position: 3
+sidebar_position: 10
 title: TDCavity
 description: Transverse Deflecting Cavity
 ---
@@ -7,9 +7,21 @@ description: Transverse Deflecting Cavity
 *Sergey Tomin (sergey.tomin@desy.de). June 2025.*
 
 
-# [`TDCavity`](https://github.com/ocelot-collab/ocelot/blob/master/ocelot/cpbd/elements/tdcavity_atom.py) – Transverse Deflecting Cavity Element
+# [`TDCavity`](https://github.com/ocelot-collab/ocelot/blob/master/ocelot/cpbd/elements/tdcavity.py) – Transverse Deflecting Cavity Element
 
-The `TDCavity` class represents a Transverse Deflecting Structure (TDS) or cavity. It is primarily used to calculate the first-order transfer matrix for a beam passing through it. This matrix describes how the phase space coordinates of particles change as they traverse the cavity. By default, the cavity provides a horizontal kick, but this can be rotated using the `tilt` parameter.
+The public `TDCavity` class is an [`OpticElement`](./optical-element.md) wrapper around `TDCavityAtom`, which inherits from [`Element`](./element.md). It represents a Transverse Deflecting Structure (TDS) or cavity and is primarily used to calculate the first-order transfer matrix for a beam passing through it. This matrix describes how the phase space coordinates of particles change as they traverse the cavity. By default, the cavity provides a horizontal kick, but this can be rotated using the `tilt` parameter.
+
+## `TDCavity` in the Element Architecture
+
+`TDCavity` follows the standard no-edge wrapper/atom structure:
+
+- public wrapper: `TDCavity`
+- atom: `TDCavityAtom`
+- default active transformation: `TransferMap`
+- additionally supported active transformation: `SecondTM`
+- `has_edge = False`, so the element is represented by a single `MAIN` map without entrance or exit edge maps
+
+The actual linear cavity matrix is built by `TDCavityAtom.create_first_order_main_params(...)`, while the wrapper manages TM selection, caching, and slicing.
 
 ## Class Definition Snippet
 
@@ -45,7 +57,7 @@ tds = TDCavity(l=0.1, freq=3e9, phi=0.0, v=0.01)  # 10 cm, S-band, 0 phase, 10 M
 
 ## Transfer Matrix Formulation
 
-The `TDCavity` element generates a $6 \times 6$ transfer matrix $R$ that describes the linear transformation of a particle’s 6D phase space vector through the cavity.
+The `TDCavity` element generates a $6 \times 6$ transfer matrix $R$ that describes the linear transformation of a particle's 6D phase space vector through the cavity.
 
 ### Ocelot Coordinate System
 
@@ -130,7 +142,7 @@ $$
 
 Assuming:
 - $\langle x_0 \rangle = \langle x_0' \rangle = \langle \delta_0 \rangle = 0$ - the beam does not have any offsets.
-- $\langle \delta_0 x_0 \rangle = \langle \delta_0 x_0' \rangle = 0$ - there are no correlations in the beam between energy and transverse coordinates. 
+- $\langle \delta_0 x_0 \rangle = \langle \delta_0 x_0' \rangle = 0$ - there are no correlations in the beam between energy and transverse coordinates.
 
 We obtain:
 
@@ -158,19 +170,19 @@ $$
 
 > *Note: Here, $\gamma$ (no subscript) is the relativistic Lorentz factor, while $\gamma_x^{\text{Twiss}}$ is the Twiss parameter.*
 
-**This expression was used in [[3](https://journals.aps.org/prab/abstract/10.1103/PhysRevAccelBeams.24.064201)].** 
+**This expression was used in [[3](https://journals.aps.org/prab/abstract/10.1103/PhysRevAccelBeams.24.064201)].**
 
 ---
-### References 
+### References
 1. [S.Korepanov et al, AN RF DEFLECTOR FOR THE LONGITUDINAL AND TRANSVERSE
 BEAM PHASE SPACE ANALYSIS AT PITZ](https://accelconf.web.cern.ch/d07/papers/tupb32.pdf)
 2. [C. Behrens and C. Gerth, ON THE LIMITATIONS OF LONGITUDINAL PHASE SPACE
 MEASUREMENTS USING A TRANSVERSE DEFLECTING STRUCTURE](https://epaper.kek.jp/d09/papers/tupb44.pdf)
 3. [S.Tomin et al, Accurate measurement of uncorrelated energy spread in electron beam, Phys. Rev. Accel. Beams 24, 064201](https://journals.aps.org/prab/abstract/10.1103/PhysRevAccelBeams.24.064201)
-   
+
 ## Summary
 
-The `TDCavity` provides a time-dependent transverse kick to the beam. According to the **Panofsky–Wenzel theorem**, this results in a correlated longitudinal effect, increasing the slice energy spread. 
+The `TDCavity` provides a time-dependent transverse kick to the beam. According to the **Panofsky–Wenzel theorem**, this results in a correlated longitudinal effect, increasing the slice energy spread.
 
 ## Examples of Use
 
@@ -213,7 +225,7 @@ We use:
 - [`ParticleArray`](https://www.ocelot-collab.com/docs/docu/OCELOT%20fundamentals/particle-array) class,
 - [Twiss](https://www.ocelot-collab.com/docs/docu/OCELOT%20fundamentals/twiss) class,
 - [generate_parray()](https://www.ocelot-collab.com/docs/docu/functions/generate_parray) to generate the particle distribution,
-- and [track()](https://www.ocelot-collab.com/docs/docu/OCELOT%20fundamentals/tracking) function for [`ParticleArray`](https://www.ocelot-collab.com/docs/docu/OCELOT%20fundamentals/particle-array) tracking. 
+- and [track()](https://www.ocelot-collab.com/docs/docu/OCELOT%20fundamentals/tracking) function for [`ParticleArray`](https://www.ocelot-collab.com/docs/docu/OCELOT%20fundamentals/particle-array) tracking.
 
 If you're interested in more details about how the TDS works and its impact on beam diagnostics, see this [Optics for High Time Resolution Measurements with TDS](https://www.ocelot-collab.com/docs/tutorial/tutorial-beam-dynamics/optics_design).
 
@@ -264,17 +276,16 @@ plt.show()
     [INFO    ] Twiss parameters have priority. sigma_{x, px, y, py} will be redefined
 
 
-    z = 11.599999999999998 / 11.599999999999998. Applied: 
+    z = 11.599999999999998 / 11.599999999999998. Applied:
 ```
 
-    
+
 ![png](/img/elements/TDCavity_files/TDCavity_6_2.png)
-    
 
 
 ## 3. Slice Energy Spread Growth Due to TDS
 
-In this example, we illustrate how the Transverse Deflecting Structure (TDS) increases the **slice energy spread** due to the Panofsky–Wenzel effect, and compare the result with the analytical prediction derived earlier.
+In this example, we illustrate how the Transverse Deflecting Structure (TDS) increases the **slice energy spread** due to the Panofsky-Wenzel effect, and compare the result with the analytical prediction derived earlier.
 
 > 📌 **Note:** The slice energy spread should be evaluated in a **narrow time window around** $\tau = 0$, as assumed in the derivation above. This ensures the comparison with theory is valid.
 
@@ -306,7 +317,7 @@ print(f"Analytical σ_p after TDS: {sigma_total:.3e}")
     [INFO    ] Twiss parameters have priority. sigma_{x, px, y, py} will be redefined
 
 
-    z = 11.599999999999998 / 11.599999999999998. Applied: 
+    z = 11.599999999999998 / 11.599999999999998. Applied:
     Measured σ_p from slice: 1.734e-04
     Analytical σ_p after TDS: 1.735e-04
 ```

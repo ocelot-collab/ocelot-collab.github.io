@@ -1,86 +1,65 @@
 ---
-sidebar_position: 3
+sidebar_position: 5
 title: Magnet
-description: Magnet class
+description: Atom-layer base class for magnetic elements
 ---
 
 # [`Magnet`](https://github.com/ocelot-collab/ocelot/blob/master/ocelot/cpbd/elements/magnet.py) Class
 
 ## Overview
-The [`Magnet`](https://github.com/ocelot-collab/ocelot/blob/master/ocelot/cpbd/elements/magnet.py)  class extends 
-the base [`Element`](element.md) class and represents magnetic beamline components in OCELOT. 
-It provides functionalities to define magnetic properties, such as bending angles, quadrupole gradients, and sextupole strengths. 
-The class supports computations of first-order and second-order parameters, as well as kick parameters for entrance, main body, and exit of the magnet.
 
----
+The [`Magnet`](https://github.com/ocelot-collab/ocelot/blob/master/ocelot/cpbd/elements/magnet.py) class extends [`Element`](./element.md) and is the standard atom-layer base class for many magnetic element families. It adds magnetic strengths and provides generic hooks for linear, second-order, and kick-based tracking.
 
-## Attributes
+In the public API, users usually work with wrappers such as `Quadrupole`, `Sextupole`, or `Bend`. Those wrappers hold atoms that derive from `Magnet`.
 
-- **`angle`** (`float`): The bending angle of the magnet (in radians). Used for components like bends or correctors.
-- **`k1`** (`float`): Quadrupole gradient (1/m²).
-- **`k2`** (`float`): Sextupole strength (1/m³).
+## Added Physics State
 
----
+- **`angle`** (`float`): bending angle in radians
+- **`k1`** (`float`): quadrupole gradient in `1/m^2`
+- **`k2`** (`float`): sextupole strength in `1/m^3`
 
-## Methods
+These are added on top of the generic geometry and offset attributes inherited from [`Element`](./element.md).
 
-#### `__init__(eid=None, has_edge=False)`
-Initializes a `Magnet` instance.
+## Main Responsibilities
 
-**Parameters:**
-- **`eid`** (`str`, optional): Element ID. If not provided, a unique ID is auto-generated.
-- **`has_edge`** (`bool`, optional): Specifies if the magnet has edge effects. Default is `False`.
+- build first-order magnetic parameters for [`TransferMap`](../trasfer-maps/first-order.md)
+- build second-order parameters for `SecondTM`
+- provide kick parameters for `KickTM`
+- provide transfer geometry for both straight and bending magnets
 
----
+## Hook Methods
 
-#### `create_first_order_main_params(energy, delta_length=None)`
-Computes the first-order parameters for the magnet based on its properties and beam energy.
+### `create_first_order_main_params(energy, delta_length=None)`
 
-**Parameters:**
-- **`energy`** (`float`): Beam energy.
-- **`delta_length`** (`float`, optional): Element length for the calculation. If not provided, the full length (`l`) is used.
+Returns `FirstOrderParams` for the main body of the magnet. The generic implementation includes the bending curvature `angle / l` and the quadrupole term `k1`.
 
-**Returns:**
-- **`FirstOrderParams`**: Object containing the first-order transformation matrix `R` and displacement vector `B`.
+### `create_second_order_main_params(energy, delta_length=0.0)`
 
----
+Returns `SecondOrderParams` for magnets that use the generic magnetic second-order model. This includes `k1`, `k2`, offsets, and the corresponding `R`, `B`, and `T`.
 
-#### `create_second_order_main_params(energy, delta_length=0.0)`
-Computes the second-order parameters for the magnet, incorporating effects of non-linear fields.
+### `create_kick_entrance_params()`, `create_kick_main_params()`, `create_kick_exit_params()`
 
-**Parameters:**
-- **`energy`** (`float`): Beam energy.
-- **`delta_length`** (`float`, optional): Element length for the calculation. Default is `0.0`.
+Return `KickParams` objects for kick-based tracking. These hooks provide the strengths and offsets needed by `KickTM`.
 
-**Returns:**
-- **`SecondOrderParams`**: Object containing second-order transformation matrices `R`, `B`, and `T`.
+## Geometry and Tilt
 
----
+`Magnet.get_transfer_geometry()` distinguishes between straight and bending cases:
 
-#### `create_kick_entrance_params()`
-Generates kick parameters for the entrance of the magnet.
+- if `angle == 0`, the magnet uses the straight reference geometry inherited from [`Element`](./element.md)
+- if `angle != 0`, the reference trajectory is an arc in the bending plane
+- for dipoles, `tilt` rotates the bending plane
+- for straight magnets such as quadrupoles and sextupoles, `tilt` does not change the reference trajectory
 
-**Returns:**
-- **`KickParams`**: Object containing entrance kick parameters, including offsets (`dx`, `dy`), bending angle, tilt, and field strengths (`k1`, `k2`).
+## Typical Families Built on `Magnet`
 
----
+- `Quadrupole`
+- `Sextupole`
+- `Octupole`
+- `Bend`, `SBend`, `RBend`
+- `UnknownElement`
 
-#### `create_kick_main_params()`
-Generates kick parameters for the main body of the magnet.
-
-**Returns:**
-- **`KickParams`**: Object containing main body kick parameters, including offsets (`dx`, `dy`), bending angle, tilt, and field strengths (`k1`, `k2`).
-
----
-
-#### `create_kick_exit_params()`
-Generates kick parameters for the exit of the magnet.
-
-**Returns:**
-- **`KickParams`**: Object containing exit kick parameters, including offsets (`dx`, `dy`), bending angle, tilt, and field strengths (`k1`, `k2`).
-
----
+Not every magnetic-looking element derives from `Magnet`. For example, `Hcor` and `Vcor` use their own atom class and therefore do not inherit the generic kick hooks from `Magnet`.
 
 ## Summary
 
-The `Magnet` class provides a comprehensive framework for modeling magnetic elements in accelerator beamlines. By defining bending angles, quadrupole gradients, and sextupole strengths, it supports the computation of both linear and non-linear effects on the beam. Its methods for generating kick parameters allow for precise modeling of entrance, body, and exit behaviors.
+`Magnet` is the main atom-layer base class for magnetic element families. It extends the generic `Element` contract with magnetic strengths, nonlinear hooks, kick hooks, and geometry for bending trajectories.

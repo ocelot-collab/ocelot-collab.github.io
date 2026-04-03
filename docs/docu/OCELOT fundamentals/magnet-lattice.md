@@ -40,9 +40,7 @@ class MagneticLattice:
 - **sequence** (`list`): A list of elements that form the lattice.
 - **start** ([`Element`](../elements/element.md), optional): The first element of the lattice. If `None`, the lattice starts with the first element of the sequence.
 - **stop** ([`Element`](../elements/element.md), optional): The last element of the lattice (included). If `None`, the lattice stops with the last element of the sequence.
-- **method** (`dict`, optional): A dictionary specifying the tracking method for the lattice. If no method is provided,
-[`TransferMap`](../trasfer-maps/first-order.md) is used as the global default for all elements. 
-Specific methods for individual elements can also be set.
+- **method** (`dict`, optional): A dictionary specifying requested tracking methods for the lattice. If no method is provided, each element keeps its own family default transformation. A `"global"` entry applies a broad request to all element families, while specific class entries can be used for explicit per-family selection.
             
     Example:
                 ```python
@@ -54,9 +52,13 @@ Specific methods for individual elements can also be set.
                 ```
 
     In this example:
-            - Sets [`SecondTM`](../trasfer-maps/second-order.md) (second order transfer maps) as the global transfer map for all elements.
-            - Assigns `KickTM` specifically for `Octupole` elements.
-            - Assigns `RungeKuttaTM` specifically for `Undulator` elements.
+            - Requests [`SecondTM`](../trasfer-maps/second-order.md) as the global tracking method.
+            - Assigns `KickTM` explicitly for `Octupole` elements.
+            - Assigns `RungeKuttaTM` explicitly for `Undulator` elements.
+
+:::note
+The `"global"` entry is permissive. If a family does not support the requested transformation, it may warn and keep its own family default transformation instead. Explicit family-specific requests are stricter and must be supported by that element wrapper.
+:::
 
 :::info
 In order to avoid mistakes, the **start** and **stop** element must be different objects. 

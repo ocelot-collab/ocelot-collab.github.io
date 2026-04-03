@@ -1,125 +1,87 @@
 ---
-sidebar_position: 2
+sidebar_position: 3
 title: First Order Map
-description: First Order Map
+description: TransferMap class
 ---
 
-# [TransferMap](https://github.com/ocelot-collab/ocelot/blob/master/ocelot/cpbd/transformations/transfer_map.py) Class 
+# [TransferMap](https://github.com/ocelot-collab/ocelot/blob/master/ocelot/cpbd/transformations/transfer_map.py) Class
 
-## Description
+## Overview
 
-The `TransferMap` class inherits from the [`Transformation`](transormation.md) base class and implements a **first-order** (linear) 
-transformation of particle coordinates. It is designed to handle both main sections of elements and optionally 
-their entrance and exit edges, if the element supports them. The `TransferMap` calculates new particle coordinates using 
-a first-order transfer matrix and translation vector.
+`TransferMap` is the standard first-order linear transformation in CPBD. It consumes a [`FirstOrderParams`](./tm-params.md) object produced by an element atom and applies the corresponding linear map to particle coordinates.
 
----
+For `OpticElement` wrappers, this is also the always-available linear optics path stored in `first_order_tms`.
 
-## Inheritance
+## Atom Contract
 
-- **Inherits**: `Transformation`
+For a no-edge element, the atom must provide:
 
----
+- `create_first_order_main_params(energy, delta_length)`
 
-## Constructor
+For an edge-aware element with `has_edge=True`, the atom must additionally provide:
 
-#### `__init__(self, create_tm_param_func, delta_e_func, tm_type: TMTypes, length: float, delta_length: float = 0.0)`
+- `create_first_order_entrance_params(energy, delta_length)`
+- `create_first_order_exit_params(energy, delta_length)`
 
-#### Parameters
+`TransferMap.from_element(...)` binds to those hooks.
 
-- **create_tm_param_func**: A callback function for creating first-order transformation parameters (e.g., rotated transfer matrix, translation vector, etc.).
-- **delta_e_func** (`Callable`): A callback function for calculating the energy change $\Delta E$.  
-- **tm_type** (`TMTypes`): Specifies the transformation type (`MAIN`, `ENTRANCE`, or `EXIT`).  
-- **length** (`float`): The length of the element for the main transformation.  
-- **delta_length** (`float`, optional): Defines a partial length of the element if only a portion of it is considered. Defaults to `0.0`.
+## Parameter Object
 
----
+`TransferMap` expects a [`FirstOrderParams`](./tm-params.md) object with:
 
-## Class Methods
+- `R`: first-order transfer matrix
+- `B`: additive offset vector
+- `tilt`: roll angle
 
-#### `from_element(cls, element: Element, tm_type: TMTypes = TMTypes.MAIN, delta_l=None, **params)`
+At runtime it uses `params.get_rotated_R()` together with `params.B`.
 
-Creates a `TransferMap` from a [`MagneticLattice`](../OCELOT%20fundamentals/magnet-lattice.md) element. 
-It uses the element’s methods to generate transfer parameters for entrance, main, and exit transformations (where applicable).
+## Mathematical Action
 
-#### Parameters
+For the current beam energy, the transformation acts as:
 
-- **element** [(`Element`)](../elements/element.md): The beamline element for which the `TransferMap` is created.
-- **tm_type** (`TMTypes`, optional): The transformation type (`MAIN`, `ENTRANCE`, or `EXIT`). Defaults to `MAIN`.
-- **delta_l** (`float`, optional): A partial length for the transformation. If `None`, the entire element length is used.
-- **params**: Additional keyword parameters.
+$$
+X_f = R_{\mathrm{rot}} X_i + B
+$$
 
-#### Returns
+where:
 
-- A new `TransferMap` instance with the first-order transformation parameters derived from the element.
+- $X_i$, $X_f$ are the initial and final 6D phase-space vectors
+- $R_{\mathrm{rot}}$ is the rotated first-order matrix returned by `get_rotated_R()`
+- $B$ is the additive offset vector
 
----
+## Runtime Flow
 
-## Instance Methods
+```text
+TransferMap.from_element(element)
+    -> element.create_first_order_*_params(...)
+    -> FirstOrderParams
+    -> params.get_rotated_R()
+    -> X_f = R X_i + B
+```
 
-#### `map_function(self, X, energy: float) -> np.ndarray`
+## Important Methods
 
-Calculates the new particle coordinates by applying the first-order transformation.  
+### `from_element(cls, element, tm_type=TMTypes.MAIN, delta_l=None, **params)`
 
-1. Retrieves the transformation parameters via `get_params(energy)`.  
-2. Calls `mul_p_array(X, energy=energy)` to apply the transformation.  
+Builds a `TransferMap` from an element atom by connecting the correct first-order hook family.
 
-#### Parameters
+### `map_function(X, energy)`
 
-- **X** (`np.ndarray`): A $6 \times N$ array of phase-space coordinates $(x, px, y, py, tau, p)$.
-- **energy** (`float`): The beam energy.
+Applies the first-order map by delegating to `mul_p_array(...)`.
 
-#### Returns
+### `mul_p_array(rparticles, energy=0.0)`
 
-- A transformed $6 \times N$ array of updated coordinates.
+Gets the current `FirstOrderParams`, rotates `R` if needed, and overwrites the particle coordinates with the transformed values.
 
----
+## Edge and Slice Behavior
 
-#### `mul_p_array(self, rparticles, energy=0.) -> np.ndarray`
+`TransferMap` follows the wrapper-level edge contract:
 
-Applies the first-order transformation directly to the given coordinates.
+- no-edge element: one `MAIN` map
+- edge element: `ENTRANCE -> MAIN -> EXIT`
 
-1. Obtains parameters (rotated transfer matrix `R` and translation vector `B`).
-2. Computes the updated coordinates $\mathbf{X'} = R \mathbf{X} + B$.
-3. Overwrites `rparticles` with the updated coordinates.
+For sliced elements, the wrapper chooses which of those maps are present in the returned sequence.
 
-#### Parameters
+## Why It Matters Beyond Tracking
 
-- **rparticles** (`np.ndarray`): The array of particle phase-space coordinates $(6 \times N)$.
-- **energy** (`float`, optional): The beam energy. Defaults to `0.`.
-
-#### Returns
-
-- The updated array `rparticles`.
-
----
-
-#### `multiply_with_tm(self, tm: 'TransferMap', length: float) -> 'TransferMap'`
-
-Combines two `TransferMap` objects into a single new `TransferMap`, effectively performing $\mathbf{M} = \mathbf{M}_1 \times \mathbf{M}_2$.
-
-1. Gets the combined transformation parameters from the product of the two transformations.
-2. Creates and returns a new `TransferMap` with the combined length and energy-change function.
-
-#### Parameters
-
-- **tm** (`TransferMap`): Another `TransferMap` to be multiplied.
-- **length** (`float`): The combined length for the new `TransferMap`.
-
-#### Returns
-
-- A new `TransferMap` instance that represents the product of `self` and `tm`.
-
----
-
-### `__mul__(self, m)`
-
-Implements the `*` operator for `TransferMap` objects. 
-
-- **Parameters**:  
-  - **m**: Another object, such as `TransferMap`, `Particle`, or `Twiss`.  
-- **Returns**:  
-  - The result of multiplying `m` with this `TransferMap`, which can be a transformed object or a new `TransferMap`.  
-- **Raises**:  
-  - **Exception**: If `m` is not a recognized type or does not implement a compatible `multiply_with_tm` method.
-
+Even when active tracking uses another transformation family, `TransferMap` often remains available as the linear optics representation. This is why routines such as Twiss calculations can still access first-order matrices even for element families with custom active tracking methods.
