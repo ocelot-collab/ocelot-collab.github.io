@@ -55,6 +55,16 @@ This means that even an element family with a custom active tracking method stil
 
 So a family can keep a first-order optics path for `R()` and Twiss calculations while using another transformation for actual particle tracking.
 
+## Wrapper Contract Versus Atom Hook Surface
+
+One subtle but important point is that the wrapper contract and the atom hook surface are not the same thing.
+
+- `supported_tms` lists wrapper-selectable active tracking methods
+- the atom may still implement a broader hook surface than the wrapper exposes
+- `first_order_tms` is a separate always-available optics path and should not be confused with `supported_tms`
+
+For example, `Cavity` keeps a first-order `TransferMap` path for optics and `R()`, but its active wrapper contract is still only `CavityTM`.
+
 ## Edge-aware Elements
 
 The atom attribute `has_edge` controls how a wrapper builds its map sequence.
@@ -63,6 +73,8 @@ The atom attribute `has_edge` controls how a wrapper builds its map sequence.
 - `has_edge = True`: the wrapper builds `ENTRANCE -> MAIN -> EXIT`.
 
 This rule applies both to the always-available first-order optics path and to the active tracking path.
+
+Because `first_order_tms` is always built with `TransferMap`, an edge-aware family must always provide first-order entrance, main, and exit hooks, even if active tracking uses a different transformation such as `CavityTM`.
 
 For slices created with `get_section_tms(...)`, the current behavior is:
 
@@ -102,6 +114,8 @@ This is a good reference family for the standard no-edge wrapper/atom contract.
 ## Read Next
 
 - [`OpticElement`](./optical-element.md): the public wrapper
+- [How to Create a New Element](../how-to/new_element.md)
+- [How to Create a New TM](../how-to/new_tm.md)
 - [`TMParams`](../trasfer-maps/tm-params.md): parameter containers between atoms and transformations
 - [`Element`](./element.md): minimal atom-layer base class
 - [`Magnet`](./magnet.md): atom-layer base class for magnetic families

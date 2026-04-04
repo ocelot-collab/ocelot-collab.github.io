@@ -33,7 +33,7 @@ This split allows OCELOT to keep a stable public API while still supporting seve
 - Edge-aware elements can build `ENTRANCE -> MAIN -> EXIT` map sequences.
 - Public element attributes such as `quad.k1` remain convenient, while the actual physics state lives on the atom.
 
-For a more detailed explanation, start with [Element Architecture](./architecture.md) and then read the class pages for [`OpticElement`](./optical-element.md), [`Element`](./element.md), and [`Magnet`](./magnet.md).
+For a more detailed explanation, start with [Element Architecture](./architecture.md) and then read the class pages for [`OpticElement`](./optical-element.md), [`Element`](./element.md), and [`Magnet`](./magnet.md). If you want to extend CPBD itself, continue with [How to Create a New Element](../how-to/new_element.md) or [How to Create a New TM](../how-to/new_tm.md).
 
 ## File Layout
 
