@@ -4,10 +4,10 @@ title: ParticleArray
 description: ParticleArray class
 ---
 
-# [ParticleArray](https://github.com/ocelot-collab/ocelot/blob/master/ocelot/cpbd/beam.py#L726) Class 
+# [ParticleArray](https://github.com/ocelot-collab/ocelot/blob/master/ocelot/cpbd/beam/particle.py) Class 
 
 ## Description:
-The [`ParticleArray`](https://github.com/ocelot-collab/ocelot/blob/master/ocelot/cpbd/beam.py#L726) class represents 
+The [`ParticleArray`](https://github.com/ocelot-collab/ocelot/blob/master/ocelot/cpbd/beam/particle.py) class represents 
 an array of particles with optimized performance for large numbers of particles. 
 It handles the particles' positions and momenta, along with additional functionalities like applying physics processes, 
 sorting particles, and managing lost particles.
@@ -170,8 +170,29 @@ def p(self):
 #### `copy(self)`
 - Returns a copy of the `ParticleArray`.
 
+#### `get_twiss(self, tws_i=None, bounds=None, slice=None, auto_disp=False)`
+- Calculates Twiss parameters from the `ParticleArray`.
+- Can be used for the whole bunch or for a longitudinally selected part of the bunch through `bounds` and `slice`.
+- `auto_disp=True` estimates and subtracts linear dispersion from the particle statistics before computing the optics.
+
 #### `get_twiss_from_slice(self, slice="Imax", nparts_in_slice=5000, smooth_param=0.05, filter_base=2, filter_iter=2)`
 - Calculates the Twiss parameters for a slice of the beam distribution.
+
+#### `match_to_twiss(self, tws, bounds=(-5, 5), slice=None, remove_offsets=True)`
+- Matches the transverse particle distribution to target Twiss parameters in place.
+- The method transforms the `x/px` and `y/py` phase space planes while keeping the longitudinal coordinates unchanged.
+- If `slice` is specified, the source optics are taken from the selected slice, for example `"Imax"` or `"Emax"`.
+- If `remove_offsets=True`, the average transverse offsets are subtracted before matching.
+
+Example:
+
+```python
+from ocelot import Twiss, load_particle_array
+
+parray = load_particle_array("beamfile.npz")
+tws = Twiss(beta_x=10, beta_y=5, alpha_x=0, alpha_y=-0.1)
+parray.match_to_twiss(tws)
+```
 
 #### `I(self, num_bins=None)`
 - Calculates the current profile from the beam distribution. Optionally, bins the distribution.
