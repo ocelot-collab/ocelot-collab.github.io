@@ -157,7 +157,9 @@ from ocelot.gui import *
 import l2, l3 # lattices can be found in https://github.com/ocelot-collab/EuXFEL-Lattice/tree/main/src/euxfel/subsequences
 ```
 
-    initializing ocelot...
+```text
+initializing ocelot...
+```
 
 ## Check design optics
 
@@ -190,13 +192,15 @@ _, R, _ = lat_l2.transfer_maps(start=l2.d_223, stop=l2.otrb_457_b2, energy=2.4)
 print(f"R12 = {R[0,1]}")
 ```
 
-    TDS center beta_x =  50.88807908849443
-    Screen 457 beta_x =  17.046378671795534
-    Screen 457 beta_y =  5.9780720514095345
-    Screen 457 alpha_x =  2.134410976038094
-    Screen 457 alpha_y =  -0.9840253685422208
-    Phase advance between TDS and screen OTRB.457.B2 =  98.47289527403284
-    R12 = 29.148479168428796
+```text
+TDS center beta_x =  50.88807908849443
+Screen 457 beta_x =  17.046378671795534
+Screen 457 beta_y =  5.9780720514095345
+Screen 457 alpha_x =  2.134410976038094
+Screen 457 alpha_y =  -0.9840253685422208
+Phase advance between TDS and screen OTRB.457.B2 =  98.47289527403284
+R12 = 29.148479168428796
+```
 
 ## Define Matching Start and End Points
 
@@ -250,7 +254,9 @@ else:
     quads_kicks_df.to_csv(df_filename, index=True)
 ```
 
-    Column 'design' already exists. Skipping step.
+```text
+Column 'design' already exists. Skipping step.
+```
 
 ## Display Twiss Parameters at Specific Elements
 
@@ -359,25 +365,27 @@ plot_opt_func(lat, tws_hi_res, top_plot=["Dy"], legend=False)
 plt.show()
 ```
 
-    True 2.3139596185065114e-09
-    emit_x  = 0.0
-    emit_y  = 0.0
-    emit_xn  = 0.0
-    emit_yn  = 0.0
-    beta_x  = 17.04637866884113
-    beta_y  = 5.978072057730435
-    alpha_x = 2.1344109925101633
-    alpha_y = -0.9840254089866904
-    Dx      = -8.045300817594888e-13
-    Dy      = 5.2074661182796385e-11
-    Dxp     = -3.8369526413224683e-13
-    Dyp     = 1.4177277577777732e-11
-    mux     = 12.713205782912105
-    muy     = 15.484839848144187
-    nu_x    = 2.023369542894931
-    nu_y    = 2.4644888048185014
-    E       = 2.4000000004506834
-    s        = 435.069106
+```text
+True 2.3139596185065114e-09
+emit_x  = 0.0
+emit_y  = 0.0
+emit_xn  = 0.0
+emit_yn  = 0.0
+beta_x  = 17.04637866884113
+beta_y  = 5.978072057730435
+alpha_x = 2.1344109925101633
+alpha_y = -0.9840254089866904
+Dx      = -8.045300817594888e-13
+Dy      = 5.2074661182796385e-11
+Dxp     = -3.8369526413224683e-13
+Dyp     = 1.4177277577777732e-11
+mux     = 12.713205782912105
+muy     = 15.484839848144187
+nu_x    = 2.023369542894931
+nu_y    = 2.4644888048185014
+E       = 2.4000000004506834
+s        = 435.069106
+```
 
 ![png](/img/11_design_hires_optics_files/output_15_1.png)
 
@@ -425,10 +433,12 @@ for key in ['beta_x', "beta_y", "alpha_x", "alpha_y"]:
     print(key, " :", getattr(tws_hi_res[-1], key), getattr(tws_des[-1], key))
 ```
 
-    beta_x  : 17.076952392671416 17.076952650423507
-    beta_y  : 15.300107642832417 15.300107956262153
-    alpha_x  : 0.44589593312661785 0.4458959473312124
-    alpha_y  : -0.5879536113204561 -0.5879535896879575
+```text
+beta_x  : 17.076952392671416 17.076952650423507
+beta_y  : 15.300107642832417 15.300107956262153
+alpha_x  : 0.44589593312661785 0.4458959473312124
+alpha_y  : -0.5879536113204561 -0.5879535896879575
+```
 
 ## Write new quadrupole kicks to the dataframe
 
@@ -457,7 +467,9 @@ if WRITE_TO_FILE:
 quads_kicks_df
 ```
 
-    Column 'TDS 150m' not found. Proceeding to add it.
+```text
+Column 'TDS 150m' not found. Proceeding to add it.
+```
 
 | Quad | design | TDS 70m | TDS 90m | TDS 120m | TDS 150m | TDS 200m |
 |------|-------:|--------:|--------:|---------:|---------:|---------:|
@@ -549,7 +561,9 @@ V = S * Lrf * pc /(R12 * 2 * np.pi* speed_of_light)
 print(f"TDS voltage = {V} MV")
 ```
 
-    TDS voltage = 28.26591789312062 MV
+```text
+TDS voltage = 28.26591789312062 MV
+```
 
 ## Let's estimate time resolution
 
@@ -573,7 +587,9 @@ print(f"S = {S*1e-12/1e-3} mm/ps - this is what we measure typically during time
 print(f"R = {sigma_scr/S*1e15} fs - we measured 11 fs")
 ```
 
-    sigma = 4.2541599106903523e-05 m
-    S = 5432310354.635417 m/s
-    S = 5.432310354635416 mm/ps - this is what we measure typically during time calibration
-    R = 7.8312166149716695 fs - we measured 11 fs
+```text
+sigma = 4.2541599106903523e-05 m
+S = 5432310354.635417 m/s
+S = 5.432310354635416 mm/ps - this is what we measure typically during time calibration
+R = 7.8312166149716695 fs - we measured 11 fs
+```
