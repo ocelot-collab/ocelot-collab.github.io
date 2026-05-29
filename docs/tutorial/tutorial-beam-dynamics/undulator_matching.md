@@ -2,54 +2,55 @@
 sidebar_position: 12
 title: 12. Undulator Matching
 ---
-<small>
-*This notebook was created by Sergey Tomin (sergey.tomin@desy.de). June 2018.*
-</small>
+*This notebook was created by Sergey Tomin (sergey.tomin@desy.de). Source and license info is on [GitHub](https://github.com/ocelot-collab/ocelot). June 2018.*
+
+*This version uses the new [`Matcher`](https://www.ocelot-collab.com/docs/docu/OCELOT%20fundamentals/matcher) API. The legacy `match()` version is available [here](https://github.com/ocelot-collab/ocelot/blob/dev/demos/ipython_tutorials/undulator_matching_legacy.ipynb).*
 
 # [12. Undulator Matching](https://github.com/ocelot-collab/ocelot/blob/dev/demos/ipython_tutorials/undulator_matching.ipynb)
 
-### Appendix: FODO in thin lens approximation 
+### Appendix: FODO in thin lens approximation
 
-*This notebook was created as an answer for a question what the min/max average beta function can have the EuXFEL SASE1 undulator. The right way is asking the optics expert but it is too simple and does not make you feel the beam optics of this SASE line. Another problem is that FEL experts like to work with average betas. To meet all these requirements, I wrote this notebook, which also might help someone to understand how to deal with linear optics in OCELOT.*
+*This notebook was created as an answer for a question what min/max average beta function the EuXFEL SASE1 undulator can have. The rigorous way is to ask the optics expert, but that does not give much intuition for the beam optics of this SASE line. Another problem is that FEL experts like to work with average betas. To meet all these requirements, I wrote this notebook, which also might help someone to understand how to deal with linear optics in OCELOT.*
 
-Let's consider the FODO cell of the SASE undulator 
+Let's consider the FODO cell of the SASE undulator
 
-![png](/img/undulator_matching_files/fodo.png)
+<img src="/img/undulator_matching_files/fodo.png" />
 
 Introducing $d = L_{cell}/2$ as the distance between defocusing and focusing quadrupoles.
 
-We neglect focusing effect in the vertical plan of the horizontal planar undulator.
+We neglect focusing effect in the vertical plane of the horizontal planar undulator.
 
 The transfer matrix of the quadrupole in thin lens approximation:
 $$
-M_f = 
+M_f =
 \begin{bmatrix}
     1 & 0 \\
-    1/f & 1 
+    1/f & 1
 \end{bmatrix}
 $$
-where $f = 1/kl$ is focal length, $k$ is quad strength and $l$ is the quad length. 
+where $f = 1/kl$ is focal length, $k$ is quad strength and $l$ is the quad length.
 
 Drift:
 $$
-M_d = 
+M_d =
 \begin{bmatrix}
     1 & d \\
-    0 & 1 
+    0 & 1
 \end{bmatrix}
 $$
 
 
 ```python
 %matplotlib inline
-import sympy as sp 
+import sympy as sp
 sp.init_printing()
 ```
 
-<a id='half_cell'></a>
-Calculate the matrix for a half cell, starting in the middle of a defocusing quadrupole and ending in the meddile of a focusing lens. 
+#### Half cell transfer matrix
 
-And denotes $f_h = 2 f$ focal length of the half quadrupole
+Calculate the matrix for a half cell, starting in the middle of a defocusing quadrupole and ending in the middle of a focusing lens.
+
+Denote $f_h = 2 f$ as the focal length of the half quadrupole.
 
 
 ```python
@@ -91,9 +92,9 @@ $\displaystyle \left[\begin{matrix}- \frac{2 d^{2}}{fh^{2}} + 1 & \frac{2 d \lef
 
 Phase advance is related to the transfer matrix by:
 $$
-\cos \phi_{cell} = \frac{1}{2}Trace(M_{cell}) 
+\cos \phi_{cell} = \frac{1}{2}Trace(M_{cell})
 $$
-Stability requares:
+Stability requires:
 $$
 \left|Trace(M_{cell})\right| < 2
 $$
@@ -120,19 +121,19 @@ using trigonometric double-angle formulae:
 $$
 \cos 2\phi = 1-2\sin^2 \phi
 $$
-and finally 
+and finally
 $$
 \boxed{\sin \phi_{cell}/2 =  \frac{L_{cell}}{4f}}
 $$
-#### Stability 
+#### Stability
 $$
 \left| 2 - \frac{4 d^2}{f_h^2}\right| < 2
 $$
-rewriting 
+rewriting
 $$
 0 < \frac{4 d^2}{f_h^2} < 4 \qquad \to \qquad f_h > d
 $$
-Finally 
+Finally
 $$
 \boxed{f > \frac{L_{cell}}{4}}
 $$
@@ -147,8 +148,6 @@ x(s) = \sqrt{\varepsilon \beta(s)}\cos(\phi(s) + \phi)\\
 x'(s) = -\sqrt{\frac{\varepsilon}{\beta(s)}}\Big(\alpha(s)\cos(\phi(s) + \phi) + \sin(\phi(s) + \phi)\Big)
 \end{cases}
 $$
-
-
 Applying initial conditions at the point $s(0) = s_0$ with $\phi(0) = 0$ and the particle coordinates $x_0, x'_0$, we will get:
 
 $$
@@ -161,8 +160,8 @@ inserting the result into the equation above:
 $$
 \begin{bmatrix}
     x_1  \\
-    x'_1 
-\end{bmatrix} = 
+    x'_1
+\end{bmatrix} =
 \begin{bmatrix}
     \sqrt{\frac{\beta_1}{\beta_0}}(\cos\phi_{0\to1} + \alpha_0\sin\phi_{0\to1}) & \sqrt{\beta_1\beta_0}\sin\phi_{0\to1})\\
     \frac{(\alpha_0 - \alpha_1)\cos\phi_{0\to1} - (1 + \alpha_0\alpha_2)\sin\phi_{0\to1}}{\sqrt{\beta_1\beta_0}} & \sqrt{\frac{\beta_0}{\beta_1}}(\cos\phi_{0\to1} - \alpha_1\sin\phi_{0\to1})
@@ -170,12 +169,10 @@ $$
 \cdot
 \begin{bmatrix}
     x_0  \\
-    x'_0 
+    x'_0
 \end{bmatrix}
 $$
-
-
-Now consider half of the FODO cell (see picture above) ($\phi_{0\to1} = \phi_{cell}/2$) and $\beta_0 = \beta_{min}$ and  $\beta_1 = \beta_{max}$ (we consider horizontal plane) and remembering that in the middle of the quads $\alpha = 0$. From another side, we have already calculated the transfer matrix for [a half of FODO cell](#half_cell). Collecting all together:
+Now consider half of the FODO cell (see picture above) ($\phi_{0\to1} = \phi_{cell}/2$) and $\beta_0 = \beta_{min}$ and  $\beta_1 = \beta_{max}$ (we consider horizontal plane) and remembering that in the middle of the quads $\alpha = 0$. From another side, we have already calculated the transfer matrix for [a half of FODO cell](#half-cell-transfer-matrix). Collecting all together:
 
 $$
 \begin{bmatrix}
@@ -185,7 +182,7 @@ $$
 \qquad
 \begin{bmatrix}
     1 + d/f_h &   d \\
-  -d/f_h^2 & 1 - d/f_h 
+  -d/f_h^2 & 1 - d/f_h
 \end{bmatrix}
 $$
 
@@ -211,13 +208,13 @@ $$
 
 ### More accurate solution
 Taking into account quadratic shape of the $\beta$ in the drift space and go through some simple steps, finally we will get more exact solution:
-1. Twiss parameters transformation 
+1. Twiss parameters transformation
 $$
 \begin{bmatrix}
     \beta  \\
     \alpha \\
     \gamma
-\end{bmatrix}_1 = 
+\end{bmatrix}_1 =
 \begin{bmatrix}
     C^2 & -2SC & S^2\\
     -C C' & SC' + S'C & -SS'\\
@@ -232,10 +229,10 @@ $$
 $$
 Where $C,S, C', S'$ are elements of the transfer matrix
 $$
-M = 
+M =
 \begin{bmatrix}
     C & S \\
-    C' & S' 
+    C' & S'
 \end{bmatrix}
 $$
 
@@ -263,19 +260,18 @@ $$
 $$
 
 :::info
-The result looks simple, probably this expression can be found in some handbooks. 
+The result looks simple; this expression can probably be found in optics handbooks.
 :::
 
 
+The minimum possible average $\overline\beta_{min}$ will be with $\frac{d \overline \beta}{d\phi_{cell}} = 0$ what gives us $\phi_{cell} = \pi - \arctan 2\sqrt 6 \approx 101^0$.
 
-The minimum possible average $\overline\beta_{min}$ will be with $\frac{d \overline \beta}{d\phi_{cell}} = 0$ what gives us $\phi_{cell} = \pi - \arctan 2\sqrt 6 \approx 101^0$. 
-
-And for our case $L_{cell} = 12.2 m$ it will be 
+And for our case $L_{cell} = 12.2 m$ it will be
 $$
 \overline \beta_{min}  \approx 9.96
 $$
 
-Might be useful to find condition for minimum possible $\beta_{max}$ 
+Might be useful to find condition for minimum possible $\beta_{max}$
 $$
 \frac{d}{d\phi}\beta_{max} = 0
 $$
@@ -287,7 +283,11 @@ sp.diff((1 + sp.sin(phi/2))/sp.sin(phi), phi)
 ```
 
 
+
+
 $\displaystyle - \frac{\left(\sin{\left(\frac{\phi}{2} \right)} + 1\right) \cos{\left(\phi \right)}}{\sin^{2}{\left(\phi \right)}} + \frac{\cos{\left(\frac{\phi}{2} \right)}}{2 \sin{\left(\phi \right)}}$
+
+
 
 
 ```python
@@ -298,20 +298,25 @@ fun = lambda phi: -(np.sin(phi/2) + 1)*np.cos(phi)/np.sin(phi)**2 + np.cos(phi/2
 res = root(fun, 0.1)
 print("Cell phase advance for minimum possible bmax: phi = ", res.x*180/np.pi)
 ```
-```python
+
     Cell phase advance for minimum possible bmax: phi =  [76.34541525]
-```
+
 
 ### SASE1 undulator. Numerical simulation
 
+The matching examples below use `MatchProblem` from the new Matcher module.
 
 
 ```python
 %matplotlib inline
 from ocelot import *
 from ocelot.gui.accelerator import *
-from scipy.integrate import simps
+try:
+    from scipy.integrate import simpson
+except ImportError:
+    from scipy.integrate import simps as simpson
 from ocelot.cpbd import optics
+from ocelot.cpbd.matcher import MatchProblem
 
 d1 = Drift(l=0.43065, eid='d1')
 d2 = Drift(l=0.55565, eid='d2')
@@ -332,14 +337,14 @@ tws = twiss(fodo_lat, nPoints=1000)
 plot_opt_func(fodo_lat, tws, top_plot=["mux", "muy"], legend=False)
 plt.show()
 ```
-```python
+
     initializing ocelot...
-```
 
 
-    
+
+
 ![png](/img/undulator_matching_files/undulator_matching_16_1.png)
-    
+
 
 
 
@@ -351,7 +356,7 @@ def beta(k):
     tws = twiss(fodo_lat, nPoints=1000)
     bx = np.array([tw.beta_x for tw in tws])
     s = np.array([tw.s for tw in tws])
-    bx_av = simps(bx, s)/fodo_lat.totalLen
+    bx_av = simpson(bx, x=s)/fodo_lat.totalLen
     phi = tws[-1].mux
     L = fodo_lat.totalLen
     bx_av_th = L/6 * (5 + np.cos(phi))/np.sin(phi)
@@ -370,7 +375,7 @@ for k1 in k:
     Bx_av.append(bx_av)
     Phi.append(phi)
     Bx_av_theory.append(bx_av_th)
-    
+
 fig, ax1 = plt.subplots()
 plt.title(r"$\beta$ - average and max against quad strength")
 ax1.plot(k, Bx_av, label=r"$\beta_{av}$")
@@ -388,19 +393,19 @@ plt.legend()
 plt.grid(False)
 plt.show()
 ```
-```python
+
     min(beta_av) =  9.991835898036324 m
-```
 
 
-    
+
+
 ![png](/img/undulator_matching_files/undulator_matching_17_1.png)
-    
+
 
 
 ### Limitations
 
-The maximum possible strength of the undulator quadrupoles is  $k_{max} = 1.94729$ what means that we can have minimum average beta-function close to 10m (see the Figure above). 
+The maximum possible strength of the undulator quadrupoles is  $k_{max} = 1.94729$ which means that the minimum average beta-function is close to 10 m (see the Figure above).
 
 Now we need to consider the limitations of the matching sections.
 
@@ -424,31 +429,31 @@ def fodo_estimator(beta_av, Lcell, lq=0.1137):
     bmax = (1 + np.sin(phi/2))/np.sin(phi)*Lcell
     bmin = (1 - np.sin(phi/2))/np.sin(phi)*Lcell
     return kq, phi, bmin, bmax, b_av
-    
+
 kq, phi, bmin, bmax, b_av = fodo_estimator(beta_av=11, Lcell=12.2)
 print("k1 = ", kq, "1/m^2")
 print("bmin / bmax = ", bmin, "/", bmax, "m")
 print("calculated beta_av = ", b_av, "m")
 print("phi = ", phi*180/np.pi, "deg")
 ```
-```python
+
     k1 =  1.771751963648942 1/m^2
     bmin / bmax =  4.851965262428619 / 20.314939511625177 m
     calculated beta_av =  11.000000000000059 m
     phi =  75.8191420392388 deg
-```
 
-### FODO correction due to undulator focusing 
+
+### FODO correction due to undulator focusing
 
 
 ```python
 def fodo_correction_SASE1(beta_av=60, K=3):
     kq, phi, bmin, bmax, b_av = fodo_estimator(beta_av=beta_av, Lcell=12.2)
-    
+
     print("Estimation: beta_x = ", np.round(bmin,3), "; beta_y = ", np.round(bmax, 3),
-          "; phi = ", np.round(phi*180/np.pi), "grad"
+          "; phi = ", np.round(phi*180/np.pi), "deg"
           "; kf/kd = ", np.round(kq, 4),"/", np.round(-kq, 4))
-    
+
     # SASE1 FODO cell
     d1 = Drift(l=0.43065, eid='d1')
     d2 = Drift(l=0.55565, eid='d2')
@@ -458,34 +463,32 @@ def fodo_correction_SASE1(beta_av=60, K=3):
     m1 = Marker()
     m2 = Marker()
     fodo_cell = [m1, qd, d1, u40, d2, qf, d1, u40, d2, qd, m2]
-    
-    # constraints
-    constr = {fodo_cell[-1]: {'mux':phi, "muy":phi}, "periodic": True}
+    fodo_lat = MagneticLattice(fodo_cell)
 
-    # variables
-    vars = [qf, qd]
-    
     tws = Twiss()
     tws.beta_x = bmin
     tws.beta_y = bmax
     tws.E = 14
-    
-    res = match(MagneticLattice(fodo_cell), constr=constr,tw=tws, 
-                vars=vars, max_iter=2000, verbose=False)
-    kf, kd = res
-    
-    qf.k1 = kf
-    qd.k1 = kd
-    
-    fodo_lat = MagneticLattice(fodo_cell)
+
+    problem = MatchProblem(fodo_lat, tws, periodic=True)
+    problem.vary_element(qf, quantity="k1", limits=(-3, 3), name="qf.k1")
+    problem.vary_element(qd, quantity="k1", limits=(-3, 3), name="qd.k1")
+    problem.target_twiss(m2, "mux", phi, weight=1e6, tol=1e-8)
+    problem.target_twiss(m2, "muy", phi, weight=1e6, tol=1e-8)
+    result = problem.solve(solver="ls_trf", max_iter=2000, tol=1e-10)
+
+    kf = qf.k1
+    kd = qd.k1
 
     tws = twiss(fodo_lat, tws0=tws, nPoints=1000)
-    print("Correction: beta_x = ", np.round(tws[0].beta_x, 3), 
-          "beta_y = ", np.round(tws[0].beta_y, 3), 
-          " kf/kd = ", np.round(kf,4), "/", np.round(kd,4))
+    print("Correction: beta_x = ", np.round(tws[0].beta_x, 3),
+          "beta_y = ", np.round(tws[0].beta_y, 3),
+          " kf/kd = ", np.round(kf,4), "/", np.round(kd,4),
+          "; success = ", result.success)
     #plot_opt_func(fodo_lat, tws, top_plot=["mux", "muy"], legend=False)
     #plt.show()
     return kf, kd, bmin, bmax
+
 ```
 
 ### Current lattice $\overline\beta \approx 32$ m
@@ -505,15 +508,15 @@ tws = twiss(lat, tws0=sase1.tws)
 plot_opt_func(lat, tws, legend=False)
 plt.show()
 ```
-```python
+
     emit_x  = 0.0
     emit_y  = 0.0
+    emit_xn  = 0.0
+    emit_yn  = 0.0
     beta_x  = 10.506745988156398
     beta_y  = 42.02704133328497
     alpha_x = 0.676085898798978
     alpha_y = -2.1449229692237783
-    gamma_x = 0.0
-    gamma_y = 0.0
     Dx      = 0.0
     Dy      = 0.0
     Dxp     = 0.0
@@ -524,171 +527,144 @@ plt.show()
     nu_y    = 0.0
     E       = 14
     s        = 0.0
-    
-```
 
 
-    
+
+
+
 ![png](/img/undulator_matching_files/undulator_matching_25_1.png)
-    
+
 
 
 ### $\overline \beta = 60$ m
 
-### *Sometimes require run this cell two times to get a correct result*
+The matching problem uses explicit quadrupole bounds.
 
 
 ```python
 kf, kd, bmin, bmax = fodo_correction_SASE1(beta_av=60, K=3)
-# constraints
-constr = {sase1.fodo_match: {'beta_x':bmax, "beta_y":bmin, 
-                             "alpha_x": 0, "alpha_y": 0}}
 
-quad_limits = {sase1.qf_2177_t2: [-0.654, 0],
-             sase1.qf_2192_t2: [0 ,0.654],
-             sase1.qf_2207_t2: [-0.654, 0],
-             sase1.qf_2218_t2: [0 ,0.654],
-             sase1.qa_2229_t2: [-1.94, 0],
-             sase1.qa_2235_t2: [0, 1.94]}
-# variables
-vars = [sase1.qf_2177_t2, sase1.qf_2192_t2,
-        sase1.qf_2207_t2, 
-        sase1.qf_2218_t2, sase1.qa_2229_t2, sase1.qa_2235_t2]
 
-# because of variables redundancy, we can help a bit to find a more elegant solution 
-# *** comment lines or change inital conditions if you want to play with matching
+# Because of variable redundancy, we can help the optimizer find a more elegant solution.
+# Comment these lines or change initial conditions if you want to play with matching.
 sase1.qf_2177_t2.k1 = -0.2244
 sase1.qf_2192_t2.k1 = 0.2309
 sase1.qf_2207_t2.k1 = -0.1911
 sase1.qf_2218_t2.k1 = 0.1653
 sase1.qa_2229_t2.k1 = -0.0881
 sase1.qa_2235_t2.k1 = 0.0953
-
-# *** comment lines or change inital conditions if you want to play with matching
-lat.update_transfer_maps()
-
-res = match(lat, constr=constr, vars=vars, tw=sase1.tws, max_iter=2000, verbose=False)
-
+# These quadrupoles are shared with the lattice part before fodo_match,
+# so they must be set before solving the upstream matching section.
 sase1.qa_2241_sa1.k1 = kd
 sase1.qa_2247_sa1.k1 = kf
 sase1.qa_2247_sa1_h.k1 = kf
-lat.update_transfer_maps()
+
+
+problem = MatchProblem(lat, sase1.tws, periodic=False)
+problem.vary_element(sase1.qf_2177_t2, quantity="k1", limits=[-0.654, 0], name=sase1.qf_2177_t2.id + ".k1")
+problem.vary_element(sase1.qf_2192_t2, quantity="k1", limits=[0 ,0.654], name=sase1.qf_2192_t2.id + ".k1")
+problem.vary_element(sase1.qf_2207_t2, quantity="k1", limits=[-0.654, 0], name=sase1.qf_2207_t2.id + ".k1")
+problem.vary_element(sase1.qf_2218_t2, quantity="k1", limits=[0 ,0.654], name=sase1.qf_2218_t2.id + ".k1")
+problem.vary_element(sase1.qa_2229_t2, quantity="k1", limits=[-1.94, 0], name=sase1.qa_2229_t2.id + ".k1")
+problem.vary_element(sase1.qa_2235_t2, quantity="k1", limits=[0, 1.94], name=sase1.qa_2235_t2.id + ".k1")
+
+
+problem.target_twiss(sase1.fodo_match, "beta_x", bmax, weight=1e6, tol=1e-5)
+problem.target_twiss(sase1.fodo_match, "beta_y", bmin, weight=1e6, tol=1e-5)
+problem.target_twiss(sase1.fodo_match, "alpha_x", 0.0, weight=1e6, tol=1e-5)
+problem.target_twiss(sase1.fodo_match, "alpha_y", 0.0, weight=1e6, tol=1e-5)
+result = problem.solve(solver="ls_trf", max_iter=2000, tol=1e-10)
+print("Matching success =", result.success, "; merit =", result.merit)
+
 tws = twiss(lat, tws0=sase1.tws)
 plot_opt_func(lat, tws, legend=False)
 plt.show()
-```
-```python
-    Estimation: beta_x =  54.076 ; beta_y =  66.34 ; phi =  12.0 grad; kf/kd =  0.2937 / -0.2937
-    initial value: x =  [0.29368260023214693, -0.29368260023214693]
-    Optimization terminated successfully.
-             Current function value: 0.000032
-             Iterations: 40
-             Function evaluations: 79
-    Correction: beta_x =  54.076 beta_y =  66.34  kf/kd =  0.2648 / -0.2583
-    initial value: x =  [-0.2244, 0.2309, -0.1911, 0.1653, -0.0881, 0.0953]
-    Optimization terminated successfully.
-             Current function value: 0.000031
-             Iterations: 158
-             Function evaluations: 279
+
 ```
 
-
-    
-![png](/img/undulator_matching_files/undulator_matching_27_1.png)
-    
-
-
-#### Checking quads limits
+    Estimation: beta_x =  54.076 ; beta_y =  66.34 ; phi =  12.0 deg; kf/kd =  0.2937 / -0.2937
+    Correction: beta_x =  54.076 beta_y =  66.34  kf/kd =  0.2648 / -0.2583 ; success =  True
+    Matching success = True ; merit = 0.0
 
 
-```python
-# check quads limits
-for q, k in zip(vars, res):
-    print(q.id + ".k1 = "+ str(np.round(k,4)) +  ";   strength is OK :",
-          quad_limits[q][0]<k<quad_limits[q][1])
-```
-```python
-    QF.2177.T2.k1 = -0.2244;   strength is OK : True
-    QF.2192.T2.k1 = 0.2309;   strength is OK : True
-    QF.2207.T2.k1 = -0.1911;   strength is OK : True
-    QF.2218.T2.k1 = 0.1653;   strength is OK : True
-    QA.2229.T2.k1 = -0.0881;   strength is OK : True
-    QA.2235.T2.k1 = 0.0953;   strength is OK : True
-```
+
+
+
+
+
+![png](/img/undulator_matching_files/undulator_matching_27_2.png)
+
+
 
 ### $\overline \beta = 11$ m
-### *Sometimes require run this cell two times to get a correct result*
+
+The same Matcher setup is used for a stronger focusing solution.
 
 
 ```python
 kf, kd, bmin, bmax = fodo_correction_SASE1(beta_av=11, K=3)
-# constraints
-constr = {sase1.fodo_match: {'beta_x':bmax, "beta_y":bmin, 
-                             "alpha_x": 0, "alpha_y": 0}}
 
-
-# variables
-vars = [sase1.qf_2177_t2, sase1.qf_2192_t2, sase1.qf_2207_t2, 
-        sase1.qf_2218_t2, sase1.qa_2229_t2, sase1.qa_2235_t2]
-
-# because of variables redundancy, we can help a bit to find a more elegant solution
-# *** comment lines or change inital conditions if you want to play with matching
+# Because of variable redundancy, we can help the optimizer find a more elegant solution.
+# Comment these lines or change initial conditions if you want to play with matching.
 sase1.qf_2177_t2.k1 = -0.2227
 sase1.qf_2192_t2.k1 = 0.211
 sase1.qf_2207_t2.k1 = -0.2176
 sase1.qf_2218_t2.k1 = 0.2392
 sase1.qa_2229_t2.k1 = -0.9728
 sase1.qa_2235_t2.k1 = 1.3215
-# *** comment lines or change inital conditions if you want to play with matching
-lat.update_transfer_maps()
 
-res = match(lat, constr=constr, vars=vars, tw=sase1.tws, max_iter=2000, verbose=False)
-
+# These quadrupoles are shared with the lattice part before fodo_match,
+# so they must be set before solving the upstream matching section.
 sase1.qa_2241_sa1.k1 = kd
 sase1.qa_2247_sa1.k1 = kf
 sase1.qa_2247_sa1_h.k1 = kf
-lat.update_transfer_maps()
+
+
+problem = MatchProblem(lat, sase1.tws, periodic=False)
+problem.vary_element(sase1.qf_2177_t2, quantity="k1", limits=[-0.654, 0], name=sase1.qf_2177_t2.id + ".k1")
+problem.vary_element(sase1.qf_2192_t2, quantity="k1", limits=[0 ,0.654], name=sase1.qf_2192_t2.id + ".k1")
+problem.vary_element(sase1.qf_2207_t2, quantity="k1", limits=[-0.654, 0], name=sase1.qf_2207_t2.id + ".k1")
+problem.vary_element(sase1.qf_2218_t2, quantity="k1", limits=[0 ,0.654], name=sase1.qf_2218_t2.id + ".k1")
+problem.vary_element(sase1.qa_2229_t2, quantity="k1", limits=[-1.94, 0], name=sase1.qa_2229_t2.id + ".k1")
+problem.vary_element(sase1.qa_2235_t2, quantity="k1", limits=[0, 1.94], name=sase1.qa_2235_t2.id + ".k1")
+
+problem.target_twiss(sase1.fodo_match, "beta_x", bmax, weight=1e6, tol=1e-5)
+problem.target_twiss(sase1.fodo_match, "beta_y", bmin, weight=1e6, tol=1e-5)
+problem.target_twiss(sase1.fodo_match, "alpha_x", 0.0, weight=1e6, tol=1e-5)
+problem.target_twiss(sase1.fodo_match, "alpha_y", 0.0, weight=1e6, tol=1e-5)
+result = problem.solve(solver="ls_trf", max_iter=2000, tol=1e-10)
+
+print("Matching success =", result.success, "; merit =", result.merit)
+
 tws = twiss(lat, tws0=sase1.tws)
 plot_opt_func(lat, tws, legend=False)
 plt.show()
-```
-```python
-    Estimation: beta_x =  4.852 ; beta_y =  20.315 ; phi =  76.0 grad; kf/kd =  1.7718 / -1.7718
-    initial value: x =  [1.771751963648942, -1.771751963648942]
-    Optimization terminated successfully.
-             Current function value: 0.000035
-             Iterations: 33
-             Function evaluations: 66
-    Correction: beta_x =  4.852 beta_y =  20.315  kf/kd =  1.7811 / -1.7755
-    initial value: x =  [-0.2227, 0.211, -0.2176, 0.2392, -0.9728, 1.3215]
-    Optimization terminated successfully.
-             Current function value: 0.000001
-             Iterations: 154
-             Function evaluations: 275
+
 ```
 
+    Estimation: beta_x =  4.852 ; beta_y =  20.315 ; phi =  76.0 deg; kf/kd =  1.7718 / -1.7718
+    Correction: beta_x =  4.852 beta_y =  20.315  kf/kd =  1.7811 / -1.7755 ; success =  True
+    Matching success = True ; merit = 1.1194006433165288e-07
 
-    
-![png](/img/undulator_matching_files/undulator_matching_31_1.png)
-    
 
 
-#### Checking quads limits
+
+
+![png](/img/undulator_matching_files/undulator_matching_29_2.png)
+
+
 
 
 ```python
-# check quads limits
-for q, k in zip(vars, res):
-    print(q.id + ".k1 = "+ str(np.round(k,4)) +  ";   strength is OK :",
-          quad_limits[q][0]<k<quad_limits[q][1])
+
 ```
+
+
 ```python
-    QF.2177.T2.k1 = -0.2226;   strength is OK : True
-    QF.2192.T2.k1 = 0.211;   strength is OK : True
-    QF.2207.T2.k1 = -0.2176;   strength is OK : True
-    QF.2218.T2.k1 = 0.2393;   strength is OK : True
-    QA.2229.T2.k1 = -0.9747;   strength is OK : True
-    QA.2235.T2.k1 = 1.3232;   strength is OK : True
+
 ```
 
 
+```python
+
+```

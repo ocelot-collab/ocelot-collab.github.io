@@ -28,8 +28,8 @@ Compared with legacy `match.py`, matcher gives you:
   `objective_function`) and custom objective classes.
 - Linked variables for shared hardware (for example one power supply driving
   several quads).
-- Direct support for Twiss targets, global Twiss limits, Twiss deltas,
-  and R-matrix targets.
+- Direct support for Twiss targets, selected periodic Twiss targets,
+  global Twiss limits, Twiss deltas, and R-matrix targets.
 - Better diagnostics in solve result (`target_reports`, `objective_reports`).
 
 Legacy `cpbd.match.py` can still coexist. New scripts can adopt matcher
@@ -67,7 +67,7 @@ During each evaluation, matcher builds a `MatchState` with:
 - `twiss_by_element`: dictionary `element -> Twiss`.
 - `twiss_sequence`: ordered list of Twiss along lattice sequence.
 - `twiss_end`: Twiss at end of line for current state.
-- `r_matrix(start, end)`: cached transfer matrix accessor return.
+- `r_matrix(start, end)`: cached transfer matrix accessor.
 
 Important for periodic matching:
 
@@ -82,13 +82,34 @@ Typical solve flow:
 
 1. Create `MatchProblem(lat, tw0, periodic=...)`.
 2. Add variables (`vary_element`, `vary_twiss`, `vary_linked_elements`).
-3. Add targets (`target_twiss`, `target_global`, `target_twiss_delta`,
-   `target_rmatrix`, `target_rmatrix_block`, ...).
+3. Add targets (`target_twiss`, `target_periodic_twiss`, `target_global`,
+   `target_twiss_delta`, `target_rmatrix`, `target_rmatrix_block`, ...).
 4. Add objectives (`minimize_function`, `objective_function`,
    `minimize_i5_integral`, custom objective).
 5. Run `solve(solver=..., max_iter=..., tol=...)`.
 6. Inspect `result.variables`, `result.target_reports`,
    `result.objective_reports`, `result.merit`.
+
+## Target Relations and Tolerances
+
+Most scalar targets accept a `relation` argument. The default is `"=="`,
+so a target like `problem.target_twiss(end, "beta_x", 12.0)` means match
+`beta_x` to 12.0. Use `relation="<="` or `relation=">="` for one-sided
+constraints. `tol` defines the accepted error band: inside the tolerance the
+residual is zero.
+
+Examples:
+
+```python
+problem.target_twiss(end, "beta_x", 12.0, relation="==", tol=1e-4)
+problem.target_twiss(end, "beta_y", 40.0, relation="<=", tol=0.0)
+problem.target_rmatrix(start, end, i=0, j=1, value=8.0, relation=">=")
+```
+
+`target_global(...)` also has `relation`, but its default is `"<="` because it
+is most often used as a lattice-wide limit. `target_periodic_twiss(...)` has the
+same relation option and defaults to `"=="`; it applies the relation to
+`end - start` with target value zero.
 
 ## Solvers and Bounds
 
@@ -138,107 +159,64 @@ Practical note:
   unintentionally.
 - For `periodic=True`, fitting entrance Twiss via `vary_twiss(...)` is usually
   not the right control strategy.
+- For partial periodicity, use `target_periodic_twiss(...)` instead of
+  `periodic=True`.
 
 ## Examples
 
-### 1) Generic Pattern (`I5` as regular objective)
+### 1) Simple End Twiss Match
 
-Treat `I5` like any other objective term instead of build in shortcut `problem.minimize_i5_integral(weight=1e14)`.
+Start with a small line: vary two quadrupoles and match Twiss parameters at the
+end marker.
 
 ```python
-import numpy as np
-
+from ocelot import *
 from ocelot.cpbd.matcher import MatchProblem
-from ocelot.cpbd.beam_params import radiation_integrals
 
-# Assume: lat, tw0, q1, q2, end are already defined
-problem = MatchProblem(lat, tw0, periodic=True)
+start = Marker(eid="START")
+d = Drift(l=0.5, eid="D")
+q1 = Quadrupole(l=0.2, k1=0.5, eid="Q1")
+q2 = Quadrupole(l=0.2, k1=-0.5, eid="Q2")
+end = Marker(eid="END")
+lat = MagneticLattice((start, d, q1, d, q2, d, end))
 
-# Variables
+tw0 = Twiss()
+tw0.beta_x = 10.0
+tw0.beta_y = 10.0
+tw0.E = 1.0
+
+problem = MatchProblem(lat, tw0, periodic=False)
 problem.vary_element(q1, quantity="k1", limits=(-5, 5))
 problem.vary_element(q2, quantity="k1", limits=(-5, 5))
 
-# Twiss targets
-problem.target_twiss(end, "beta_x", 12.0, weight=1e6)
-problem.target_twiss(end, "beta_y", 9.0, weight=1e6)
-
-# I5 as a generic objective
-problem.minimize_function(
-    lambda state: radiation_integrals(state.lat, state.twiss_start, nsuperperiod=1)[4],
-    name="I5",
-    weight=1e14,
-)
-
-# Or use built-in shortcut:
-# problem.minimize_i5_integral(weight=1e14)
+problem.target_twiss(end, "beta_x", 7.5, weight=1e6, tol=1e-5)
+problem.target_twiss(end, "beta_y", 13.0, weight=1e6, tol=1e-5)
 
 result = problem.solve(solver="ls_trf", max_iter=300)
 print(result.success, result.merit)
 ```
 
-### 2) Custom Integral Objective
-
-You can minimize any function of `MatchState`.
-
-How it works:
-
-- You pass a callable to `problem.minimize_function(...)`.
-- Matcher stores it.
-- On every evaluation/iteration, matcher builds the current `MatchState`
-  internally and calls your function as `func(state)`.
-- You do not create `state` yourself.
-
-Important Python note:
-
-- In `lambda state: ...`, `state` is just the function argument name.
-- It can be any name (`lambda ms: ...` is equivalent).
-- The matcher passes the current `MatchState` object into that argument.
-
-Equivalent forms:
+Common things to inspect after matching:
 
 ```python
-# lambda form
-problem.minimize_function(
-    lambda state: np.trapz(
-        [tw.beta_x for tw in state.twiss_sequence],
-        [tw.s for tw in state.twiss_sequence],
-    ),
-    name="int_beta_x_ds",
-    weight=1.0,
-)
+# Final knob values as a dictionary
+print(result.variables)
 
-# named-function form (exact same behavior)
-def integral_beta_x(match_state):
-    return np.trapz(
-        [tw.beta_x for tw in match_state.twiss_sequence],
-        [tw.s for tw in match_state.twiss_sequence],
-    )
+# Full variable objects, including limits and current values
+for var in problem.variables:
+    print(var.name, var.get(), var.limits)
 
-problem.minimize_function(integral_beta_x, name="int_beta_x_ds", weight=1.0)
+# If you varied entrance Twiss, use problem.twiss0, not the original tw0 object.
+tws = twiss(lat, problem.twiss0)
+
+# Current optics state and target diagnostics
+merit, target_reports, objective_reports, state = problem.evaluate()
+print(state.twiss_at(end).beta_x, state.twiss_at(end).beta_y)
+for report in target_reports:
+    print(report.name, report.residual_norm, report.met)
 ```
 
-### 3) Custom `Objective` Class
-
-Use custom class when you need reusable logic.
-
-```python
-import numpy as np
-from ocelot.cpbd.matcher import Objective
-
-class EndSObjective(Objective):
-    def __init__(self, target_s, **kwargs):
-        super().__init__(**kwargs)
-        self.target_s = float(target_s)
-
-    def residuals(self, state):
-        # Matcher minimizes sum(residual^2)
-        return np.array([state.twiss_end.s - self.target_s], dtype=float)
-
-# Add custom objective to problem
-problem.add_objective(EndSObjective(target_s=12.0, name="end_s_obj", weight=1e6))
-```
-
-### 4) Global Beta Limits
+### 2) Global Beta Limits
 
 ```python
 # Keep beta_x and beta_y below limits everywhere
@@ -263,6 +241,84 @@ problem.target_global(
 result = problem.solve(solver="ls_trf", max_iter=300)
 print(result.success, result.merit)
 ```
+
+### 3) Full Periodic Twiss Solution
+
+Use `periodic=True` when the initial Twiss should be the full periodic solution
+of the current lattice. In this mode matcher recomputes the periodic Twiss for
+each trial set of variables.
+
+```python
+import numpy as np
+
+from ocelot.cpbd.matcher import MatchProblem
+
+# Assume: lat, tw0, qf, qd, end are already defined.
+tw0.E = 1.0
+
+problem = MatchProblem(lat, tw0, periodic=True)
+problem.vary_element(qf, quantity="k1", limits=(-5, 5), name="qf.k1")
+problem.vary_element(qd, quantity="k1", limits=(-5, 5), name="qd.k1")
+
+# Example: match the phase advance of one periodic cell.
+problem.target_twiss(end, "mux", np.pi / 3.0, weight=1e6, tol=1e-6)
+problem.target_twiss(end, "muy", np.pi / 3.0, weight=1e6, tol=1e-6)
+
+result = problem.solve(solver="ls_trf", max_iter=300)
+merit, reports, objectives, state = problem.evaluate()
+print(result.success, state.twiss_start.beta_x, state.twiss_start.beta_y)
+```
+
+For `periodic=True`, `state.twiss_start` is the computed periodic Twiss. Do not
+expect `problem.twiss0` to be the fitted entrance Twiss in this mode.
+
+### 4) Partial Periodic Twiss Targets
+
+Use `target_periodic_twiss(...)` when only selected Twiss quantities should be
+equal at two locations, while other quantities are matched independently.
+
+```python
+from ocelot import *
+from ocelot.cpbd.matcher import MatchProblem
+
+start = Marker(eid="START")
+d = Drift(l=0.5, eid="D")
+q1 = Quadrupole(l=0.2, k1=0.5, eid="Q1")
+q2 = Quadrupole(l=0.2, k1=-0.5, eid="Q2")
+end = Marker(eid="END")
+lat = MagneticLattice((start, d, q1, d, q2, d, end))
+
+tw0 = Twiss()
+tw0.beta_x = 9.0
+tw0.beta_y = 10.0
+tw0.E = 1.0
+
+problem = MatchProblem(lat, tw0, periodic=False)
+problem.vary_element(q1, quantity="k1", limits=(-5, 5))
+problem.vary_element(q2, quantity="k1", limits=(-5, 5))
+problem.vary_twiss("alpha_x", limits=(-5, 5))
+problem.vary_twiss("alpha_y", limits=(-5, 5))
+
+# Strict targets at the end.
+problem.target_twiss(end, "alpha_x", 0.0, weight=1e6)
+problem.target_twiss(end, "beta_y", 9.0, weight=1e6)
+
+# Periodic only for selected quantities.
+problem.target_periodic_twiss("beta_x", start, end, weight=1e6)
+problem.target_periodic_twiss("alpha_y", start, end, weight=1e6)
+
+result = problem.solve(solver="ls_trf", max_iter=300)
+
+# Entrance alphas were variables, so inspect the solved initial Twiss here.
+print(problem.twiss0.alpha_x, problem.twiss0.alpha_y)
+
+merit, reports, objectives, state = problem.evaluate()
+print(state.twiss_at(start).beta_x, state.twiss_at(end).beta_x)
+print(state.twiss_at(start).alpha_y, state.twiss_at(end).alpha_y)
+```
+
+`target_periodic_twiss` adds a normal residual target `end - start == 0`. It does
+not compute a full periodic Twiss seed.
 
 ### 5) Vary Initial Twiss
 
@@ -478,6 +534,108 @@ Why it matters:
 - Without wrapping, equivalent phases can look numerically far apart
   (for example `-pi/2` vs `3*pi/2` gives raw `-2*pi` difference).
 - With `wrap_phase=True`, residual is near zero for equivalent phase targets.
+
+### Advanced Objective Patterns
+
+These patterns are useful when ordinary Twiss/R-matrix targets are not enough.
+They are placed here because the ultimate example below combines the same ideas.
+
+#### Generic Pattern (`I5` as regular objective)
+
+Treat `I5` like any other objective term. The equivalent built-in shortcut is `problem.minimize_i5_integral(weight=1e14)`.
+
+```python
+import numpy as np
+
+from ocelot.cpbd.matcher import MatchProblem
+from ocelot.cpbd.beam_params import radiation_integrals
+
+# Assume: lat, tw0, q1, q2, end are already defined
+problem = MatchProblem(lat, tw0, periodic=True)
+
+# Variables
+problem.vary_element(q1, quantity="k1", limits=(-5, 5))
+problem.vary_element(q2, quantity="k1", limits=(-5, 5))
+
+# Twiss targets
+problem.target_twiss(end, "beta_x", 12.0, weight=1e6)
+problem.target_twiss(end, "beta_y", 9.0, weight=1e6)
+
+# I5 as a generic objective
+problem.minimize_function(
+    lambda state: radiation_integrals(state.lat, state.twiss_start, nsuperperiod=1)[4],
+    name="I5",
+    weight=1e14,
+)
+
+# Or use built-in shortcut:
+# problem.minimize_i5_integral(weight=1e14)
+
+result = problem.solve(solver="ls_trf", max_iter=300)
+print(result.success, result.merit)
+```
+
+#### Custom Integral Objective
+
+You can minimize any function of `MatchState`.
+
+How it works:
+
+- You pass a callable to `problem.minimize_function(...)`.
+- Matcher stores it.
+- On every evaluation/iteration, matcher builds the current `MatchState`
+  internally and calls your function as `func(state)`.
+- You do not create `state` yourself.
+
+Important Python note:
+
+- In `lambda state: ...`, `state` is just the function argument name.
+- It can be any name (`lambda ms: ...` is equivalent).
+- The matcher passes the current `MatchState` object into that argument.
+
+Equivalent forms:
+
+```python
+# lambda form
+problem.minimize_function(
+    lambda state: np.trapz(
+        [tw.beta_x for tw in state.twiss_sequence],
+        [tw.s for tw in state.twiss_sequence],
+    ),
+    name="int_beta_x_ds",
+    weight=1.0,
+)
+
+# named-function form (exact same behavior)
+def integral_beta_x(match_state):
+    return np.trapz(
+        [tw.beta_x for tw in match_state.twiss_sequence],
+        [tw.s for tw in match_state.twiss_sequence],
+    )
+
+problem.minimize_function(integral_beta_x, name="int_beta_x_ds", weight=1.0)
+```
+
+#### Custom `Objective` Class
+
+Use custom class when you need reusable logic.
+
+```python
+import numpy as np
+from ocelot.cpbd.matcher import Objective
+
+class EndSObjective(Objective):
+    def __init__(self, target_s, **kwargs):
+        super().__init__(**kwargs)
+        self.target_s = float(target_s)
+
+    def residuals(self, state):
+        # Matcher minimizes sum(residual^2)
+        return np.array([state.twiss_end.s - self.target_s], dtype=float)
+
+# Add custom objective to problem
+problem.add_objective(EndSObjective(target_s=12.0, name="end_s_obj", weight=1e6))
+```
 
 ### 12) Ultimate Example: Custom Chicane Knob + Tracking Objective + Energy Target
 
