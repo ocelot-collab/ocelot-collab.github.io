@@ -1,24 +1,24 @@
 ---
 sidebar_position: 18
 title: 18. Runge-Kutta Tracking
-description: Runge-Kutta beam tracking and arbitrary magnetic fields
+description: Runge-Kutta beam tracking and arbitrary magnetic fields in OCELOT
 ---
-<small>
-*This notebook was created by Sergey Tomin (sergey.tomin@desy.de). June 2026.*
-</small>
 
-# [18. Runge-Kutta Tracking](https://github.com/ocelot-collab/ocelot/blob/dev/demos/docs/18_runge_kutta_tracking.ipynb)
+# Runge-Kutta Tracking
 
-Most OCELOT beam tracking uses transfer matrices, second-order maps, or kick maps. Sometimes it is useful to track particles directly through a magnetic field with a Runge-Kutta integrator.
+OCELOT has used Runge-Kutta tracking for trajectory calculations in magnetic fields for a long time. This is needed, for example, by synchrotron-radiation and CSR calculations, where the trajectory in a complex magnet has to be known in a fixed Cartesian frame.
 
-OCELOT already used RK integration for synchrotron-radiation and CSR workflows, where the important object is the trajectory in a real 3D magnetic structure. The same field integration can now also be used in beam tracking.
+The same field integrator can also be used as a beam-tracking transfer map. There are two RK maps:
 
-There are two RK transfer-map modes:
+- `RungeKuttaGlobalTM` integrates in the fixed Cartesian field frame. The old name `RungeKuttaTM` is kept as an alias for this behavior.
+- `RungeKuttaOcelotTM` integrates in the same field, but returns OCELOT coordinates relative to the transported reference particle.
 
-- `RungeKuttaGlobalTM` integrates in the fixed Cartesian field frame. The old name `RungeKuttaTM` is kept as an alias for this behavior. This is useful for trajectory-style calculations and diagnostics.
-- `RungeKuttaOcelotTM` integrates in the same magnetic field, but returns OCELOT coordinates relative to the transported reference particle. This is usually the better choice for beam tracking in a lattice.
+For many normal lattice calculations `SecondTM` or kick maps are still faster and should be used first. RK tracking is useful when the magnetic field itself is the object of the model: arbitrary field regions, soft edges, offset magnets used as combined-function magnets, or checks against trajectory-style calculations.
 
-Older examples are still useful as references: see the [small useful features RK section](https://www.ocelot-collab.com/docs/tutorial/tutorial-beam-dynamics/small_useful_features/#tracking-the-electron-beam-with-runge-kutta-integrator-in-magnetic-fields) and [`demos/ebeam/rk_track.py`](https://github.com/ocelot-collab/ocelot/blob/dev/demos/ebeam/rk_track.py).
+The older compact examples are still useful references:
+
+- [tracking the electron beam with Runge-Kutta integrator in magnetic fields](https://www.ocelot-collab.com/docs/tutorial/tutorial-beam-dynamics/small_useful_features/#tracking-the-electron-beam-with-runge-kutta-integrator-in-magnetic-fields)
+- [demos/ebeam/rk_track.py](https://github.com/ocelot-collab/ocelot/blob/dev/demos/ebeam/rk_track.py)
 
 ## Imports
 
@@ -26,110 +26,93 @@ Older examples are still useful as references: see the [small useful features RK
 ```python
 %matplotlib inline
 
-from copy import deepcopy
+from copy import copy, deepcopy
 
 import numpy as np
 import matplotlib.pyplot as plt
 
 from ocelot import *
-from ocelot.common.globals import m_e_GeV, speed_of_light
-from ocelot.cpbd.beam import generate_parray
+from ocelot.cpbd.track import lattice_track, track, tracking_step
 from ocelot.cpbd.high_order import rk_track_in_field
 from ocelot.cpbd.transformations.runge_kutta import RungeKuttaGlobalTM, RungeKuttaOcelotTM, RungeKuttaTM
 
-np.random.seed(12)
+plt.rcParams.update({"figure.figsize": (8.0, 4.6), "axes.grid": True})
+energy = 1.0  # GeV
 ```
 
-```text
-initializing ocelot...
-```
 
 
 ## Example 1: standard lattice, three transfer-map choices
 
-First use only standard OCELOT elements: drifts, two quadrupoles, and one small dipole. No custom field is attached. The RK maps use the built-in hard-edge magnetic fields of the elements.
+First use only standard OCELOT elements: drifts, two quadrupoles, and one small dipole. The particle is tracked with `lattice_track()`, so every point in the plot is an element exit. This is not a dense trajectory inside elements; it is just the cleanest way to compare the coordinate convention of the three transfer maps.
 
-The important point is the coordinate system. `SecondTM` and `RungeKuttaOcelotTM` report OCELOT coordinates relative to the reference trajectory. `RungeKuttaGlobalTM` reports fixed-frame coordinates. The difference appears at the dipole, because the dipole field bends even the zero particle in the fixed frame.
+`SecondTM` and `RungeKuttaOcelotTM` return OCELOT coordinates relative to the reference trajectory. `RungeKuttaGlobalTM` returns fixed-frame coordinates. The difference appears at the dipole, because the dipole field bends even the zero particle in the fixed frame.
 
 
 ```python
-probe = ParticleArray(n=3)
-probe.E = 1.0
-probe.rparticles[:] = 0.0
-probe.rparticles[0, 1] = 150e-6  # particle with initial x offset
-probe.rparticles[1, 2] = 40e-6   # particle with initial px offset
-
-cell_second = (
-    Drift(l=0.20, eid="D1"),
-    Quadrupole(l=0.25, k1=1.2, eid="QF"),
-    Drift(l=0.15, eid="D2"),
-    Bend(l=0.40, angle=0.002, e1=0.0, e2=0.0, eid="B"),
-    Drift(l=0.15, eid="D3"),
-    Quadrupole(l=0.25, k1=-1.2, eid="QD"),
-    Drift(l=0.20, eid="D4"),
-)
-cell_global = (
-    Drift(l=0.20, eid="D1"),
-    Quadrupole(l=0.25, k1=1.2, npoints=800, eid="QF"),
-    Drift(l=0.15, eid="D2"),
-    Bend(l=0.40, angle=0.002, e1=0.0, e2=0.0, npoints=1000, eid="B"),
-    Drift(l=0.15, eid="D3"),
-    Quadrupole(l=0.25, k1=-1.2, npoints=800, eid="QD"),
-    Drift(l=0.20, eid="D4"),
-)
-cell_ocelot = (
-    Drift(l=0.20, eid="D1"),
-    Quadrupole(l=0.25, k1=1.2, npoints=800, eid="QF"),
-    Drift(l=0.15, eid="D2"),
-    Bend(l=0.40, angle=0.002, e1=0.0, e2=0.0, npoints=1000, eid="B"),
-    Drift(l=0.15, eid="D3"),
-    Quadrupole(l=0.25, k1=-1.2, npoints=800, eid="QD"),
-    Drift(l=0.20, eid="D4"),
+cell = (
+    Drift(l=0.30, eid="D1"),
+    Quadrupole(l=0.25, k1=1.1, npoints=700, eid="QF"),
+    Drift(l=0.20, eid="D2"),
+    Bend(l=0.35, angle=0.003, e1=0.0, e2=0.0, npoints=900, eid="B1"),
+    Drift(l=0.20, eid="D3"),
+    Quadrupole(l=0.25, k1=-0.8, npoints=700, eid="QD"),
+    Drift(l=0.30, eid="D4"),
 )
 
-lat_second = MagneticLattice(cell_second, method={"global": SecondTM})
+lat_second = MagneticLattice(deepcopy(cell), method={"global": SecondTM})
 lat_global = MagneticLattice(
-    cell_global,
+    deepcopy(cell),
     method={"global": SecondTM, Bend: RungeKuttaGlobalTM, Quadrupole: RungeKuttaGlobalTM},
 )
 lat_ocelot = MagneticLattice(
-    cell_ocelot,
+    deepcopy(cell),
     method={"global": SecondTM, Bend: RungeKuttaOcelotTM, Quadrupole: RungeKuttaOcelotTM},
 )
 
-histories = {}
-for name, lat in (("SecondTM", lat_second), ("RK global", lat_global), ("RK OCELOT", lat_ocelot)):
-    p = deepcopy(probe)
-    s_values = [0.0]
-    x_values = [p.x().copy() * 1e3]
-    px_values = [p.px().copy() * 1e3]
-    for elem in lat.sequence:
-        for tm in elem.tms:
-            tm.apply(p)
-        s_values.append(s_values[-1] + elem.l)
-        x_values.append(p.x().copy() * 1e3)
-        px_values.append(p.px().copy() * 1e3)
-    histories[name] = (np.array(s_values), np.vstack(x_values), np.vstack(px_values))
+tracks = {}
+for label, lat in (
+    ("SecondTM", lat_second),
+    ("RK global", lat_global),
+    ("RK OCELOT", lat_ocelot),
+):
+    particle = Particle(x=150e-6, px=20e-6, E=energy)
+    plist = lattice_track(lat, particle)
+    tracks[label] = {
+        "s": np.array([p.s for p in plist]),
+        "x": np.array([p.x for p in plist]),
+        "px": np.array([p.px for p in plist]),
+    }
 
-fig, axes = plt.subplots(1, 2, figsize=(10.5, 4.0), sharex=True)
-for name, (s_values, x_values, px_values) in histories.items():
-    axes[0].plot(s_values, x_values[:, 0], marker="o", label=name)
-    axes[1].plot(s_values, x_values[:, 1], marker="o", label=name)
+fig, axes = plt.subplots(2, 1, figsize=(8.4, 6.2), sharex=True)
+axes[0].plot(tracks["SecondTM"]["s"], tracks["SecondTM"]["x"] * 1e3, "k-", lw=2.4, label="SecondTM")
+axes[0].plot(tracks["RK global"]["s"], tracks["RK global"]["x"] * 1e3, "r--", lw=1.8, label="RK global")
+axes[0].plot(
+    tracks["RK OCELOT"]["s"],
+    tracks["RK OCELOT"]["x"] * 1e3,
+    "o",
+    ms=6,
+    mfc="none",
+    mec="tab:blue",
+    mew=1.6,
+    label="RK OCELOT",
+)
+axes[0].set_ylabel("x [mm]")
+axes[0].set_title("same particle after each element")
+axes[0].legend()
 
-for ax in axes:
-    ax.axvspan(0.60, 1.00, color="tab:orange", alpha=0.12)
-    ax.set_xlabel("s [m]")
-    ax.set_ylabel("x [mm]")
-    ax.grid(True)
-axes[0].set_title("zero particle")
-axes[1].set_title("particle with x0 = 150 um")
+for label, color, marker in (("RK global", "tab:red", "s"), ("RK OCELOT", "tab:blue", "o")):
+    residual = (tracks[label]["x"] - tracks["SecondTM"]["x"]) * 1e6
+    axes[1].plot(tracks[label]["s"], residual, marker=marker, color=color, mfc="none", label=f"{label} - SecondTM")
+axes[1].axhline(0.0, color="0.25", lw=0.8)
+axes[1].set_xlabel("s [m]")
+axes[1].set_ylabel("Delta x [um]")
 axes[1].legend()
-fig.suptitle("The fixed-frame RK difference starts in the dipole")
 plt.tight_layout()
 plt.show()
 
-for name, (s_values, x_values, px_values) in histories.items():
-    print(f"{name:9s}: reference x = {x_values[-1, 0]: .6f} mm, px = {px_values[-1, 0]: .6f} mrad")
+for label in tracks:
+    print(f"{label:9s}: x_end = {tracks[label]['x'][-1] * 1e3: .6f} mm, px_end = {tracks[label]['px'][-1] * 1e3: .6f} mrad")
 ```
 
 
@@ -137,202 +120,144 @@ for name, (s_values, x_values, px_values) in histories.items():
 
 
 ```text
-SecondTM : reference x =  0.000000 mm, px =  0.000000 mrad
-RK global: reference x = -1.690312 mm, px = -2.288111 mrad
-RK OCELOT: reference x =  0.000000 mm, px =  0.000000 mrad
+SecondTM : x_end =  0.137202 mm, px_end =  0.004212 mrad
+RK global: x_end = -2.762974 mm, px_end = -3.297996 mrad
+RK OCELOT: x_end =  0.137205 mm, px_end =  0.004216 mrad
 ```
 
 
-## Example 2: user field with an analytical solution
+## Example 2: arbitrary soft-edge field in a Bend
 
-A `Drift` can be used as a named field region when a magnetic-field callback is attached. To make the plot meaningful, use the simplest field with a known analytical solution: a constant vertical magnetic field.
+Any magnet can carry a user magnetic field through `element.mag_field`. Here the element is a `Bend`, not a `Drift`, because the physical object is still a dipole region in the lattice.
 
-For a particle entering with zero angle and a constant curvature `h = B / Brho`, the fixed-frame trajectory is a circular arc. With the sign convention used by the RK equations below,
-
-$$
-x(z) = \frac{\sqrt{1 - (h z)^2} - 1}{h}, \qquad x'(z) = \frac{-h z}{\sqrt{1 - (h z)^2}}.
-$$
-
-This example checks the RK trajectory against that analytical result.
+The function below is a longitudinal soft-edge vertical field. The hard-edge comparison bend uses the same integrated field, so the two models have the same nominal total angle. We track the same particle with `tracking_step()` to show the beam-dynamics difference along the element.
 
 
 ```python
-energy = 1.0
 gamma = energy / m_e_GeV
-beta = np.sqrt(1.0 - 1.0 / gamma**2)
-brho = beta * energy * 1e9 / speed_of_light
+beta_rel = np.sqrt(1.0 - 1.0 / gamma**2)
+brho = beta_rel * energy * 1e9 / speed_of_light
 
-field_length = 0.50
-curvature = 0.012
-by0 = brho * curvature
+soft_length = 0.70
+z1 = 0.12
+z2 = 0.58
+edge_width = 0.045
+peak_curvature = 0.040
+peak_by = brho * peak_curvature
 
-def constant_vertical_field(x, y, z):
-    return 0.0 * x, by0 + 0.0 * x, 0.0 * x
 
-zero = ParticleArray(n=1)
-zero.E = energy
-zero.rparticles[:] = 0.0
+def soft_profile(z):
+    return 0.5 * (np.tanh((z - z1) / edge_width) - np.tanh((z - z2) / edge_width))
 
-field_region = Drift(l=field_length, npoints=1200, eid="UNIFORM_FIELD")
-field_region.mag_field = constant_vertical_field
-field_region.set_tm(RungeKuttaGlobalTM)
-tracked_zero = deepcopy(zero)
-for tm in field_region.tms:
-    tm.apply(tracked_zero)
 
-trajectory = rk_track_in_field(zero.rparticles.copy(), field_length, 1200, energy, constant_vertical_field)
-z = trajectory[4::9, 0]
-x_rk = trajectory[0::9, 0]
-px_rk = trajectory[1::9, 0]
-x_analytic = (np.sqrt(1.0 - (curvature * z)**2) - 1.0) / curvature
-px_analytic = -curvature * z / np.sqrt(1.0 - (curvature * z)**2)
+def soft_bend_field(x, y, z):
+    by = peak_by * soft_profile(z)
+    return 0.0 * x, by + 0.0 * x, 0.0 * x
 
-fig, axes = plt.subplots(1, 2, figsize=(10.5, 4.0))
-axes[0].plot(z, x_analytic * 1e3, label="analytical", lw=2)
-axes[0].plot(z, x_rk * 1e3, "--", label="RK trajectory")
+
+z_grid = np.linspace(0.0, soft_length, 800)
+by_grid = peak_by * soft_profile(z_grid)
+soft_angle = np.trapezoid(by_grid, z_grid) / brho
+
+soft_bend = Bend(l=soft_length, angle=soft_angle, e1=0.0, e2=0.0, npoints=80, eid="B_SOFT")
+soft_bend.mag_field = soft_bend_field
+hard_bend = Bend(l=soft_length, angle=soft_angle, e1=0.0, e2=0.0, eid="B_HARD")
+
+lat_soft = MagneticLattice((soft_bend, Drift(l=0.05, eid="D_AFTER")), method={Bend: RungeKuttaOcelotTM})
+lat_hard = MagneticLattice((hard_bend, Drift(l=0.05, eid="D_AFTER")), method={Bend: SecondTM})
+
+p_soft = Particle(x=0.25e-3, px=0.15e-3, E=energy)
+p_hard = Particle(x=0.25e-3, px=0.15e-3, E=energy)
+navi_soft = Navigator(lat_soft)
+navi_hard = Navigator(lat_hard)
+
+s_soft = [p_soft.s]
+x_soft = [p_soft.x]
+px_soft = [p_soft.px]
+s_hard = [p_hard.s]
+x_hard = [p_hard.x]
+px_hard = [p_hard.px]
+
+dz = soft_length / 120
+while navi_soft.z0 < lat_soft.totalLen - 1e-12:
+    step = min(dz, lat_soft.totalLen - navi_soft.z0)
+    tracking_step(lat_soft, [p_soft], dz=step, navi=navi_soft)
+    tracking_step(lat_hard, [p_hard], dz=step, navi=navi_hard)
+    s_soft.append(p_soft.s)
+    x_soft.append(p_soft.x)
+    px_soft.append(p_soft.px)
+    s_hard.append(p_hard.s)
+    x_hard.append(p_hard.x)
+    px_hard.append(p_hard.px)
+
+s_soft = np.array(s_soft)
+x_soft = np.array(x_soft)
+px_soft = np.array(px_soft)
+s_hard = np.array(s_hard)
+x_hard = np.array(x_hard)
+px_hard = np.array(px_hard)
+
+fig, axes = plt.subplots(1, 2, figsize=(10.2, 4.0))
+axes[0].plot(z_grid, by_grid, lw=2.0)
 axes[0].set_xlabel("z [m]")
-axes[0].set_ylabel("x [mm]")
-axes[0].set_title("constant-field circular arc")
-axes[0].grid(True)
-axes[0].legend()
+axes[0].set_ylabel("By [T]")
+axes[0].set_title("soft-edge Bend field")
 
-axes[1].plot(z, (x_rk - x_analytic) * 1e9, label="x error")
-axes[1].plot(z, (px_rk - px_analytic) * 1e9, label="px error")
-axes[1].set_xlabel("z [m]")
-axes[1].set_ylabel("error [nm or nrad]")
-axes[1].set_title("RK minus analytical solution")
-axes[1].grid(True)
+axes[1].plot(s_hard, x_hard * 1e3, "k-", lw=2.0, label="SecondTM hard edge")
+axes[1].plot(s_soft, x_soft * 1e3, "tab:blue", lw=1.8, label="RK OCELOT soft edge")
+axes[1].set_xlabel("s [m]")
+axes[1].set_ylabel("x [mm]")
+axes[1].set_title("particle tracking through the bend")
 axes[1].legend()
 plt.tight_layout()
 plt.show()
 
-print(f"field By = {by0:.6e} T")
-print(f"final RK x  = {tracked_zero.x()[0] * 1e3:.9f} mm")
-print(f"final ana x = {x_analytic[-1] * 1e3:.9f} mm")
-print(f"final RK px  = {tracked_zero.px()[0] * 1e3:.9f} mrad")
-print(f"final ana px = {px_analytic[-1] * 1e3:.9f} mrad")
+plt.figure(figsize=(8.4, 3.4))
+plt.plot(s_soft, (x_soft - x_hard) * 1e6, color="tab:blue", label="x residual")
+plt.plot(s_soft, (px_soft - px_hard) * 1e6, color="tab:orange", label="px residual")
+plt.axhline(0.0, color="0.25", lw=0.8)
+plt.xlabel("s [m]")
+plt.ylabel("residual [um or urad]")
+plt.title("RK soft edge - SecondTM hard edge")
+plt.legend()
+plt.tight_layout()
+plt.show()
+
+print(f"integrated soft-edge angle = {soft_angle:.9e} rad")
+print(f"final x difference  = {(x_soft[-1] - x_hard[-1]) * 1e6:.6f} um")
+print(f"final px difference = {(px_soft[-1] - px_hard[-1]) * 1e6:.6f} urad")
 ```
 
 
 ![png](/img/18_runge_kutta_tracking_files/18_runge_kutta_tracking_6_0.png)
 
 
+
+![png](/img/18_runge_kutta_tracking_files/18_runge_kutta_tracking_6_1.png)
+
+
 ```text
-field By = 4.002769e-02 T
-final RK x  = -1.500013304 mm
-final ana x = -1.500013500 mm
-final RK px  = -6.000107220 mrad
-final ana px = -6.000108003 mrad
+integrated soft-edge angle = 1.839132951e-02 rad
+final x difference  = 0.055036 um
+final px difference = 0.146451 urad
 ```
 
 
-## Example 3: soft-edge dipole field
+## Example 3: offset quadrupole as a combined-function magnet
 
-A hard-edge `Bend` is a compact model. RK tracking can instead use a longitudinal field profile. A common simple soft-edge approximation is a smooth top-hat made from two hyperbolic tangents:
+An offset quadrupole has a dipole component on the original design axis. `RungeKuttaOcelotTM` tracks the zero particle through the actual offset field and then uses that transported particle as the local reference. In this interpretation the offset quadrupole is a combined-function magnet.
 
-$$
-f(z) = \frac{1}{2}\left[\tanh\left(\frac{z-z_1}{a}\right) - \tanh\left(\frac{z-z_2}{a}\right)\right].
-$$
-
-The hard-edge comparison below uses the same integrated bending angle,
-
-$$
-\theta = \int h(z)\,dz.
-$$
-
-So the comparison is not between identical fields; it shows what is lost when a soft field profile is replaced by a hard-edge second-order map with the same field integral.
-
+For comparison with a conventional `Bend`, first track the zero particle through the offset quadrupole with `RungeKuttaGlobalTM`. The equivalent bend angle must come from the reference-particle exit slope. With the sign convention in this example:
 
 ```python
-soft_length = 0.70
-z1 = 0.10
-z2 = 0.60
-edge_width = 0.035
-peak_curvature = 0.014
-peak_by = brho * peak_curvature
-
-z_grid = np.linspace(0.0, soft_length, 1000)
-soft_profile = 0.5 * (np.tanh((z_grid - z1) / edge_width) - np.tanh((z_grid - z2) / edge_width))
-soft_angle = np.trapezoid(peak_curvature * soft_profile, z_grid)
-hard_edge_by = brho * soft_angle / soft_length
-
-def soft_dipole_field(x, y, z):
-    profile = 0.5 * (np.tanh((z - z1) / edge_width) - np.tanh((z - z2) / edge_width))
-    return 0.0 * x, peak_by * profile + 0.0 * x, 0.0 * x
-
-soft_region = Drift(l=soft_length, npoints=1600, eid="SOFT_BEND")
-soft_region.mag_field = soft_dipole_field
-soft_region.set_tm(RungeKuttaOcelotTM)
-
-hard_bend = Bend(l=soft_length, angle=soft_angle, e1=0.0, e2=0.0, eid="HARD_BEND")
-hard_bend.set_tm(SecondTM)
-
-beam_soft0 = generate_parray(
-    sigma_x=80e-6,
-    sigma_px=12e-6,
-    sigma_y=80e-6,
-    sigma_py=12e-6,
-    sigma_tau=1e-6,
-    sigma_p=0.0,
-    chirp=0.0,
-    charge=100e-12,
-    nparticles=4000,
-    energy=energy,
-)
-
-beam_soft = deepcopy(beam_soft0)
-beam_hard = deepcopy(beam_soft0)
-for tm in soft_region.tms:
-    tm.apply(beam_soft)
-for tm in hard_bend.tms:
-    tm.apply(beam_hard)
-
-fig, axes = plt.subplots(1, 2, figsize=(10.5, 4.0))
-axes[0].plot(z_grid, peak_by * soft_profile, label="soft-edge field")
-axes[0].hlines(hard_edge_by, 0.0, soft_length, colors="tab:orange", linestyles="--", label="same-integral hard edge")
-axes[0].set_xlabel("z [m]")
-axes[0].set_ylabel("By [T]")
-axes[0].set_title("soft-edge dipole field")
-axes[0].grid(True)
-axes[0].legend()
-
-axes[1].scatter(beam_soft0.x() * 1e3, (beam_soft.x() - beam_hard.x()) * 1e6, s=5, alpha=0.35, label="x")
-axes[1].scatter(beam_soft0.x() * 1e3, (beam_soft.px() - beam_hard.px()) * 1e6, s=5, alpha=0.35, label="px")
-axes[1].set_xlabel("initial x [mm]")
-axes[1].set_ylabel("RK soft edge - SecondTM hard edge [um or urad]")
-axes[1].set_title("final coordinate residuals")
-axes[1].grid(True)
-axes[1].legend()
-plt.tight_layout()
-plt.show()
-
-print(f"integrated soft-edge angle = {soft_angle:.9e} rad")
-print(f"std(x_RK - x_Second)  = {np.std(beam_soft.x() - beam_hard.x()) * 1e6:.6f} um")
-print(f"std(px_RK - px_Second) = {np.std(beam_soft.px() - beam_hard.px()) * 1e6:.6f} urad")
+angle = -atan(px_ref)
 ```
 
+The simple beam line below is tracked three times with `track(...)`:
 
-![png](/img/18_runge_kutta_tracking_files/18_runge_kutta_tracking_8_0.png)
-
-
-```text
-integrated soft-edge angle = 6.998386177e-03 rad
-std(x_RK - x_Second)  = 0.000020 um
-std(px_RK - px_Second) = 0.005580 urad
-```
-
-
-## Example 4: offset quadrupole as a combined-function bend
-
-An offset quadrupole has a dipole component on the original design axis. With `RungeKuttaOcelotTM`, the zero particle is transported through that actual field and becomes the local reference. In that interpretation the element behaves like a combined-function magnet.
-
-To compare it with a conventional `Bend`, first track the zero particle through the offset quadrupole with `RungeKuttaGlobalTM`. The equivalent bend angle should be taken from the exit angle of that reference particle. With OCELOT's bend sign convention for this field, the angle used below is `-atan(px_ref)`.
-
-The comparison uses small basis particles to build the linear 4x4 transverse map, then propagates simple Twiss parameters through three models. The plot zooms on the horizontal Twiss parameters, where the dipole curvature changes the focusing:
-
-- offset quadrupole with `RungeKuttaOcelotTM`
-- equivalent `Bend(angle=-atan(px_ref), k1=q.k1)` with `SecondTM`
-- centered quadrupole with `SecondTM`
+- centered quadrupole, `SecondTM`
+- offset quadrupole, `RungeKuttaOcelotTM`
+- equivalent `Bend(angle=-atan(px_ref), k1=q.k1)`, `SecondTM`
 
 
 ```python
@@ -340,95 +265,94 @@ quad_length = 0.60
 quad_k1 = 4.0
 quad_dx = 0.020
 
-reference = ParticleArray(n=1)
-reference.E = energy
-reference.rparticles[:] = 0.0
-q_reference = Quadrupole(l=quad_length, k1=quad_k1, dx=quad_dx, npoints=3000, eid="Q_OFFSET_REF")
+q_reference = Quadrupole(l=quad_length, k1=quad_k1, dx=quad_dx, npoints=4000, eid="Q_REF")
 q_reference.set_tm(RungeKuttaGlobalTM)
+reference = Particle(E=energy)
 for tm in q_reference.tms:
     tm.apply(reference)
 
-px_ref = reference.px()[0]
-equivalent_angle = -np.arctan(px_ref)
+equivalent_angle = -np.arctan(reference.px)
 
-eps = 1.0e-7
-basis = ParticleArray(n=5)
-basis.E = energy
-basis.rparticles[:] = 0.0
-basis.rparticles[0, 1] = eps
-basis.rparticles[1, 2] = eps
-basis.rparticles[2, 3] = eps
-basis.rparticles[3, 4] = eps
+d1 = Drift(l=0.40, eid="D1")
+d2 = Drift(l=0.40, eid="D2")
 
-q_offset = Quadrupole(l=quad_length, k1=quad_k1, dx=quad_dx, npoints=3000, eid="Q_OFFSET")
-equivalent_bend = Bend(l=quad_length, angle=equivalent_angle, k1=quad_k1, e1=0.0, e2=0.0, eid="B_EQ")
-q_centered = Quadrupole(l=quad_length, k1=quad_k1, eid="Q_CENTERED")
+lat_centered = MagneticLattice(
+    (deepcopy(d1), Quadrupole(l=quad_length, k1=quad_k1, eid="Q_CENTER"), deepcopy(d2)),
+    method={"global": SecondTM},
+)
+q_offset = Quadrupole(l=quad_length, k1=quad_k1, dx=quad_dx, npoints=2500, eid="Q_OFFSET")
+lat_offset = MagneticLattice(
+    (deepcopy(d1), q_offset, deepcopy(d2)),
+    method={"global": SecondTM},
+)
 q_offset.set_tm(RungeKuttaOcelotTM)
-equivalent_bend.set_tm(SecondTM)
-q_centered.set_tm(SecondTM)
+lat_bend = MagneticLattice(
+    (
+        deepcopy(d1),
+        Bend(l=quad_length, angle=equivalent_angle, k1=quad_k1, e1=0.0, e2=0.0, eid="B_EQ"),
+        deepcopy(d2),
+    ),
+    method={"global": SecondTM},
+)
 
-maps = {}
-for label, element in (("offset quad RK", q_offset), ("equiv. Bend", equivalent_bend), ("centered quad", q_centered)):
-    p = deepcopy(basis)
-    for tm in element.tms:
-        tm.apply(p)
-    maps[label] = (p.rparticles[:4, 1:] - p.rparticles[:4, [0]]) / eps
+np.random.seed(5)
+tws0 = Twiss(beta_x=7.0, alpha_x=0.8, beta_y=6.0, alpha_y=-0.3, emit_xn=1.0e-6, emit_yn=1.0e-6, E=energy)
+beam0 = generate_parray(tws=tws0, nparticles=25000, energy=energy, sigma_tau=1.0e-6, sigma_p=0.0, charge=250e-12)
 
-beta_x0 = 12.0
-alpha_x0 = 1.0
-gamma_x0 = (1.0 + alpha_x0**2) / beta_x0
-sigma_x0 = np.array([[beta_x0, -alpha_x0], [-alpha_x0, gamma_x0]])
+tws_centered, beam_centered = track(lat_centered, deepcopy(beam0), print_progress=False)
+tws_offset, beam_offset = track(lat_offset, deepcopy(beam0), print_progress=False)
+tws_bend, beam_bend = track(lat_bend, deepcopy(beam0), print_progress=False)
 
-beta_y0 = 10.0
-alpha_y0 = 0.0
-gamma_y0 = (1.0 + alpha_y0**2) / beta_y0
-sigma_y0 = np.array([[beta_y0, -alpha_y0], [-alpha_y0, gamma_y0]])
+fig, axes = plt.subplots(2, 1, figsize=(8.6, 6.4), sharex=True)
+for label, tws_track, style in (
+    ("centered quad", tws_centered, "k-"),
+    ("offset quad RK", tws_offset, "tab:blue"),
+    ("equiv. Bend", tws_bend, "tab:orange"),
+):
+    s = np.array([tw.s for tw in tws_track])
+    beta_x = np.array([tw.beta_x for tw in tws_track])
+    beta_y = np.array([tw.beta_y for tw in tws_track])
+    x_centroid = np.array([tw.x for tw in tws_track])
+    axes[0].plot(s, beta_x, style, lw=2.0, marker="o", ms=4, label=label)
+    axes[1].plot(s, x_centroid * 1e6, style, lw=2.0, marker="o", ms=4, label=label)
 
-labels = []
-beta_x = []
-alpha_x = []
-beta_y = []
-alpha_y = []
-for label, matrix in maps.items():
-    sigma_x = matrix[:2, :2] @ sigma_x0 @ matrix[:2, :2].T
-    sigma_y = matrix[2:4, 2:4] @ sigma_y0 @ matrix[2:4, 2:4].T
-    labels.append(label)
-    beta_x.append(sigma_x[0, 0])
-    alpha_x.append(-sigma_x[0, 1])
-    beta_y.append(sigma_y[0, 0])
-    alpha_y.append(-sigma_y[0, 1])
-
-x = np.arange(len(labels))
-fig, axes = plt.subplots(1, 2, figsize=(10.5, 4.0))
-axes[0].bar(x, beta_x, width=0.55)
-axes[0].set_xticks(x)
-axes[0].set_xticklabels(labels, rotation=15)
-axes[0].set_ylim(min(beta_x) - 0.006, max(beta_x) + 0.006)
 axes[0].set_ylabel("beta_x [m]")
-axes[0].set_title("horizontal beta after one element")
-axes[0].grid(True, axis="y")
+axes[0].set_title("Twiss track through the same beam line")
+axes[0].legend()
+axes[1].set_xlabel("s [m]")
+axes[1].set_ylabel("beam centroid x [um]")
+axes[1].legend()
+plt.tight_layout()
+plt.show()
 
-axes[1].bar(x, alpha_x, width=0.55)
-axes[1].set_xticks(x)
-axes[1].set_xticklabels(labels, rotation=15)
-axes[1].set_ylim(min(alpha_x) - 0.010, max(alpha_x) + 0.010)
-axes[1].set_ylabel("alpha_x")
-axes[1].set_title("horizontal alpha after one element")
-axes[1].grid(True, axis="y")
+plt.figure(figsize=(7.6, 4.0))
+plt.scatter(beam_centered.x() * 1e3, beam_centered.px() * 1e3, s=2, alpha=0.15, label="centered quad")
+plt.scatter(beam_offset.x() * 1e3, beam_offset.px() * 1e3, s=2, alpha=0.15, label="offset quad RK")
+plt.scatter(beam_bend.x() * 1e3, beam_bend.px() * 1e3, s=2, alpha=0.15, label="equiv. Bend")
+plt.xlabel("x [mm]")
+plt.ylabel("px [mrad]")
+plt.title("final horizontal phase space")
+plt.legend(markerscale=4)
 plt.tight_layout()
 plt.show()
 
 print(f"offset dx = {quad_dx * 1e3:.1f} mm")
-print(f"reference exit x  = {reference.x()[0] * 1e3:.6f} mm")
-print(f"reference exit px = {px_ref * 1e3:.6f} mrad")
+print(f"reference exit x  = {reference.x * 1e3:.6f} mm")
+print(f"reference exit px = {reference.px * 1e3:.6f} mrad")
 print(f"equivalent Bend angle = {equivalent_angle:.9e} rad")
-for label, bx, ax, by, ay in zip(labels, beta_x, alpha_x, beta_y, alpha_y):
-    print(f"{label:14s}: beta_x={bx:.6f} m, alpha_x={ax:.6f}, beta_y={by:.6f} m, alpha_y={ay:.6f}")
-print("max |R(offset quad RK) - R(equivalent Bend)| =", np.max(np.abs(maps["offset quad RK"] - maps["equiv. Bend"])))
+print(f"final beta_x, offset quad RK = {tws_offset[-1].beta_x:.6f} m")
+print(f"final beta_x, equivalent Bend = {tws_bend[-1].beta_x:.6f} m")
+print(f"final beta_x, centered quad   = {tws_centered[-1].beta_x:.6f} m")
 ```
 
 
-![png](/img/18_runge_kutta_tracking_files/18_runge_kutta_tracking_10_0.png)
+
+
+![png](/img/18_runge_kutta_tracking_files/18_runge_kutta_tracking_8_1.png)
+
+
+
+![png](/img/18_runge_kutta_tracking_files/18_runge_kutta_tracking_8_2.png)
 
 
 ```text
@@ -436,34 +360,96 @@ offset dx = 20.0 mm
 reference exit x  = 12.757669 mm
 reference exit px = 37.304761 mrad
 equivalent Bend angle = -3.728747041e-02 rad
-offset quad RK: beta_x=1.269088 m, alpha_x=7.327914, beta_y=32.836103 m, alpha_y=-54.774932
-equiv. Bend   : beta_x=1.269982 m, alpha_x=7.332939, beta_y=32.841698 m, alpha_y=-54.798948
-centered quad : beta_x=1.274102 m, alpha_x=7.340020, beta_y=32.841698 m, alpha_y=-54.798948
-max |R(offset quad RK) - R(equivalent Bend)| = 0.001067201613210056
+final beta_x, offset quad RK = 2.904724 m
+final beta_x, equivalent Bend = 2.930574 m
+final beta_x, centered quad   = 1.351287 m
 ```
 
 
-## Integration step inside an element
+## Setting the integration step inside an element
 
 The RK integration uses `npoints` longitudinal integration points inside the element. The default is 200.
 
 `npoints` can be set in the element constructor and then used later when the lattice selects an RK map through `MagneticLattice(..., method={...})`. This is the simplest way to give different elements different RK grids.
 
-You can still override it with `set_tm(..., npoints=...)` on a single element.
-
 
 ```python
 q_step = Quadrupole(l=0.5, k1=0.7, npoints=1200, eid="Q_STEP")
 lat_step = MagneticLattice((q_step,), method={Quadrupole: RungeKuttaOcelotTM})
-print("npoints from constructor:", lat_step.sequence[0].tms[0].npoints)
+print("npoints from constructor:", q_step.tms[0].npoints)
 
 q_step.set_tm(RungeKuttaOcelotTM, npoints=600)
-print("npoints after set_tm override:", q_step.tms[0].npoints)
+print("npoints after explicit set_tm override:", q_step.tms[0].npoints)
 ```
 
 ```text
 npoints from constructor: 1200
-npoints after set_tm override: 600
+npoints after explicit set_tm override: 600
+```
+
+
+## Last example: using the low-level RK field integrator
+
+Most beam tracking should use transfer maps in a `MagneticLattice`. Sometimes, however, one wants the raw trajectory inside a magnetic field, for example for diagnostics or radiation calculations. In that case the lower-level function is `rk_track_in_field(...)`.
+
+Here the field is a constant vertical magnetic field, so the analytical solution is a circular arc. This makes it a compact check of the low-level integrator.
+
+
+```python
+field_length = 0.30
+target_angle = 6.0e-3
+constant_by = brho * target_angle / field_length
+
+
+def constant_vertical_field(x, y, z):
+    return 0.0 * x, constant_by + 0.0 * x, 0.0 * x
+
+
+zero = ParticleArray(n=1)
+zero.E = energy
+zero.rparticles[:] = 0.0
+
+trajectory = rk_track_in_field(zero.rparticles.copy(), field_length, 1200, energy, constant_vertical_field)
+x_rk = trajectory[0::9, 0]
+px_rk = trajectory[1::9, 0]
+z_rk = trajectory[4::9, 0]
+
+rho = field_length / target_angle
+x_analytical = -rho * (1.0 - np.cos(z_rk / rho))
+px_analytical = -np.tan(z_rk / rho)
+
+fig, axes = plt.subplots(1, 2, figsize=(10.0, 4.0))
+axes[0].plot(z_rk, x_rk * 1e3, label="RK")
+axes[0].plot(z_rk, x_analytical * 1e3, "--", label="analytical")
+axes[0].set_xlabel("z [m]")
+axes[0].set_ylabel("x [mm]")
+axes[0].set_title("trajectory")
+axes[0].legend()
+
+axes[1].plot(z_rk, (x_rk - x_analytical) * 1e9)
+axes[1].set_xlabel("z [m]")
+axes[1].set_ylabel("x_RK - x_analytical [nm]")
+axes[1].set_title("numerical error")
+plt.tight_layout()
+plt.show()
+
+print(f"field By = {constant_by:.6e} T")
+print(f"final RK x  = {x_rk[-1] * 1e3:.9f} mm")
+print(f"final ana x = {x_analytical[-1] * 1e3:.9f} mm")
+print(f"final RK px  = {px_rk[-1] * 1e3:.9f} mrad")
+print(f"final ana px = {px_analytical[-1] * 1e3:.9f} mrad")
+```
+
+
+![png](/img/18_runge_kutta_tracking_files/18_runge_kutta_tracking_12_0.png)
+
+
+```text
+field By = 6.671281e-02 T
+final RK x  = -0.900007983 mm
+final ana x = -0.899997300 mm
+final RK px  = -6.000107220 mrad
+final ana px = -6.000072001 mrad
 ```
 
 
@@ -471,6 +457,16 @@ npoints after set_tm override: 600
 
 Use `RungeKuttaOcelotTM` when the result should remain in OCELOT coordinates. Use `RungeKuttaGlobalTM` or the legacy `RungeKuttaTM` name when the fixed-frame trajectory itself is the object of interest.
 
-Custom magnetic fields can be attached to drifts or magnets with `element.mag_field = ...` or `mag_field=...`. The field callback returns `Bx`, `By`, and `Bz` in Tesla and should work with NumPy arrays.
+Use `MagneticLattice(..., method={...})` for normal tracking-map selection:
+
+```python
+method = {
+    "global": SecondTM,
+    Bend: RungeKuttaOcelotTM,
+    Quadrupole: RungeKuttaOcelotTM,
+}
+```
+
+Use `element.mag_field = my_field` when the element should use a user-supplied field. This works for magnets such as `Bend`, `Quadrupole`, `Sextupole`, `Octupole`, `Solenoid`, `Undulator`, and also for `Drift` field regions.
 
 Offsets such as `dx` and `dy` are included in the default hard-edge RK fields. `RungeKuttaGlobalTM` shows the fixed-frame kick. `RungeKuttaOcelotTM` can treat the same offset as part of the transported reference trajectory, which is useful for combined-function interpretations.
