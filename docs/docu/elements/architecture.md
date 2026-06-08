@@ -65,6 +65,28 @@ One subtle but important point is that the wrapper contract and the atom hook su
 
 For example, `Cavity` keeps a first-order `TransferMap` path for optics and `R()`, but its active wrapper contract is still only `CavityTM`.
 
+## Explicit Versus Global TM Requests
+
+Transformation requests have two different meanings in OCELOT.
+
+Explicit requests are strict. They include:
+
+- `Quadrupole(..., tm=SecondTM)`
+- `element.set_tm(SecondTM)`
+- `MagneticLattice(cell, method={Quadrupole: SecondTM})`
+
+If an explicit request asks an element family for a transformation that is not in its active wrapper contract, OCELOT raises an error. This catches cases where a user or script asked a specific family to use a method that the family does not support.
+
+Global lattice requests are permissive. A request such as:
+
+```python
+lat = MagneticLattice(cell, method={"global": SecondTM})
+```
+
+means "use `SecondTM` where the element family supports it." If a family does not support the global method, the wrapper silently falls back to its `default_tm`.
+
+This is intentional for mixed lattices. For example, under `method={"global": TransferMap}` or `method={"global": SecondTM}`, a `Cavity` still uses `CavityTM` as its active tracking method. Its first-order `TransferMap` path remains available for optics and Twiss calculations through `first_order_tms`, but `TransferMap` is not exposed as an active cavity tracking method.
+
 ## Edge-aware Elements
 
 The atom attribute `has_edge` controls how a wrapper builds its map sequence.

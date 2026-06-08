@@ -30,6 +30,7 @@ This split allows OCELOT to keep a stable public API while still supporting seve
 
 - The same element family can support several active tracking methods.
 - First-order optics remain available even when active tracking uses another transformation.
+- A lattice-wide transformation request is a broad default: families that do not support it keep their own default active transformation.
 - Edge-aware elements can build `ENTRANCE -> MAIN -> EXIT` map sequences.
 - Public element attributes such as `quad.k1` remain convenient, while the actual physics state lives on the atom.
 

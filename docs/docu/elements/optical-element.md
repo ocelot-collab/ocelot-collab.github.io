@@ -95,7 +95,7 @@ lat = MagneticLattice(cell, method={"global": SecondTM})
 Selection rules in the current architecture:
 
 - explicit family-specific requests must be supported by the wrapper, otherwise an error is raised
-- broad global lattice requests may warn and fall back to the family `default_tm`
+- broad global lattice requests are permissive: unsupported families fall back silently to the family `default_tm`
 - families that declare only one active TM, such as `Cavity`, keep that method active even when a global lattice request asks for another one
 
 ## Edge Elements and Section Maps
