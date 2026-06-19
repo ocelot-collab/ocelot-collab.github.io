@@ -44,7 +44,7 @@ Most practical work happens in subclasses.
 | `SecondOrderParams` | `R`, `B`, `T`, `tilt`, `dx`, `dy` | `SecondTM` | second-order tensor plus linear part and offsets |
 | `CavityParams` | `R`, `B`, `tilt`, `v`, `freq`, `phi` | `CavityTM`, `TWCavityTM` | linear cavity map plus RF settings |
 | `KickParams` | `dx`, `dy`, `tilt`, `angle`, `k1`, `k2`, `k3` | `KickTM` | strengths and offsets for algorithmic kick tracking |
-| `RungeKuttaParams` | `mag_field` callable | `RungeKuttaTM`, `RungeKuttaTrTM` | field callback for numerical integration |
+| `RungeKuttaParams` | `mag_field` callable | `RungeKuttaGlobalTM`, `RungeKuttaOcelotTM`, `RungeKuttaTM`, `RungeKuttaTrTM` | field callback for RK integration through static magnetic fields |
 | `MultipoleParams` | `kn` | `MultipoleTM` | multipole strength list |
 | `UndulatorTestParams` | `lperiod`, `Kx`, `ax` | `UndulatorTestTM` | metadata for the simplified undulator map |
 
@@ -69,6 +69,12 @@ It also provides `get_rotated_R()`, which is what [`TransferMap`](./first-order.
 
 It also provides `get_rotated_T()`, used by [`SecondTM`](./second-order.md).
 
+### `RungeKuttaParams`
+
+[`RungeKuttaParams`](https://github.com/ocelot-collab/ocelot/blob/master/ocelot/cpbd/tm_params/runge_kutta_params.py) stores the magnetic-field callback used by RK transfer maps. For RK-capable magnetic elements this callback comes either from an attached `element.mag_field` or from the element's built-in hard-edge field model.
+
+See [Runge-Kutta Maps](./runge-kutta.md) for coordinate conventions, `MagneticLattice(method=...)` examples, and RK step control.
+
 ## Important Design Point
 
 `TMParams` is not just documentation and it is not just a generic dictionary. It is the explicit contract between the physics layer and the tracking layer.
@@ -84,3 +90,4 @@ That means:
 - [Transformation Parent Class](./transormation.md)
 - [TransferMap](./first-order.md)
 - [SecondTM](./second-order.md)
+- [Runge-Kutta Maps](./runge-kutta.md)

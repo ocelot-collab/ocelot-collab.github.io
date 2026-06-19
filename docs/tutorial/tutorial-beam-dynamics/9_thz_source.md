@@ -1,34 +1,35 @@
 ---
 sidebar_position: 9
-title: 9. Accelerator based THz source
+title: 9. Accelerator-based THz source
 ---
 <small>
-*This notebook was created by Sergey Tomin (sergey.tomin@desy.de). July 2019.
+*This notebook was created by Sergey Tomin (sergey.tomin@desy.de). July 2019.*
 </small>
 
-# [9. Accelerator based THz source](https://github.com/ocelot-collab/ocelot/blob/dev/demos/ipython_tutorials/9_thz_source.ipynb)
+# [9. Accelerator-based THz source](https://github.com/ocelot-collab/ocelot/blob/dev/demos/ipython_tutorials/9_thz_source.ipynb)
 
-In this tutorial we will focus on another feature of the SR module (see [PFS tutorial N1. Synchrotron radiation module](../tutorial-photons/pfs_1_synchrotron_radiation.md)), namely the calculation of coherent radiation.
-Details and limitation of the SR module in that mode can be found in [G. Geloni, T. Tanikawa and S. Tomin, Dynamical effects on superradiant THz emission from an undulator. J. Synchrotron Rad. (2019). 26, 737-749](http://scripts.iucr.org/cgi-bin/paper?S1600577519002509)
+This tutorial demonstrates coherent radiation from a macroparticle bunch using OCELOT's native Python SR module. For the introductory spontaneous-radiation examples, see [PFS tutorial N1: Synchrotron radiation module](../tutorial-photons/pfs_1_synchrotron_radiation.md) ([web version](https://nbviewer.org/github/ocelot-collab/ocelot/blob/dev/demos/ipython_tutorials/pfs_1_synchrotron_radiation.ipynb)).
 
-As a first step we consider a simple accelerator with the electron beam formation system (bunch compressor). Undulator parameters are chosen to generate radiation in THz range. 
+The physical model and its limitations for chirped THz bunches are discussed in [G. Geloni, T. Tanikawa, and S. Tomin, *Dynamical effects on superradiant THz emission from an undulator*, Journal of Synchrotron Radiation 26 (2019), 737-749](https://doi.org/10.1107/S1600577519002509).
+
+We first model a simplified accelerator and bunch-compression system. The undulator parameters are chosen to produce radiation in the THz range.
 
 ### Contents
 1. [Accelerator](#accelerator)
     * [Lattice](#lattice)
-    * [Simple compression scenario](#compression)
-    * [Tracking up to undulator](#track)
-2. [Coherent radiation from the beam](#coherent) 
+    * [Simple compression scenario](#simple-compression-scenario)
+    * [Tracking up to undulator](#track-to-the-undulator-entrance)
+2. [Coherent radiation from the beam](#coherent-radiation-from-the-beam)
 
-<a id='accelerator'></a>
 ## Accelerator 
 
-Accelerator includes an accelerator module and linearizer (third harmonic cavity) and a bunch compressor. IN other words we reproduce simplified version of the XFEL injector without the injector dogleg. 
-### Lattice 
+The accelerator contains a fundamental RF module, a third-harmonic linearizer, and a magnetic bunch compressor. It represents a simplified XFEL injector without the injector dogleg.
+
+### Lattice
 
 
 ```python
-# To activate interactive matplolib in notebook
+# To activate interactive Matplotlib in the notebook
 # %matplotlib notebook
 ```
 
@@ -38,10 +39,6 @@ from ocelot import *
 from ocelot.gui import *
 import time
 ```
-```python
-    initializing ocelot...
-```
-
 
 ```python
 #Initial Twiss parameters
@@ -50,8 +47,7 @@ tws0.beta_x = 29.171
 tws0.beta_y = 29.171
 tws0.alpha_x = 10.955
 tws0.alpha_y = 10.955
-tws0.gamma_x = 4.148367385417024
-tws0.gamma_y = 4.148367385417024
+
 tws0.E = 0.005
 
 # Drifts
@@ -98,7 +94,7 @@ b2 = SBend(l=0.501471120927, angle=-0.1327297047, e1=-0.132729705, tilt=1.570796
 b3 = SBend(l=0.501471120927, angle=-0.1327297047, e2=-0.132729705, tilt=1.570796327, eid='B3')
 b4 = SBend(l=0.501471120927, angle=0.1327297047, e1=0.132729705, tilt=1.570796327, eid='B4')
 
-# Cavitys
+# Cavities
 c1 = Cavity(l=1.0377, v=0.01815975, freq=1300000000.0, eid='C1')
 c3 = Cavity(l=0.346, v=0.0024999884, phi=180.0, freq=3900000000.0, eid='C3')
 
@@ -119,17 +115,14 @@ cell = (D0, c1, D1, c1, D1, c1, D1, c1, D1, c1, D1, c1, D1, c1, D1, c1, D2, q1, 
 lat = MagneticLattice(cell, stop=start_und)
 
 tws = twiss(lat, tws0)
-plot_opt_func(lat, tws, legend=False, fig_name=100)
+plot_opt_func(lat, tws, legend=False, fig_name=100, top_plot=["Dy"])
 plt.show()
 ```
 
 
-    
 ![png](/img/9_thz_source_files/9_thz_source_6_0.png)
-    
 
-
-Also we can found the main parameters of the chicane with ```chicane_RTU(yoke_len, dip_dist, r, type)```
+The main longitudinal transport coefficients of the chicane can be calculated with `chicane_RTU(yoke_len, dip_dist, r, type)`.
 
 
 ```python
@@ -137,11 +130,11 @@ from ocelot.utils import *
 R56, T566, U5666, Sref = chicane_RTU(yoke_len=0.5, dip_dist=D14.l * np.cos(b1.angle), r=b1.l/b1.angle, type="c")
 print("bunch compressor R56 = ", R56, " m")
 ```
-```python
-    bunch compressor R56 =  -0.04751528087514777  m
+
+```text
+bunch compressor R56 =  -0.04751528087514777  m
 ```
 
-<a id='compression'></a>
 ## Simple compression scenario
 
 We consider here a basic compression scheme consisting of an accelerating module, a third-harmonic linearizer, and a magnetic chicane. For a comprehensive overview of bunch-compression physics, the following references are highly recommended:
@@ -267,15 +260,16 @@ $$
 For an undulator with large $K$-value, the longitudinal dispersion is
 
 $$
-R_{56} = -\frac{L_u}{\gamma}\left( 1 + \frac{K^2}{2} \right)
+R_{56} = -\frac{L_u}{\gamma^2}\left( 1 + \frac{K^2}{2} \right)
 \approx -0.028~\mathrm{m}.
 $$
 
 Including this contribution, the total compression factor becomes
 
 $$
-C = \frac{1}{1 - \delta R_{56}} = 4.1.
+C = \frac{1}{1 - \delta' R_{56}} = 4.1.
 $$
+
 
 ```python
 import scipy.optimize
@@ -308,81 +302,73 @@ print("phi1 = ", phi1)
 print("V13 = ", V13, " MeV")
 print("phi13 = ", phi13)
 ```
-```python
-    V1 =  150.53461560292047  MeV
-    phi1 =  20.905449650430196
-    V13 =  15.751142632839656  MeV
-    phi13 =  187.25608275658084
+
+```text
+V1 =  150.53461559069942  MeV
+phi1 =  20.905449652203075
+V13 =  15.751142631398178  MeV
+phi13 =  187.25608275724716
 ```
 
-Now we update cavities parameters in the lattice
+Update the cavity parameters in the lattice.
 
 
 ```python
-# type new parameters, 
-# NOTE in OCELOT cavity voltage in [GeV] so to traslate calculated voltage we need factor 1/1000 
-# and we have 8 cavities for main RF module and linearizer 
+# Set the new parameters
+# NOTE: OCELOT cavity voltage is in GeV, so convert the calculated voltage from MeV by a factor of 1/1000
+# The main RF module and the linearizer each contain eight cavities
 c1.v = V1/8/1000
 c1.phi = phi1
 c3.v = V13/8/1000
 c3.phi = phi13
 
-# and update lattice 
+# Update the lattice
 lat.update_transfer_maps()
 ```
 
-```python
-    <ocelot.cpbd.magnetic_lattice.MagneticLattice at 0x168570ac0>
-```
 
+### Generate the electron beam
 
-### Generate electron beam 
+For accurate coherent-radiation results, use at least several tens of thousands of macroparticles. This shortened example uses 1000 particles to keep the runtime manageable.
 
 
 ```python
-np.random.seed(10)
+np.random.seed(30)
 parray = generate_parray(sigma_x=0.0001, sigma_px=2e-05, sigma_y=None, sigma_py=None, 
                          sigma_tau=0.001, sigma_p=0.0001, chirp=0.0, charge=0.5e-09, 
-                         nparticles=300, energy=0.005, tau_trunc=None)
+                         nparticles=1000, energy=0.005, tau_trunc=None, shape="gauss")
 
 show_e_beam(parray,nparts_in_slice=50,smooth_param=0.1, nbins_x=50, nbins_y=50, nfig=10)
 plt.show()
 ```
 
 
-    
 ![png](/img/9_thz_source_files/9_thz_source_14_0.png)
-    
 
-
-### Tracking up to undulator
+### Track to the undulator entrance
 
 
 ```python
 navi = Navigator(lat)
 tws_track, parray = track(lat, parray, navi)
-show_e_beam(parray, nfig=201)
+show_e_beam(parray, nparts_in_slice=50,smooth_param=0.1, nbins_x=50, nbins_y=50, nfig=201)
 plt.show()
 ```
-```python
-    z = 52.547084483708005 / 52.54708448370802. Applied: 
-```
 
-    
 ![png](/img/9_thz_source_files/9_thz_source_16_1.png)
-    
 
 ```python
 parray.E
 ```
 
-```python
-    0.13000000268915646
+
+```text
+np.float64(0.1300000026775309)
 ```
 
-
-<a id='coherent'></a>
 ## Coherent radiation from the beam
+
+`coherent_radiation` tracks every macroparticle through the selected lattice and sums the complex radiation fields before calculating intensity. The stored photon distributions are normalized per bunch, per square millimetre, and per $10^{-3}$ relative bandwidth. No repetition rate is applied; multiply by the bunch repetition rate in hertz to obtain photons per second.
 
 
 ```python
@@ -404,34 +390,34 @@ screen.num_energy = 1001
 beam = Beam()
 beam.E = 0.13
 
-# NOTE: this function just estimate spontanious emmision
+# NOTE: this function estimates spontaneous emission only
 print_rad_props(beam, K=und.Kx, lu=und.lperiod, L=und.l, distance=screen.z)
 
 ```
-```python
-    ********* ph beam ***********
-    Ebeam        :  0.13  GeV
-    K            :  30
-    B            :  1.6065  T
-    lambda       :  6.96835E-04  m 
-    Eph          :  1.77925E-03  eV
-    1/gamma      :  3930.7605  um
-    sigma_r      :  5941.5531  um
-    sigma_r'     :  9332.9698  urad
-    Sigma_x      :  5941.5531  um
-    Sigma_y      :  5941.5531  um
-    Sigma_x'     :  9332.9698 urad
-    Sigma_y'     :  9332.9698 urad
-    H. spot size :  9332.9717 / 9.333  mm/mrad
-    V. spot size :  9332.9717 / 9.333  mm/mrad
-    I            :  0.0  A
-    Nperiods     :  20.0
-    distance     :  1000.0  m
-    flux tot     :  0.00E+00  ph/sec/0.1%BW
-    flux density :  0.00E+00  ph/sec/mrad^2/0.1%BW;    0.00E+00  ph/sec/mm^2/0.1%BW
-    brilliance   :  0.00E+00  ph/sec/mrad^2/mm^2/0.1%BW
-```
 
+```text
+********* ph beam ***********
+Ebeam        :  0.13  GeV
+K            :  30
+B            :  1.6065  T
+lambda       :  6.96835E-04  m
+Eph          :  1.77925E-03  eV
+1/gamma      :  3930.7605  um
+sigma_r      :  5941.5531  um
+sigma_r'     :  9332.9698  urad
+Sigma_x      :  5941.5531  um
+Sigma_y      :  5941.5531  um
+Sigma_x'     :  9332.9698 urad
+Sigma_y'     :  9332.9698 urad
+H. spot size :  9332.9717 / 9.333  mm/mrad
+V. spot size :  9332.9717 / 9.333  mm/mrad
+I            :  0.0  A
+Nperiods     :  20.0
+distance     :  1000.0  m
+flux tot     :  0.00E+00  ph/sec/0.1%BW
+flux density :  0.00E+00  ph/sec/mrad^2/0.1%BW;    0.00E+00  ph/sec/mm^2/0.1%BW
+brilliance   :  0.00E+00  ph/sec/mrad^2/mm^2/0.1%BW
+```
 
 ```python
 start = time.time()
@@ -440,39 +426,27 @@ print()
 print("time exec: ", time.time() - start, " s")
 show_flux(screen_i, unit="mm", title="")
 ```
-```python
-    n: 299 / 299
-    time exec:  100.35891485214233  s
-```
 
+![png](/img/9_thz_source_files/9_thz_source_20_2.png)
 
-    
-![png](/img/9_thz_source_files/9_thz_source_20_1.png)
-    
-
-
-### Beam after undulator. 
-as you can notice, the beam was compressed in the undulator in approximatly in two times as was calculated in the [Simple compression scenario](#compression)
+### Beam after the undulator
+The bunch is compressed by approximately a factor of two while traversing the undulator. This is consistent with the estimate in the [simple compression scenario](#simple-compression-scenario), where the undulator's longitudinal dispersion is included.
 
 
 ```python
-show_e_beam(parray,  nfig=203)
+show_e_beam(parray, nparts_in_slice=50,smooth_param=0.1, nbins_x=50, nbins_y=50,  nfig=203)
 plt.show()
 
 ```
 
 
-    
 ![png](/img/9_thz_source_files/9_thz_source_22_0.png)
-    
-
 
 ### Electron trajectories
-In some cases, it is worth checking the trajectory of the particle used to calculate the radiation. 
-For this purpose, a special object ```BeamTraject``` is attached to the object ```screen``` after radiation calculation:
+It is often useful to inspect the particle trajectories used in the radiation calculation. After the calculation, a `BeamTraject` object is attached to the `Screen`:
 > screen.beam_traj = BeamTraject()
 
-To retrieve trajectory you need to specify number of electron what you are interested, for example: 
+Specify the macroparticle index to retrieve a trajectory, for example:
 > x = screen.beam_traj.x(n=0)
 
 
@@ -491,7 +465,4 @@ plt.show()
 ```
 
 
-    
 ![png](/img/9_thz_source_files/9_thz_source_24_0.png)
-    
-
