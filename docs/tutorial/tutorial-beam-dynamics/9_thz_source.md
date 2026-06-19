@@ -427,7 +427,7 @@ print("time exec: ", time.time() - start, " s")
 show_flux(screen_i, unit="mm", title="")
 ```
 
-![png](/img/9_thz_source_files/9_thz_source_20_2.png)
+![png](/img/9_thz_source_files/9_thz_source_20_1.png)
 
 ### Beam after the undulator
 The bunch is compressed by approximately a factor of two while traversing the undulator. This is consistent with the estimate in the [simple compression scenario](#simple-compression-scenario), where the undulator's longitudinal dispersion is included.
