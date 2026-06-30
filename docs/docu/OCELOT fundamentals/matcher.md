@@ -29,7 +29,8 @@ Compared with legacy `match.py`, matcher gives you:
 - Linked variables for shared hardware (for example one power supply driving
   several quads).
 - Direct support for Twiss targets, selected periodic Twiss targets,
-  global Twiss limits, Twiss deltas, and R-matrix targets.
+  global Twiss limits, Twiss deltas, R-matrix targets, and R-matrix based
+  phase-advance/Floquet targets.
 - Better diagnostics in solve result (`target_reports`, `objective_reports`).
 
 Legacy `cpbd.match.py` can still coexist. New scripts can adopt matcher
@@ -83,7 +84,8 @@ Typical solve flow:
 1. Create `MatchProblem(lat, tw0, periodic=...)`.
 2. Add variables (`vary_element`, `vary_twiss`, `vary_linked_elements`).
 3. Add targets (`target_twiss`, `target_periodic_twiss`, `target_global`,
-   `target_twiss_delta`, `target_rmatrix`, `target_rmatrix_block`, ...).
+   `target_twiss_delta`, `target_phase_advance`, `target_rmatrix`,
+   `target_rmatrix_block`, ...).
 4. Add objectives (`minimize_function`, `objective_function`,
    `minimize_i5_integral`, custom objective).
 5. Run `solve(solver=..., max_iter=..., tol=...)`.
@@ -110,6 +112,64 @@ problem.target_rmatrix(start, end, i=0, j=1, value=8.0, relation=">=")
 is most often used as a lattice-wide limit. `target_periodic_twiss(...)` has the
 same relation option and defaults to `"=="`; it applies the relation to
 `end - start` with target value zero.
+
+## Phase Advance Targets
+
+There are two different phase quantities in the matcher:
+
+- `target_twiss_delta(..., "mux")` or `"muy"` uses the phase stored in tracked
+  Twiss objects. This is a delta of a propagated Twiss quantity. It depends on
+  the entrance Twiss unless that Twiss is the matched periodic Twiss for the
+  same map.
+- `target_phase_advance(...)` uses the transfer matrix block between two
+  elements and computes the Floquet phase/exponent from the normalized trace.
+  This is independent of the supplied entrance Twiss and is the right target
+  for matching a lattice or cell phase advance.
+
+This distinction matters for unmatched optics. A lattice has one R-matrix and
+therefore one Floquet phase for a given transverse plane, but two different
+unmatched `twiss0` values can give different tracked `mux`/`muy` increments
+through the same lattice. Matching those tracked values can therefore converge
+to optics that satisfy the bookkeeping phase of the chosen Twiss frame, not the
+lattice eigenphase.
+
+For linacs and other accelerating sections, the 2x2 transverse block can be
+scaled so `det(R_plane)` is positive but not exactly one. The target therefore
+uses the normalized trace
+
+```python
+trace(R_plane) / (2 * np.sqrt(np.linalg.det(R_plane)))
+```
+
+instead of plain `trace(R_plane) / 2`.
+
+Use `target_phase_advance(...)` for cell phase matching:
+
+```python
+problem.target_phase_advance(
+    start=lat.sequence[0],
+    end=lat.sequence[-1],
+    plane="x",
+    value=np.pi / 2.0,
+    weight=1e6,
+    tol=1e-6,
+)
+```
+
+The same target also covers unstable one-plane maps. Use a positive imaginary
+target for a positive hyperbolic Floquet exponent:
+
+```python
+problem.target_phase_advance(
+    start=lat.sequence[0],
+    end=lat.sequence[-1],
+    plane="x",
+    value=2j,
+    weight=1e6,
+)
+```
+
+For sign-flipping unstable maps, use `np.pi + 2j`.
 
 ## Solvers and Bounds
 
@@ -261,8 +321,12 @@ problem.vary_element(qf, quantity="k1", limits=(-5, 5), name="qf.k1")
 problem.vary_element(qd, quantity="k1", limits=(-5, 5), name="qd.k1")
 
 # Example: match the phase advance of one periodic cell.
-problem.target_twiss(end, "mux", np.pi / 3.0, weight=1e6, tol=1e-6)
-problem.target_twiss(end, "muy", np.pi / 3.0, weight=1e6, tol=1e-6)
+problem.target_phase_advance(
+    lat.sequence[0], end, "x", np.pi / 3.0, weight=1e6, tol=1e-6
+)
+problem.target_phase_advance(
+    lat.sequence[0], end, "y", np.pi / 3.0, weight=1e6, tol=1e-6
+)
 
 result = problem.solve(solver="ls_trf", max_iter=300)
 merit, reports, objectives, state = problem.evaluate()
@@ -446,7 +510,52 @@ result = problem.solve(solver="ls_trf", max_iter=200)
 print(result.success, result.variables["DVAR_l"])
 ```
 
-### 9) Two Quadrupoles on One Power Supply
+### 9) Target Phase Advance / Floquet Exponent
+
+Use `target_phase_advance(...)` when the requested phase is a property of the
+transfer matrix between two elements. This is usually what you want for a cell
+or full-lattice phase target.
+
+```python
+import numpy as np
+from ocelot.cpbd.matcher import MatchProblem
+
+# Assume: lat, tw0, qf, qd are already defined.
+start = lat.sequence[0]
+end = lat.sequence[-1]
+
+problem = MatchProblem(lat, tw0, periodic=False)
+problem.vary_element(qf, quantity="k1", limits=(-5, 5))
+problem.vary_element(qd, quantity="k1", limits=(-5, 5))
+
+# Stable phase advance in the x plane.
+problem.target_phase_advance(
+    start=start,
+    end=end,
+    plane="x",
+    value=np.pi / 2.0,
+    weight=1e6,
+    tol=1e-6,
+)
+
+# Unstable y-plane target: positive Floquet exponent.
+problem.target_phase_advance(
+    start=start,
+    end=end,
+    plane="y",
+    value=2j,
+    weight=1e6,
+)
+
+result = problem.solve(solver="ls_trf", max_iter=300)
+print(result.success, result.merit)
+```
+
+`target_phase_advance` uses `state.r_matrix(start, end)`. The `end` element is
+included, matching the standard `MagneticLattice.transfer_maps(start, stop)`
+convention.
+
+### 10) Two Quadrupoles on One Power Supply
 
 One shared knob can control multiple elements.
 
@@ -474,7 +583,7 @@ print(result.success, result.variables["PS_Q1Q2"])
 print("q1.k1 =", q1.k1, "q2.k1 =", q2.k1)
 ```
 
-### 10) Regularization (Small and Smooth Quad Strengths)
+### 11) Regularization (Small and Smooth Quad Strengths)
 
 Regularization is straightforward with residual-vector objectives.
 
@@ -508,10 +617,15 @@ problem.objective_function(
 )
 ```
 
-### 11) Phase Delta Target with `wrap_phase=True`
+### 12) Phase Delta Target with `wrap_phase=True`
 
-For `mux`/`muy` delta targets, phase values differing by `2*pi` are physically
-equivalent.
+For `mux`/`muy` delta targets, phase values differing by `2*pi` can be treated
+as equivalent in the tracked Twiss phase.
+
+Use this only when you intentionally want a delta of the propagated Twiss
+quantity. For lattice or cell phase matching, prefer `target_phase_advance(...)`
+because it uses the transfer matrix and does not depend on unmatched entrance
+Twiss.
 
 ```python
 import numpy as np
