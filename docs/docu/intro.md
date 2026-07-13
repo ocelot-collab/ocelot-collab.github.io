@@ -59,13 +59,10 @@ pip install ocelot-collab
 
 > ℹ️ The package name on PyPI is `ocelot-collab`, but in Python you import it as:
 ```python
->>> import ocelot
+>>> import ocelot as ocl
 ```
 ```python
-    initializing ocelot...
-```
-```python
->>> ocelot.__version__
+>>> ocl.__version__
 ```
 ```python
     '25.07.0'
@@ -88,13 +85,28 @@ Alternatively, download the [latest release as a ZIP file](https://github.com/oc
 
 ## Importing Ocelot Modules
 
-The easiest way to import Ocelot is by using:
+For user scripts and tutorials, the recommended import is:
 
 ```python
-from ocelot import *
+import ocelot as ocl
 ```
+
+Ocelot's root namespace is loaded lazily: `import ocelot as ocl` starts quickly,
+and individual features are imported only when they are first used. The `ocl`
+alias also keeps Ocelot names recognizable without adding them all to Python's
+global namespace.
+
+Legacy code using `from ocelot import *` remains supported, but the star-import
+style is not recommended for new scripts, tutorials, tests, or generated
+lattice files.
+
+In library code and larger projects, explicit imports from the module that owns
+each API can make dependencies clearer:
+
 ```python
-    initializing ocelot...
+from ocelot.cpbd.elements import Bend, Drift, Marker, Quadrupole
+from ocelot.cpbd.magnetic_lattice import MagneticLattice
+from ocelot.cpbd.optics import twiss
 ```
 
 ## Creating a Simple Lattice
@@ -103,12 +115,12 @@ Ocelot’s element syntax is similar to MAD8. Below, we create a simple lattice 
 and a bending magnet (Bend). A beamline is simply a sequence of elements arranged in the correct order:
 
 ```python
-d = Drift(l=1)
-qf = Quadrupole(l=0.3, k1=1)
-qd = Quadrupole(l=0.3, k1=-1)
-b = Bend(l=0.5, angle=0.1)
-m1 = Marker(eid="start")
-m2 = Marker(eid="stop")
+d = ocl.Drift(l=1)
+qf = ocl.Quadrupole(l=0.3, k1=1)
+qd = ocl.Quadrupole(l=0.3, k1=-1)
+b = ocl.Bend(l=0.5, angle=0.1)
+m1 = ocl.Marker(eid="start")
+m2 = ocl.Marker(eid="stop")
 
 cell = (m1, d, qf, d, qd, d, b,  d, qd, d, qf, d, m2)
 ```
@@ -118,7 +130,7 @@ the sequence and other Ocelot functions, adding useful functionalities:
 
 
 ```python
-lat = MagneticLattice(cell)
+lat = ocl.MagneticLattice(cell)
 print(f"total length {lat.totalLen}")
 ```
 ```python
@@ -132,7 +144,7 @@ the function will attempt to find a periodic solution:
 
 
 ```python
-tws = twiss(lat)
+tws = ocl.twiss(lat)
 ```
 
 The twiss function returns a list of Twiss objects, each containing various beam parameters. 
@@ -166,13 +178,15 @@ print(tws[0])
 
 ## Plotting Twiss Parameters
 
-Twiss parameters can be plotted using matplotlib or Ocelot a built-in function. It requires to import the graphical module separately.
+Twiss parameters can be plotted using Matplotlib and Ocelot's built-in plotting function. The graphical modules are imported separately.
 
 *This separation was implemented to decouple graphical libraries from calculations, which was necessary due to limitations in older computing clusters.*
 
 
 ```python
-from ocelot.gui import *
+import matplotlib.pyplot as plt
+from ocelot.gui import plot_opt_func
+
 plot_opt_func(lat, tws)
 plt.show()
 ```
@@ -186,8 +200,8 @@ If known, initial Twiss parameters can be passed as an argument tws0:
 
 
 ```python
-tws0 = Twiss(beta_x = 10, beta_y=5, Dx=0.1)
-tws = twiss(lat, tws0=tws0)
+tws0 = ocl.Twiss(beta_x=10, beta_y=5, Dx=0.1)
+tws = ocl.twiss(lat, tws0=tws0)
 
 plot_opt_func(lat, tws)
 plt.show()
@@ -200,4 +214,3 @@ More examples can be found in [Tutorials](../tutorial/intro.md)
 ## Disclaimer: 
 The OCELOT code comes with absolutely NO warranty. The authors of the OCELOT do not take any responsibility 
 for any damage to equipments or personnel injury that may result from the use of the code.
-
