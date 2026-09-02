@@ -79,7 +79,7 @@ It supports constraints for periodic solutions, beam optics matching, and specif
 
 ### Basic Matching
 ```python
-from ocelot.cpbd.matching import match
+from ocelot.cpbd.match import match
 
 # Define magnetic lattice and initial Twiss parameters
 lat = MagneticLattice(sequence)
