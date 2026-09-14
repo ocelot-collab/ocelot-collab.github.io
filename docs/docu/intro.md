@@ -102,7 +102,7 @@ For a source checkout, install only the extra features you need:
 
 ```bash
 python -m pip install -e ".[openpmd]"  # openPMD file I/O and viewer
-python -m pip install -e ".[pmd]"      # openPMD tools plus pmd-beamphysics
+python -m pip install -e ".[pmd]"      # openPMD tools plus openpmd-beamphysics
 python -m pip install -e ".[mpi]"      # MPI bindings; an MPI runtime is also required
 python -m pip install -e ".[moga]"     # multi-objective optimization with DEAP
 ```
