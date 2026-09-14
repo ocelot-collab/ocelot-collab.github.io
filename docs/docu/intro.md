@@ -113,6 +113,29 @@ this documentation is built with Docusaurus in the separate
 [website repository](https://github.com/ocelot-collab/ocelot-collab.github.io),
 without Sphinx.
 
+### OpenMP conflicts on macOS
+
+A pip environment created from a conda Python can load two incompatible
+OpenMP runtimes: pyFFTW's bundled `libomp.dylib` and the conda library used by
+Numba. Parallel calculations may report `OMP: Error #15` or crash with a
+segmentation fault.
+
+For simulations launched sequentially from one Python thread, select Numba's
+built-in `workqueue` backend before starting Python:
+
+```bash
+export NUMBA_THREADING_LAYER=workqueue
+python your_simulation.py
+```
+
+This retains the radiation calculation and changes its threading backend.
+The `workqueue` backend does not support concurrent or nested parallel calls.
+For those workflows, use an environment with compatible OpenMP libraries or a
+supported TBB installation. See the
+[Numba threading documentation](https://numba.readthedocs.io/en/stable/user/threading-layer.html).
+Setting `KMP_DUPLICATE_LIB_OK=True` does not fix incompatible runtimes and can
+turn the initialization error into a crash.
+
 # Getting Started: Simplest Accelerator Structure
 
 ## Importing Ocelot Modules
