@@ -160,3 +160,92 @@ print(q.R(energy=1.0))  # [GeV]
        [ 0.    ,  0.    ,  0.    ,  0.    ,  1.    , -0.    ],
        [ 0.    ,  0.    ,  0.    ,  0.    ,  0.    ,  1.    ]])]
 ```
+
+
+## Off-axis reference: `XYQuadrupole`
+
+`XYQuadrupole` describes linear particle deviations about a reference that
+enters a straight quadrupole with offsets and entrance angles in one or
+both transverse planes. It implements the analytical weak-curvature
+model in S. Tomin, *Beam Transport Through a Quadrupole with Offsets in Both
+Transverse Planes*, revised v4 (October 2026 update), Eqs. (37)-(42) and
+Appendices A-B.
+
+```python
+import ocelot as ocl
+
+xyq = ocl.XYQuadrupole(l=1.0, k1=1.0, x_offs=0.02, y_offs=0.03,
+                       x_angle=0.01, y_angle=-0.005, eid="XYQ")
+lat = ocl.MagneticLattice([xyq])
+R = xyq.R(energy=0.13)[0]  # reference energy in GeV
+print(R[:4, 5])           # dispersion in both transverse planes
+
+tws0 = ocl.Twiss(beta_x=10.0, beta_y=12.0, E=0.13)
+optics = ocl.twiss(lat, tws0, nPoints=21)
+midpoints, endpoints = lat.survey()
+```
+
+`x_offs` and `y_offs` are the reference entrance positions relative to the
+magnetic axis, in the unrolled magnet frame. They are distinct from the usual
+`dx` and `dy` alignment translations. Particle coordinates are measured from
+the moving reference: a zero particle stays zero when `dx=dy=0`.
+`x_angle` and `y_angle` are the paper's entrance tangent components
+`theta_x0=dX/ds` and `theta_y0=dY/ds`, in the unrolled magnet frame.
+They are approximately angles in radians, and differ from the Cartesian
+slopes `dX/dZ`, `dY/dZ`. Their defaults are zero, preserving parallel entry.
+The unit tangent is `(x_angle, y_angle, sqrt(1-x_angle**2-y_angle**2))`;
+the model requires these transverse components to be small.
+`tilt` rolls the complete map and reference geometry about the incoming tangent.
+
+The parameter `l` is **reference arc length**. Map boundaries are transverse
+planes normal to the reference orbit, which generally differ from the
+physical magnet faces at fixed laboratory longitudinal position.
+
+The reference curvature varies through the quadrupole:
+
+$$
+h_x(s)=k_1\left[x_{\rm offs}C_x(s)+\theta_{x0}S_x(s)\right],\qquad
+h_y(s)=-k_1\left[y_{\rm offs}C_y(s)+\theta_{y0}S_y(s)\right].
+$$
+
+The transverse focusing is that of an ordinary quadrupole. The matrix also
+includes energy-to-transverse dispersion, transverse-to-longitudinal timing,
+and the geometric contribution to `R56`, including offset-squared,
+offset-times-angle and angle-squared terms. Ocelot uses
+`tau=-sigma` relative to the paper, so the timing row has the opposite sign.
+At zero offsets **and** entrance angles the map reduces to `Quadrupole`;
+at zero strength it becomes
+a drift. As in the other magnetic maps, `energy=0` selects the
+ultrarelativistic limit.
+
+Only `TransferMap` is supported for active tracking. A global `SecondTM`
+lattice request falls back to `TransferMap` for this element; an explicit
+`XYQuadrupole(..., tm=SecondTM)` request raises. The cubic-Hamiltonian
+second-order extension in the paper is not implemented.
+
+Slicing preserves the original reference: a section from `s0` to `s1` uses
+`R(s1) @ inv(R(s0))`. Thus tracking and optics sampling do not reset the
+entrance conditions at every step. `lat.survey()` integrates the
+Bishop-frame position and orientation using the same varying curvatures.
+`XYQuadrupole.get_transfer_geometry()` returns displacement and rotation
+relative to the incoming reference,
+`d = W_in.T @ (r_out-r_in)` and `Q = W_in.T @ W_out`, as in Appendix B.
+The incoming frame is therefore identity in the element's local survey;
+do not add `x_angle` or `y_angle` again to the lattice's initial survey
+orientation. A zero-strength element remains a straight drift in that frame.
+
+CSR without RK samples this analytical reference. With `rk_traj=True`, it
+follows the exact ideal-body Lorentz trajectory using the magnet field
+transformed through the paper's minimal-rotation entrance frame. These two
+reference models agree to the accuracy of the analytical approximation.
+
+The fixed mechanical exit face `Z=L_Z` requires finding its reference arc
+length and separately transforming particle coordinates onto that face.
+Those operations are not included in this element's arc-length map.
+The runnable `demos/ebeam/xyquadrupole.py` example shows angled-entry optics,
+slice composition and survey.
+
+The approximation requires small reference angles and
+`abs(k1)*X0(s)**2 << 1` and `abs(k1)*Y0(s)**2 << 1` throughout the element.
+Curvature-squared focusing, fringe fields and nonlinear particle transport
+are outside this analytical first-order model.

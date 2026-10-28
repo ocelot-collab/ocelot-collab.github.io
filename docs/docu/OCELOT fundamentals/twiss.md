@@ -76,46 +76,72 @@ The [`Twiss`](https://github.com/ocelot-collab/ocelot/blob/master/ocelot/cpbd/be
 
 ---
 
-# [`twiss`](https://github.com/ocelot-collab/ocelot/blob/master/ocelot/cpbd/optics.py#L195) function 
+# `twiss` and `periodic_twiss` functions
 
-## Description:
-The [`twiss`](https://github.com/ocelot-collab/ocelot/blob/master/ocelot/cpbd/optics.py#L195) function calculates the Twiss parameters for a particle beam as it propagates through a magnetic lattice. The function returns a list of Twiss parameter objects corresponding to various positions along the lattice. The initial Twiss parameters can be provided, or if not specified, the function will attempt to find a periodic solution.
+The two optics modes are explicit:
 
-## Parameters:
-- **lattice** [(`MagneticLattice`)](magnet-lattice.md): The magnetic lattice through which the particle beam is propagated.
-- **tws0** ([`Twiss`](twiss.md), optional): Initial Twiss parameters. If not provided, the function will attempt to find a periodic solution for the lattice.
-- **nPoints** (`int`, optional): Number of points per cell. If `None`, the function will calculate the Twiss parameters at the end of each element.
-- **return_df** (`bool`, optional): If `True`, the output will be returned as a pandas DataFrame instead of a list of `Twiss` objects.
-- **attach2elem** (`bool`, optional): If `True` and `nPoints` is `None`, the Twiss parameters will be attached to the `elem.tws` attribute of the lattice elements, representing the end of the element. This is not recommended for general use but can be useful for smaller scripts.
+- [`twiss`](https://github.com/ocelot-collab/ocelot/blob/master/ocelot/cpbd/optics.py)
+  propagates known initial Twiss parameters through a magnetic lattice.
+- [`periodic_twiss`](https://github.com/ocelot-collab/ocelot/blob/master/ocelot/cpbd/optics.py)
+  calculates a periodic initial solution and propagates it through the lattice.
 
-## Returns:
-- **List of `Twiss` objects**: The function returns a list of Twiss parameters for each element or cell in the lattice. If `return_df` is `True`, the list will be converted to a pandas DataFrame.
+Both return one `Twiss` object per requested longitudinal position, or a pandas
+DataFrame when `return_df=True`.
 
-## Function Logic:
-1. **Initial Twiss Parameters**: If `tws0` is not provided, the function will attempt to find a periodic solution using the `periodic_twiss` method of the `lattice` object.
-2. **Periodic Solution Check**: If the `beta_x` or `beta_y` values are 0 in the initial Twiss parameters, the function will recalculate the periodic Twiss solution for the lattice.
-3. **Twiss Parameter Calculation**: The function uses the `trace_obj` method to calculate the Twiss parameters at the desired positions in the lattice. The parameters can be attached to the elements of the lattice if `attach2elem` is `True`.
-4. **Return**: The function returns the calculated Twiss parameters. If `return_df` is `True`, the results will be returned as a pandas DataFrame.
+## Parameters
 
-## Example Usage:
+- **lattice** ([`MagneticLattice`](magnet-lattice.md)): The lattice through
+  which the optics are propagated.
+- **tws0** ([`Twiss`](twiss.md)): Required by `twiss`. For
+  `periodic_twiss`, it is optional and supplies values such as beam energy and
+  emittance; its transverse Twiss parameters are replaced by the periodic
+  solution.
+- **nPoints** (`int`, optional): Number of longitudinal sample points. If
+  `None`, values are calculated at element exits.
+- **return_df** (`bool`, optional): Return a pandas DataFrame instead of a list.
+- **attach2elem** (`bool` or iterable, optional): With `nPoints=None`, attach
+  exit optics as `element.tws`. Every selected element instance must occur
+  exactly once in the lattice. Reused instances are rejected because one
+  attribute cannot describe several positions.
+
+## Examples
 
 ```python
-# Create a MagneticLattice object
+from ocelot.cpbd.beam import Twiss
+from ocelot.cpbd.optics import periodic_twiss, twiss
+
 lattice = MagneticLattice(sequence)
 
-# Calculate Twiss parameters with periodic solution
-twiss_parameters = twiss(lattice)
+# Calculate and propagate periodic optics.
+periodic = periodic_twiss(lattice)
 
-# Calculate Twiss parameters and return as a pandas DataFrame
-twiss_df = twiss(lattice, return_df=True)
+# Supply the energy needed by a lattice containing cavities.
+periodic_at_energy = periodic_twiss(lattice, Twiss(E=0.5), nPoints=100)
 
-# Calculate Twiss parameters with custom initial Twiss object
-tws0 = Twiss(beta_x=1.0, beta_y=1.0)
-twiss_parameters_with_tws0 = twiss(lattice, tws0=tws0)
-
-# Calculate Twiss parameters with custom number of points per cell
-twiss_parameters_custom_points = twiss(lattice, nPoints=5)
+# Propagate known initial optics without solving a periodic problem.
+tws0 = Twiss(beta_x=10.0, beta_y=7.0, alpha_x=-1.0, alpha_y=0.5)
+propagated = twiss(lattice, tws0)
 ```
-## Notes:
-- The function will automatically handle periodic solutions and can return the results in a pandas DataFrame format if needed.
-- If the initial Twiss parameters are not provided or are incomplete, the function attempts to calculate them based on the lattice.
+
+`twiss` requires positive `beta_x` and `beta_y`; a blank `Twiss()` is not an
+implicit request for periodic optics.
+
+## Unstable lattices
+
+If either transverse plane has no strictly stable periodic solution,
+`periodic_twiss` raises `UnstableLatticeError`. It does not print or log a
+warning and does not return `None`.
+
+```python
+from ocelot.cpbd.optics import UnstableLatticeError, periodic_twiss
+
+try:
+    periodic = periodic_twiss(lattice)
+except UnstableLatticeError as exc:
+    print(f"Periodic optics are unavailable: {exc}")
+```
+
+Optimization code that deliberately explores unstable candidates can catch the
+exception and convert it to a penalty. Use
+`lattice.periodic_twiss(tws=seed)` when only the periodic initial `Twiss`
+object, rather than its propagation through the lattice, is required.

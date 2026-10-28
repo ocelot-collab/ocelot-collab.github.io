@@ -23,19 +23,27 @@ Over time, we will continue to improve this documentation.
 
 
 ## Requirements
--  Python 3.9+
-- [`numpy`](https://numpy.org/) version 1.8 or higher
-- [`scipy`](https://scipy.org/) version 0.15 or higher
-- [`matplotlib`](https://matplotlib.org/) version 1.5 or higher
-- [`h5py`](https://www.h5py.org/) version 3.10 or higher
 
-**Orbit Correction module is required**
-- [`pandas`](https://pandas.pydata.org/)
+The current development version and next release require **Python 3.11 or
+newer**. Python 3.10 is no longer supported by the development version.
+The requirements below follow the `dev` branch; older published releases may
+have different requirements.
 
-**Optional**, but highly recommended for speeding up calculations
-- [`numexpr`](https://numexpr.readthedocs.io/en/latest/user_guide.html) (version 2.6.1 or higher)
-- [`pyfftw`](https://pyfftw.readthedocs.io/en/latest/) (version 0.10 or higher)
+Required Python packages are installed automatically by pip:
+
+- [`numpy`](https://numpy.org/): `==2.2`
+- [`scipy`](https://scipy.org/): `<=1.13`
+- [`scikit-learn`](https://scikit-learn.org/): `>=1.9`
+- [`matplotlib`](https://matplotlib.org/): `>=3.7,<=3.9`
+- [`pandas`](https://pandas.pydata.org/): `>=3.0`
+- [`h5py`](https://www.h5py.org/): `>=3.14`
+- [`tfs-pandas`](https://pypi.org/project/tfs-pandas/): `>=4.0`
+- [`numexpr`](https://numexpr.readthedocs.io/en/latest/user_guide.html): `>=2.6.1`
+- [`pyfftw`](https://pyfftw.readthedocs.io/en/latest/): `>=0.10`
 - [`numba`](https://numba.pydata.org/)
+
+The authoritative Python requirements are in
+[`pyproject.toml`](https://github.com/ocelot-collab/ocelot/blob/dev/pyproject.toml).
 
 
 ## Installation
@@ -44,7 +52,9 @@ Over time, we will continue to improve this documentation.
 
 To install OCELOT using [Anaconda Cloud](https://anaconda.org/ocelot-collab/ocelot), run:
 ```bash
- conda install -c ocelot-collab ocelot
+conda create -n ocelot python=3.11
+conda activate ocelot
+conda install -c ocelot-collab ocelot
 ```
 This will install the latest stable version along with all required dependencies.
 
@@ -54,7 +64,10 @@ This will install the latest stable version along with all required dependencies
 
 You can also install OCELOT from [PyPI](https://pypi.org/project/ocelot-collab/):
 ```bash
-pip install ocelot-collab
+python3.11 -m venv .venv
+source .venv/bin/activate  # Windows: .venv\Scripts\activate
+python -m pip install --upgrade pip
+python -m pip install ocelot-collab
 ```
 
 > ℹ️ The package name on PyPI is `ocelot-collab`, but in Python you import it as:
@@ -64,22 +77,73 @@ pip install ocelot-collab
 ```python
 >>> ocl.__version__
 ```
-```python
-    '25.07.0'
-```
+This prints the version you installed.
 
 ---
 
 ### 3. Install from Source (Advanced)
 
-To install OCELOT directly from GitHub:
+To install the development version directly from GitHub using Python 3.11 or
+newer:
 ```bash
- git clone https://github.com/ocelot-collab/ocelot.git
- cd ocelot
- python setup.py install
+git clone --branch dev https://github.com/ocelot-collab/ocelot.git
+cd ocelot
+python3.11 -m venv .venv
+source .venv/bin/activate  # Windows: .venv\Scripts\activate
+python -m pip install --upgrade pip
+python -m pip install -e ".[dev]"
 ```
 
 Alternatively, download the [latest release as a ZIP file](https://github.com/ocelot-collab/ocelot/archive/refs/heads/master.zip), unpack it, and install manually.
+
+### Optional features
+
+For a source checkout, install only the extra features you need:
+
+```bash
+python -m pip install -e ".[openpmd]"  # openPMD file I/O and viewer
+python -m pip install -e ".[pmd]"      # openPMD tools plus openpmd-beamphysics
+python -m pip install -e ".[mpi]"      # MPI bindings; an MPI runtime is also required
+python -m pip install -e ".[moga]"     # multi-objective optimization with DEAP
+python -m pip install -e ".[plotly]"   # interactive 3D machine layouts
+python -m pip install -e ".[tutorials]"  # notebook tools and optional tutorial dependencies
+```
+
+Survey calculations and 2D plotting do not require Plotly. The `tutorials` extra
+includes Plotly, and `dev` includes the tutorial dependencies. Example heatmaps
+use Matplotlib and do not require Seaborn. For an installed release that provides
+these extras, use `python -m pip install "ocelot-collab[tutorials]"` or
+`python -m pip install "ocelot-collab[plotly]"`. Specialized examples may also
+need the feature extras listed above.
+
+Extras can be combined, for example `python -m pip install -e ".[dev,openpmd,moga]"`.
+The `openpmd` extra remains available. The unused `docs` extra has been removed:
+this documentation is built with Docusaurus in the separate
+[website repository](https://github.com/ocelot-collab/ocelot-collab.github.io),
+without Sphinx.
+
+### OpenMP conflicts on macOS
+
+A pip environment created from a conda Python can load two incompatible
+OpenMP runtimes: pyFFTW's bundled `libomp.dylib` and the conda library used by
+Numba. Parallel calculations may report `OMP: Error #15` or crash with a
+segmentation fault.
+
+For simulations launched sequentially from one Python thread, select Numba's
+built-in `workqueue` backend before starting Python:
+
+```bash
+export NUMBA_THREADING_LAYER=workqueue
+python your_simulation.py
+```
+
+This retains the radiation calculation and changes its threading backend.
+The `workqueue` backend does not support concurrent or nested parallel calls.
+For those workflows, use an environment with compatible OpenMP libraries or a
+supported TBB installation. See the
+[Numba threading documentation](https://numba.readthedocs.io/en/stable/user/threading-layer.html).
+Setting `KMP_DUPLICATE_LIB_OK=True` does not fix incompatible runtimes and can
+turn the initialization error into a crash.
 
 # Getting Started: Simplest Accelerator Structure
 
@@ -139,15 +203,15 @@ print(f"total length {lat.totalLen}")
 
 ## Calculating Twiss Parameters
 
-Twiss parameters can be calculated using the twiss() function. If initial Twiss parameters are not provided, 
-the function will attempt to find a periodic solution:
+Use `periodic_twiss()` when the lattice should determine the initial periodic
+optics:
 
 
 ```python
-tws = ocl.twiss(lat)
+tws = ocl.periodic_twiss(lat)
 ```
 
-The twiss function returns a list of Twiss objects, each containing various beam parameters. 
+The function returns a list of Twiss objects, each containing various beam parameters.
 To display key parameters of the first Twiss object:
 
 
@@ -196,7 +260,7 @@ plt.show()
 
 ## Specifying Initial Twiss Parameters
 
-If known, initial Twiss parameters can be passed as an argument tws0:
+If known, explicit initial Twiss parameters are propagated with `twiss()`:
 
 
 ```python

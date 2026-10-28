@@ -34,7 +34,7 @@ A survey computes the **global positions and orientations** of beamline elements
 ## Requirements
 
 - Core survey and layout functionality requires only Ocelot and its numerical dependencies.
-- **2D plotting** relies on standard plotting libraries.
+- **2D plotting** uses Matplotlib, included with Ocelot.
 - **3D plotting (optional)** requires **[Plotly](https://plotly.com)**.
 
 If [Plotly](https://plotly.com) is not installed, all survey functionality and 2D visualization remain available.
@@ -43,6 +43,17 @@ If [Plotly](https://plotly.com) is not installed, all survey functionality and 2
 > [Plotly](https://plotly.com) is used only for interactive 3D visualization and is intentionally kept outside `ocelot.cpbd`.
 
 
+Install the notebook tools and optional tutorial dependencies from the repository root:
+
+```bash
+pip install -e ".[tutorials]"
+```
+
+For an installed Ocelot package, use `pip install "ocelot-collab[tutorials]"`.
+To add only the 3D plotting dependency in an existing notebook environment, run
+`%pip install "ocelot-collab[plotly]"` in a cell. Without Plotly, the 3D example
+prints an installation hint and is skipped; the remaining examples still run.
+
 
 ```python
 from ocelot import *
@@ -50,7 +61,6 @@ from ocelot import *
 # New survey class / plotting
 from ocelot.cpbd.layout import MachineLayout
 from ocelot.gui.layout_2d import plot_layout_2d
-from ocelot.gui.layout_3d import plot_layout_3d
 ```
 
     initializing ocelot...
@@ -330,13 +340,20 @@ These attributes do **not** affect beam dynamics or tracking.
 
 
 ```python
-fig = plot_layout_3d(
-    facility,
-    show_orbit=True,
-    show_elements=True,
-    title="Facility Layout (3D)"
-)
-fig.show()
+from importlib.util import find_spec
+
+if find_spec("plotly") is None:
+    print('Skipping optional 3D plot. To enable it, run: %pip install "ocelot-collab[plotly]"')
+else:
+    from ocelot.gui.layout_3d import plot_layout_3d
+
+    fig = plot_layout_3d(
+        facility,
+        show_orbit=True,
+        show_elements=True,
+        title="Facility Layout (3D)"
+    )
+    fig.show()
 ```
 
 

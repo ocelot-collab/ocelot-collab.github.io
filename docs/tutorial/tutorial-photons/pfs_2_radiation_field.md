@@ -559,7 +559,7 @@ RaidationField can be interpolated with `dfl_interp()` function.
 
 When `newN` and `newL` are not None, `interpN` and `interpL` values are ignored.
 
-Here `scipy.interpolate.interp2d` method is used
+Interpolation uses `scipy.interpolate.RectBivariateSpline`, with zeros outside the original grid.
 
 
 ```python

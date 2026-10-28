@@ -185,7 +185,7 @@ r_{55}^{\mathrm{cor}} =
 -\frac{k z V_{\mathrm{seg}}}{2 m_e c^2 \gamma_i^3 \beta_i^2}
 $$
 
-This is exactly the branch structure implemented in `CavityAtom._R_main_matrix(...)`.
+The longitudinal coefficients are implemented in `ocelot.cpbd.rf_maps` and shared by `Cavity` and `TWCavity`.
 
 If `v = 0`, the code falls back to the drift-like `uni_matrix(...)` result.
 
@@ -273,6 +273,39 @@ These methods package the same linear `R`, `B`, and `tilt` data together with `v
 - adds the cavity-specific longitudinal RF update in `map4cav(...)` for the `MAIN` map
 
 For `ENTRANCE` and `EXIT`, `CavityTM` behaves like a linear first-order map, which is exactly what is needed for the coupler-kick pieces.
+
+## Travelling-wave structures
+
+Use `TWCavity` for a uniform travelling-wave accelerating structure:
+
+```python
+import ocelot as ocl
+
+cavity = ocl.TWCavity(l=1.0, v=0.02, phi=25.0, freq=1.3e9)
+lattice = ocl.MagneticLattice([cavity])
+seed = ocl.Twiss(E=0.15, beta_x=1.2, beta_y=2.1)
+optics = ocl.twiss(lattice, seed)
+```
+
+The voltage is the total structure voltage in GV; the example uses 20 MV.
+Energy is total electron energy in GeV. The reference energy gain is
+`v*cos(phi)`, with `phi` in degrees.
+
+`TWCavity` uses entrance and exit focusing lenses and a body with adiabatic
+momentum damping, without standing-wave body focusing or coupler kicks.
+Its active tracking method is `TWCavityTM`; first-order maps remain available
+for Twiss propagation. The transverse damping is the entrance-to-exit momentum
+ratio. Twiss propagation removes the damping measured from the transverse map,
+so its beta and alpha functions remain consistent with particle tracking even
+when momentum and energy ratios differ appreciably.
+
+The structure uses a uniform gradient and fixed reference phase, without
+phase slippage or a transverse RF force in the body. The shared longitudinal
+RF approximation retains the standing-wave model's limitations, including
+finite-beta matrix/tracking differences and sensitivity to slicing at low
+energy. The improved transverse momentum map does not remove those limits.
+To slice a cavity during `track`, attach a physics process across it;
+changing `Navigator.unit_step` alone does not subdivide elements.
 
 ## Example of Use
 

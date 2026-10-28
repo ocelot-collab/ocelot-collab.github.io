@@ -162,19 +162,21 @@ print(R)
 ```
 ### Optical function calculation
 Uses: 
-* twiss() function and,
+* twiss() and periodic_twiss() functions and,
 * Twiss() object contains Twiss parameters and other information at one certain position (s) of lattice
 
-To calculate Twiss parameters you have to run **twiss(lattice, tws0=None, nPoints=None)** function. If you want to get a periodic solution leave tws0 by default. 
+Use **twiss(lattice, tws0, nPoints=None)** to propagate explicit initial
+Twiss parameters. Use **periodic_twiss(lattice, nPoints=None)** to calculate
+and propagate a periodic solution.
 
 You can change the number of points over the cell, If nPoints=None, then Twiss parameters are calculated at the end of each element.
-twiss() function returns list of Twiss() objects.
+Both functions return a list of Twiss() objects.
 
 ##### You will see the Twiss object contains more information than just Twiss parameters. 
 
 
 ```python
-tws = twiss(lat, nPoints=1000)
+tws = periodic_twiss(lat, nPoints=1000)
 
 # to see Twiss parameters at the beginning of the cell, uncomment next line
 # print(tws[0])
@@ -238,7 +240,7 @@ Q4.k1 = 1.18
 
 # recalculate twiss parameters. Argument nPoints is None by default - Twiss is calculating at the end of each element. 
 # If you want smooth twiss functions you can set number of points. 
-tws=twiss(lat, nPoints=1000)
+tws = periodic_twiss(lat, nPoints=1000)
 
 plot_opt_func(lat, tws, legend=False)
 plt.show()
@@ -264,7 +266,7 @@ fodo_cell = (qf_h, d, c, d, qd, d,c,d,qf_h)
 lat = MagneticLattice(fodo_cell)
 
 tws0 = Twiss(E=0.5) # E = 0.5 GeV. Initial energy is required for the focusing effect caclulation in the Cavities 
-tws = twiss(lat, tws0)
+tws = periodic_twiss(lat, tws0)
 plot_opt_func(lat, tws)
 plt.show()
 print("final Twiss:", tws[-1])
@@ -301,8 +303,8 @@ print("final Twiss:", tws[-1])
 
 
 ```python
-tws_p = lat.periodic_twiss(tws=tws0)
-print(tws_p)
+tws_p = periodic_twiss(lat, tws0)
+print(tws_p[0])
 
 
     emit_x  = 0.0
@@ -324,7 +326,6 @@ print(tws_p)
     E       = 0.5
     s        = 0.0
 ```
-
 
 
 

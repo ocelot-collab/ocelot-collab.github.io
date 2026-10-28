@@ -98,7 +98,7 @@ fodo = cell*5
 **Note**
 
 * In the most cases to find twiss periodical solution we do not need to put the initial conditions and we can use following command to calculate twiss parameters:
-**tws = twiss(lat)**
+**tws = periodic_twiss(lat)**
 
 **BUT**
 
@@ -111,14 +111,12 @@ fodo = cell*5
 lat_fodo = MagneticLattice(fodo)
 
 tws0 = Twiss()
-# by default the all parameters are zero and
-# that what we need to force the twiss function
-# to calculate periodic solution
+# The seed supplies the energy needed to calculate focusing.
 
 # And we need to define the beam energy
 tws0.E = 1 # GeV
 
-tws = twiss(lat_fodo, tws0=tws0)
+tws = periodic_twiss(lat_fodo, tws0=tws0)
 
 plot_opt_func(lat_fodo, tws, legend=False)
 plt.show()
@@ -159,7 +157,7 @@ print("QD.k1 = ", QD.k1)
 tws0=Twiss()
 tws0.E = 1 # GeV
 
-tws = twiss(lat_fodo, tws0=tws0)
+tws = periodic_twiss(lat_fodo, tws0=tws0)
 
 # let's variable *tws_fodo* will be the twiss
 # parameters on the FODO entrance

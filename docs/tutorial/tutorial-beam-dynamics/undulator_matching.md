@@ -332,7 +332,7 @@ m2 = Marker()
 fodo_cell = [m1, qd, d1, u40, d2, qf, d1, u40, d2, qd, m2]
 fodo_lat = MagneticLattice(fodo_cell)
 
-tws = twiss(fodo_lat, nPoints=1000)
+tws = periodic_twiss(fodo_lat, nPoints=1000)
 
 plot_opt_func(fodo_lat, tws, top_plot=["mux", "muy"], legend=False)
 plt.show()
@@ -353,7 +353,7 @@ def beta(k):
     qd.k1 = -k
     qf.k1 = k
     fodo_lat.update_transfer_maps()
-    tws = twiss(fodo_lat, nPoints=1000)
+    tws = periodic_twiss(fodo_lat, nPoints=1000)
     bx = np.array([tw.beta_x for tw in tws])
     s = np.array([tw.s for tw in tws])
     bx_av = simpson(bx, x=s)/fodo_lat.totalLen

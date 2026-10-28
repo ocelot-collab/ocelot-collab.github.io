@@ -24,8 +24,6 @@ This notebook was created to show some small functions that may be useful for ac
 from ocelot import *
 from ocelot.gui.accelerator import *
 import copy
-import pandas as pd
-import seaborn as sbn
 import time
 import matplotlib.pyplot as plt
 ```
@@ -138,8 +136,14 @@ start = time.time()
 trans_response = scan(A1, A2)
 
 print(f" exec n_tracks={len(A2) * len(A1)}:  {time.time() - start} s")
-df = pd.DataFrame(trans_response, index=A2, columns=A1)
-sbn.heatmap(df)
+fig, ax = plt.subplots()
+image = ax.imshow(trans_response, aspect="auto", cmap="viridis")
+ax.set_xticks(np.arange(len(A1)), labels=[f"{a * 1e3:g}" for a in A1], rotation=90)
+ax.set_yticks(np.arange(len(A2)), labels=[f"{a * 1e3:g}" for a in A2])
+ax.set_xlabel("Corrector 1 angle [mrad]")
+ax.set_ylabel("Corrector 2 angle [mrad]")
+fig.colorbar(image, ax=ax, label="Transmission")
+fig.tight_layout()
 plt.show()
 ```
 ```python
@@ -169,8 +173,14 @@ start = time.time()
 trans_response = scan(A1, A2)
 
 print(f" exec n_tracks={len(A2) * len(A1)}:  {time.time() - start} s")
-df = pd.DataFrame(trans_response, index=A2, columns=A1)
-sbn.heatmap(df)
+fig, ax = plt.subplots()
+image = ax.imshow(trans_response, aspect="auto", cmap="viridis")
+ax.set_xticks(np.arange(len(A1)), labels=[f"{a * 1e3:g}" for a in A1], rotation=90)
+ax.set_yticks(np.arange(len(A2)), labels=[f"{a * 1e3:g}" for a in A2])
+ax.set_xlabel("Corrector 1 angle [mrad]")
+ax.set_ylabel("Corrector 2 angle [mrad]")
+fig.colorbar(image, ax=ax, label="Transmission")
+fig.tight_layout()
 plt.show()
 ```
 ```python

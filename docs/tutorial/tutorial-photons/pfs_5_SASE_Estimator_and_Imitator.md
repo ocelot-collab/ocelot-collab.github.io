@@ -158,7 +158,7 @@ plot_estimator_energy_evo(fel, und_duty_factor=5/6.08)
 
 
 ```python
-np.trapz(fel.P_sn, fel.s / speed_of_light)
+np.trapezoid(fel.P_sn, fel.s / speed_of_light)
 ```
 
 
