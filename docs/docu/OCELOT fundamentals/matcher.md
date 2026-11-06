@@ -29,8 +29,8 @@ Compared with legacy `match.py`, matcher gives you:
 - Linked variables for shared hardware (for example one power supply driving
   several quads).
 - Direct support for Twiss targets, selected periodic Twiss targets,
-  global Twiss limits, Twiss deltas, R-matrix targets, propagated Twiss phase
-  targets, and matrix-based Floquet targets.
+  global Twiss limits, Twiss deltas, R-matrix targets, and propagated Twiss
+  phase targets.
 - Better diagnostics in solve result (`target_reports`, `objective_reports`).
 
 Legacy `cpbd.match.py` can still coexist. New scripts can adopt matcher
@@ -55,7 +55,7 @@ Everything contributes residuals. The solver minimizes:
 - `Vary`: one optimization knob.
 - `PowerSupplyVary`: one knob applied to multiple elements with optional scales.
 - `Target` subclasses: Twiss, Twiss delta, global Twiss, R-matrix,
-  `PhaseAdvanceTarget`, `FloquetPhaseTarget`, etc.
+  `PhaseAdvanceTarget`, etc.
 - `Objective` subclasses: generic function objective, I5 objective, custom user
   objectives.
 - `MatchState`: optics snapshot for one evaluation.
@@ -87,7 +87,7 @@ Typical solve flow:
 1. Create `MatchProblem(lat, tw0, periodic=...)`.
 2. Add variables (`vary_element`, `vary_twiss`, `vary_linked_elements`).
 3. Add targets (`target_twiss`, `target_periodic_twiss`, `target_global`,
-   `target_twiss_delta`, `target_phase_advance`, `target_floquet_phase`, `target_rmatrix`,
+   `target_twiss_delta`, `target_phase_advance`, `target_rmatrix`,
    `target_rmatrix_block`, ...).
 4. Add objectives (`minimize_function`, `objective_function`,
    `minimize_i5_integral`, custom objective).
@@ -118,12 +118,12 @@ same relation option and defaults to `"=="`; it applies the relation to
 
 ## Phase Advance Targets
 
-Choose the target according to the phase quantity you want to constrain:
+Phase matching uses the phase advance calculated by Twiss propagation.
+Choose the API according to the section boundaries you need:
 
 | Method | Quantity | Section boundaries |
 | --- | --- | --- |
 | `target_phase_advance(...)` | Propagated Twiss phase, dependent on entrance Twiss | Entrance of `start` to exit of `end` |
-| `target_floquet_phase(...)` | Floquet phase/exponent of the transverse transfer matrix | Entrance of `start` to exit of `end` |
 | `target_twiss_delta(..., "mux"/"muy", wrap_phase=True)` | Difference of stored Twiss phases | Exit of `start` to exit of `end` |
 
 ### Propagated Twiss Phase
@@ -159,44 +159,14 @@ be finite and positive. Tolerance is applied after wrapping: an error inside
 above `tol`. Reports include the raw phase, configured period, wrapped phase
 error, and tolerance.
 
-### Floquet Phase and Unstable Maps
-
-`target_floquet_phase(...)` creates a `FloquetPhaseTarget`. This retains the
-matrix-based calculation independently of the supplied entrance Twiss. For
-uncoupled transverse motion, it uses the normalized trace of the selected
-2x2 block:
-
-```python
-trace(R_plane) / (2 * np.sqrt(np.linalg.det(R_plane)))
-```
-
-The determinant must be positive. Normalization also handles scaled transverse
-blocks in accelerating sections, using the energy at the entrance of `start`.
-A stable map has a real phase target; positive-real unstable eigenvalues use a
-positive imaginary exponent, and negative-real unstable eigenvalues use
-`np.pi` plus a positive imaginary exponent.
-
-```python
-problem.target_floquet_phase(start, end, "x", value=np.pi / 2, tol=1e-6)
-# For an unstable map, choose the appropriate exponent instead:
-problem.target_floquet_phase(start, end, "y", value=2j, tol=1e-6)
-```
-
-For sign-flipping unstable maps, use `value=np.pi + 2j`. This describes an
-unstable section map; it does not require a periodic Twiss solution. Use
-`periodic=False` when the full lattice has no periodic solution.
-
-The two phase definitions generally differ for unmatched entrance Twiss.
-For a stable uncoupled periodic cell with its matched Twiss, they agree modulo
-`2*pi`.
-
 ### Migrating Existing Phase Targets
 
-Earlier versions of `target_phase_advance(...)` computed the Floquet quantity.
-To keep that behavior, rename the call to `target_floquet_phase(...)`, including
-calls with real targets and calls with complex unstable-map targets. Direct
-imports of `FloquetPhaseTarget` remain supported. Use the new
-`target_phase_advance(...)` when you want the propagated Twiss phase.
+Phase targets now use propagated Twiss phase throughout. The former
+`FloquetPhaseTarget` and `target_floquet_phase()` API have been removed. Replace
+old target construction with `target_phase_advance(...)` or `PhaseAdvanceTarget`,
+specifying the entrance Twiss and a real phase angle in radians. Review old
+phase values because the result now depends on the chosen entrance optics;
+complex instability exponents are not accepted as phase targets.
 
 The existing positional `name`, `weight`, `tol`, `active`, and `tag` arguments
 retain their positions. The new `periodicity` option is keyword-only.
@@ -545,7 +515,7 @@ result = problem.solve(solver="ls_trf", max_iter=200)
 print(result.success, result.variables["DVAR_l"])
 ```
 
-### 9) Propagated Phase and Floquet Targets
+### 9) Target Phase Advance
 
 This complete example matches the propagated horizontal phase through a drift.
 Using the drift itself as both boundaries includes its full length:
@@ -570,31 +540,9 @@ result = problem.solve(solver="ls_trf", max_iter=100, tol=1e-12)
 print(result.success, drift.l)  # True, approximately 2.0 m
 ```
 
-For a matrix phase or instability exponent, use the separate Floquet API.
-A positive quadrupole focuses in x and defocuses in y; the following example
-matches its real x phase and imaginary y exponent:
-
-```python
-import ocelot as ocl
-from ocelot.cpbd.matcher import MatchProblem
-
-quad = ocl.Quadrupole(l=1.0, k1=0.64, eid="Q")
-lat = ocl.MagneticLattice([quad])
-tw0 = ocl.Twiss()
-tw0.beta_x = tw0.beta_y = 10.0
-tw0.E = 1.0
-
-problem = MatchProblem(lat, tw0, periodic=False)
-problem.vary_element(quad, "k1", limits=(0.01, 4.0))
-problem.target_floquet_phase(quad, quad, "x", value=1.2, weight=1e6, tol=1e-9)
-problem.target_floquet_phase(quad, quad, "y", value=1.2j, weight=1e6, tol=1e-9)
-result = problem.solve(solver="ls_trf", max_iter=100, tol=1e-12)
-print(result.success, quad.k1)  # True, approximately 1.44 m^-2
-```
-
-Both APIs include the start and end elements, matching
-`MagneticLattice.transfer_maps(start, stop)`. The propagated phase uses Twiss
-values, while the Floquet target uses `state.r_matrix(start, end)`.
+`target_phase_advance(...)` includes the start and end elements, matching
+`MagneticLattice.transfer_maps(start, stop)`. The phase itself is calculated
+from the propagated Twiss parameters.
 
 ### 10) Two Quadrupoles on One Power Supply
 
@@ -665,8 +613,7 @@ as equivalent in the tracked Twiss phase.
 
 This measures phase from the exit of `elem1` to the exit of `elem2`. It
 depends on the propagated Twiss. Use `target_phase_advance(...)` to include
-the start element, or `target_floquet_phase(...)` for a matrix phase independent
-of entrance Twiss.
+the start element.
 
 ```python
 import numpy as np
