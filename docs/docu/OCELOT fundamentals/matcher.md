@@ -29,8 +29,8 @@ Compared with legacy `match.py`, matcher gives you:
 - Linked variables for shared hardware (for example one power supply driving
   several quads).
 - Direct support for Twiss targets, selected periodic Twiss targets,
-  global Twiss limits, Twiss deltas, R-matrix targets, and R-matrix based
-  phase-advance/Floquet targets.
+  global Twiss limits, Twiss deltas, R-matrix targets, propagated Twiss phase
+  targets, and matrix-based Floquet targets.
 - Better diagnostics in solve result (`target_reports`, `objective_reports`).
 
 Legacy `cpbd.match.py` can still coexist. New scripts can adopt matcher
@@ -54,7 +54,8 @@ Everything contributes residuals. The solver minimizes:
   variables, targets, objectives, solve/evaluate entry points).
 - `Vary`: one optimization knob.
 - `PowerSupplyVary`: one knob applied to multiple elements with optional scales.
-- `Target` subclasses: Twiss, Twiss delta, global Twiss, R-matrix, etc.
+- `Target` subclasses: Twiss, Twiss delta, global Twiss, R-matrix,
+  `PhaseAdvanceTarget`, `FloquetPhaseTarget`, etc.
 - `Objective` subclasses: generic function objective, I5 objective, custom user
   objectives.
 - `MatchState`: optics snapshot for one evaluation.
@@ -65,8 +66,10 @@ Everything contributes residuals. The solver minimizes:
 During each evaluation, matcher builds a `MatchState` with:
 
 - `twiss_start`: effective initial Twiss used in this evaluation.
-- `twiss_by_element`: dictionary `element -> Twiss`.
-- `twiss_sequence`: ordered list of Twiss along lattice sequence.
+- `twiss_by_element`: dictionary of uniquely placed elements to their exit Twiss.
+- `twiss_at(element, occurrence=None)`: exit Twiss for a unique element, or for
+  an explicitly selected zero-based occurrence of a repeated element.
+- `twiss_sequence`: ordered exit Twiss values, one per lattice occurrence.
 - `twiss_end`: Twiss at end of line for current state.
 - `r_matrix(start, end)`: cached transfer matrix accessor.
 
@@ -84,7 +87,7 @@ Typical solve flow:
 1. Create `MatchProblem(lat, tw0, periodic=...)`.
 2. Add variables (`vary_element`, `vary_twiss`, `vary_linked_elements`).
 3. Add targets (`target_twiss`, `target_periodic_twiss`, `target_global`,
-   `target_twiss_delta`, `target_phase_advance`, `target_rmatrix`,
+   `target_twiss_delta`, `target_phase_advance`, `target_floquet_phase`, `target_rmatrix`,
    `target_rmatrix_block`, ...).
 4. Add objectives (`minimize_function`, `objective_function`,
    `minimize_i5_integral`, custom objective).
@@ -115,35 +118,21 @@ same relation option and defaults to `"=="`; it applies the relation to
 
 ## Phase Advance Targets
 
-There are two different phase quantities in the matcher:
+Choose the target according to the phase quantity you want to constrain:
 
-- `target_twiss_delta(..., "mux")` or `"muy"` uses the phase stored in tracked
-  Twiss objects. This is a delta of a propagated Twiss quantity. It depends on
-  the entrance Twiss unless that Twiss is the matched periodic Twiss for the
-  same map.
-- `target_phase_advance(...)` uses the transfer matrix block between two
-  elements and computes the Floquet phase/exponent from the normalized trace.
-  This is independent of the supplied entrance Twiss and is the right target
-  for matching a lattice or cell phase advance.
+| Method | Quantity | Section boundaries |
+| --- | --- | --- |
+| `target_phase_advance(...)` | Propagated Twiss phase, dependent on entrance Twiss | Entrance of `start` to exit of `end` |
+| `target_floquet_phase(...)` | Floquet phase/exponent of the transverse transfer matrix | Entrance of `start` to exit of `end` |
+| `target_twiss_delta(..., "mux"/"muy", wrap_phase=True)` | Difference of stored Twiss phases | Exit of `start` to exit of `end` |
 
-This distinction matters for unmatched optics. A lattice has one R-matrix and
-therefore one Floquet phase for a given transverse plane, but two different
-unmatched `twiss0` values can give different tracked `mux`/`muy` increments
-through the same lattice. Matching those tracked values can therefore converge
-to optics that satisfy the bookkeeping phase of the chosen Twiss frame, not the
-lattice eigenphase.
+### Propagated Twiss Phase
 
-For linacs and other accelerating sections, the 2x2 transverse block can be
-scaled so `det(R_plane)` is positive but not exactly one. The target therefore
-uses the normalized trace
-
-```python
-trace(R_plane) / (2 * np.sqrt(np.linalg.det(R_plane)))
-```
-
-instead of plain `trace(R_plane) / 2`.
-
-Use `target_phase_advance(...)` for cell phase matching:
+`target_phase_advance(...)` creates a `PhaseAdvanceTarget`. It measures the
+increase in `mux` or `muy` through the selected section. The entrance Twiss is
+propagated through any upstream elements, so it can change during optimization.
+With `periodic=True`, the initial Twiss is recomputed from the current lattice;
+with `periodic=False`, it comes from the supplied `tw0`.
 
 ```python
 problem.target_phase_advance(
@@ -156,20 +145,66 @@ problem.target_phase_advance(
 )
 ```
 
-The same target also covers unstable one-plane maps. Use a positive imaginary
-target for a positive hyperbolic Floquet exponent:
+Both boundary elements are included, even if they have finite length.
+`start=end` measures the phase through that one element. `None` selects the
+corresponding boundary of the full lattice. Each specified boundary must occur
+exactly once, and `end` must not precede `start`; repeated objects inside the
+section are allowed.
+
+The target value is a finite real angle in radians. Residuals use the shortest
+signed phase difference modulo `periodicity`, which defaults to `2*pi`.
+For matching modulo `pi`, pass `periodicity=np.pi` by keyword. The period must
+be finite and positive. Tolerance is applied after wrapping: an error inside
+`tol` gives zero residual, and an error outside contributes only its excess
+above `tol`. Reports include the raw phase, configured period, wrapped phase
+error, and tolerance.
+
+### Floquet Phase and Unstable Maps
+
+`target_floquet_phase(...)` creates a `FloquetPhaseTarget`. This retains the
+matrix-based calculation independently of the supplied entrance Twiss. For
+uncoupled transverse motion, it uses the normalized trace of the selected
+2x2 block:
 
 ```python
-problem.target_phase_advance(
-    start=lat.sequence[0],
-    end=lat.sequence[-1],
-    plane="x",
-    value=2j,
-    weight=1e6,
-)
+trace(R_plane) / (2 * np.sqrt(np.linalg.det(R_plane)))
 ```
 
-For sign-flipping unstable maps, use `np.pi + 2j`.
+The determinant must be positive. Normalization also handles scaled transverse
+blocks in accelerating sections, using the energy at the entrance of `start`.
+A stable map has a real phase target; positive-real unstable eigenvalues use a
+positive imaginary exponent, and negative-real unstable eigenvalues use
+`np.pi` plus a positive imaginary exponent.
+
+```python
+problem.target_floquet_phase(start, end, "x", value=np.pi / 2, tol=1e-6)
+# For an unstable map, choose the appropriate exponent instead:
+problem.target_floquet_phase(start, end, "y", value=2j, tol=1e-6)
+```
+
+For sign-flipping unstable maps, use `value=np.pi + 2j`. This describes an
+unstable section map; it does not require a periodic Twiss solution. Use
+`periodic=False` when the full lattice has no periodic solution.
+
+The two phase definitions generally differ for unmatched entrance Twiss.
+For a stable uncoupled periodic cell with its matched Twiss, they agree modulo
+`2*pi`.
+
+### Migrating Existing Phase Targets
+
+Earlier versions of `target_phase_advance(...)` computed the Floquet quantity.
+To keep that behavior, rename the call to `target_floquet_phase(...)`, including
+calls with real targets and calls with complex unstable-map targets. Direct
+imports of `FloquetPhaseTarget` remain supported. Use the new
+`target_phase_advance(...)` when you want the propagated Twiss phase.
+
+The existing positional `name`, `weight`, `tol`, `active`, and `tag` arguments
+retain their positions. The new `periodicity` option is keyword-only.
+
+`target_twiss_delta(..., wrap_phase=True)` remains available with its existing
+exit-to-exit convention. Replacing it with `target_phase_advance(...)` includes
+the start element, so the two calls are equivalent only when that element has
+no phase advance, for example a marker.
 
 ## Solvers and Bounds
 
@@ -510,50 +545,56 @@ result = problem.solve(solver="ls_trf", max_iter=200)
 print(result.success, result.variables["DVAR_l"])
 ```
 
-### 9) Target Phase Advance / Floquet Exponent
+### 9) Propagated Phase and Floquet Targets
 
-Use `target_phase_advance(...)` when the requested phase is a property of the
-transfer matrix between two elements. This is usually what you want for a cell
-or full-lattice phase target.
+This complete example matches the propagated horizontal phase through a drift.
+Using the drift itself as both boundaries includes its full length:
 
 ```python
 import numpy as np
+import ocelot as ocl
 from ocelot.cpbd.matcher import MatchProblem
 
-# Assume: lat, tw0, qf, qd are already defined.
-start = lat.sequence[0]
-end = lat.sequence[-1]
+drift = ocl.Drift(l=0.7, eid="D")
+lat = ocl.MagneticLattice([drift])
+tw0 = ocl.Twiss()
+tw0.beta_x = tw0.beta_y = 10.0
+tw0.E = 1.0
 
-problem = MatchProblem(lat, tw0, periodic=False)
-problem.vary_element(qf, quantity="k1", limits=(-5, 5))
-problem.vary_element(qd, quantity="k1", limits=(-5, 5))
-
-# Stable phase advance in the x plane.
+problem = MatchProblem(lat, tw0)
+problem.vary_element(drift, "l", limits=(0.0, 5.0))
 problem.target_phase_advance(
-    start=start,
-    end=end,
-    plane="x",
-    value=np.pi / 2.0,
-    weight=1e6,
-    tol=1e-6,
+    drift, drift, "x", value=np.arctan(2.0 / 10.0), weight=1e6, tol=1e-9
 )
-
-# Unstable y-plane target: positive Floquet exponent.
-problem.target_phase_advance(
-    start=start,
-    end=end,
-    plane="y",
-    value=2j,
-    weight=1e6,
-)
-
-result = problem.solve(solver="ls_trf", max_iter=300)
-print(result.success, result.merit)
+result = problem.solve(solver="ls_trf", max_iter=100, tol=1e-12)
+print(result.success, drift.l)  # True, approximately 2.0 m
 ```
 
-`target_phase_advance` uses `state.r_matrix(start, end)`. The `end` element is
-included, matching the standard `MagneticLattice.transfer_maps(start, stop)`
-convention.
+For a matrix phase or instability exponent, use the separate Floquet API.
+A positive quadrupole focuses in x and defocuses in y; the following example
+matches its real x phase and imaginary y exponent:
+
+```python
+import ocelot as ocl
+from ocelot.cpbd.matcher import MatchProblem
+
+quad = ocl.Quadrupole(l=1.0, k1=0.64, eid="Q")
+lat = ocl.MagneticLattice([quad])
+tw0 = ocl.Twiss()
+tw0.beta_x = tw0.beta_y = 10.0
+tw0.E = 1.0
+
+problem = MatchProblem(lat, tw0, periodic=False)
+problem.vary_element(quad, "k1", limits=(0.01, 4.0))
+problem.target_floquet_phase(quad, quad, "x", value=1.2, weight=1e6, tol=1e-9)
+problem.target_floquet_phase(quad, quad, "y", value=1.2j, weight=1e6, tol=1e-9)
+result = problem.solve(solver="ls_trf", max_iter=100, tol=1e-12)
+print(result.success, quad.k1)  # True, approximately 1.44 m^-2
+```
+
+Both APIs include the start and end elements, matching
+`MagneticLattice.transfer_maps(start, stop)`. The propagated phase uses Twiss
+values, while the Floquet target uses `state.r_matrix(start, end)`.
 
 ### 10) Two Quadrupoles on One Power Supply
 
@@ -622,10 +663,10 @@ problem.objective_function(
 For `mux`/`muy` delta targets, phase values differing by `2*pi` can be treated
 as equivalent in the tracked Twiss phase.
 
-Use this only when you intentionally want a delta of the propagated Twiss
-quantity. For lattice or cell phase matching, prefer `target_phase_advance(...)`
-because it uses the transfer matrix and does not depend on unmatched entrance
-Twiss.
+This measures phase from the exit of `elem1` to the exit of `elem2`. It
+depends on the propagated Twiss. Use `target_phase_advance(...)` to include
+the start element, or `target_floquet_phase(...)` for a matrix phase independent
+of entrance Twiss.
 
 ```python
 import numpy as np
